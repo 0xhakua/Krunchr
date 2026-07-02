@@ -4,9 +4,10 @@ import { cn } from '@/lib/utils'
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number
   max?: number
+  indicatorClassName?: string
 }
 
-export function Progress({ value, max = 100, className, ...props }: ProgressProps) {
+export function Progress({ value, max = 100, className, indicatorClassName, ...props }: ProgressProps) {
   const percent = Math.min(Math.max((value / max) * 100, 0), 100)
   return (
     <div
@@ -14,7 +15,7 @@ export function Progress({ value, max = 100, className, ...props }: ProgressProp
       {...props}
     >
       <div
-        className={cn('h-full rounded-full transition-all', percent >= 80 ? 'bg-red-500' : 'bg-primary')}
+        className={cn('h-full rounded-full transition-all', percent >= 80 ? 'bg-red-500' : 'bg-primary', indicatorClassName)}
         style={{ width: `${percent}%` }}
       />
     </div>

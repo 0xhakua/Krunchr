@@ -3,7 +3,8 @@ import Decimal from 'decimal.js'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { determineReturnStatus, getReturnBlockReason } from '@/lib/computation/sequence'
-import { getSequence, VAT_THRESHOLD } from '@/lib/computation/constants'
+import { VAT_WARNING_THRESHOLD, VAT_THRESHOLD } from '@/lib/computation/vat-threshold'
+import { getSequence } from '@/lib/computation/constants'
 import {
   ACTIVE_YEAR_QUERY,
   getActiveYearFromRequest,
@@ -60,9 +61,13 @@ export async function GET(request: Request) {
         returns: [],
         ytd: {
           totalGross: '₱0.00',
+          ytdGross: '0.00',
           totalCwt: '₱0.00',
           vatThreshold: VAT_THRESHOLD.toString(),
+          warningThreshold: VAT_WARNING_THRESHOLD.toString(),
           vatThresholdPercent: 0,
+          vatBreached: false,
+          vatBreachDate: null,
         },
         upcoming: [],
         progress: { filedCount: 0, totalCount: 0, percent: 0 },
@@ -175,9 +180,13 @@ export async function GET(request: Request) {
       returns,
       ytd: {
         totalGross: formatPeso(totalGross),
+        ytdGross: totalGross.toFixed(2),
         totalCwt: formatPeso(totalCwt),
         vatThreshold: VAT_THRESHOLD.toString(),
+        warningThreshold: VAT_WARNING_THRESHOLD.toString(),
         vatThresholdPercent,
+        vatBreached: taxYear.vatBreached,
+        vatBreachDate: taxYear.vatBreachDate?.toISOString() ?? null,
       },
       upcoming,
       nextReturnId: nextReturn?.id ?? null,
