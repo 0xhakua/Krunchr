@@ -23,6 +23,9 @@ export async function createTaxpayerProfile(
   userId: string,
   overrides: Partial<{
     tin: string
+    firstName: string
+    lastName: string
+    middleInitial: string
     fullName: string
     rdoCode: string
     registeredAddress: string
@@ -33,11 +36,20 @@ export async function createTaxpayerProfile(
     isNewRegistrant: boolean
   }> = {}
 ) {
+  const firstName = overrides.firstName ?? 'Test'
+  const lastName = overrides.lastName ?? 'Taxpayer'
+  const middleInitial = overrides.middleInitial ?? ''
+  const fullName =
+    overrides.fullName ??
+    `${lastName}, ${firstName}${middleInitial ? ` ${middleInitial}.` : ''}`
   return prisma.taxpayerProfile.create({
     data: {
       userId,
       tin: overrides.tin ?? `123-456-789-${Math.floor(Math.random() * 9000) + 1000}`,
-      fullName: overrides.fullName ?? 'Test Taxpayer',
+      firstName,
+      lastName,
+      middleInitial,
+      fullName,
       rdoCode: overrides.rdoCode ?? '040',
       registeredAddress: overrides.registeredAddress ?? '123 Test St',
       zipCode: overrides.zipCode ?? '1200',

@@ -29,6 +29,9 @@ model TaxpayerProfile {
   userId            String     @unique
   user              User       @relation(fields: [userId], references: [id])
   tin               String     @unique  // NNN-NNN-NNN-NNNN
+  firstName         String?
+  lastName          String?
+  middleInitial     String?
   fullName          String
   rdoCode           String
   registeredAddress String

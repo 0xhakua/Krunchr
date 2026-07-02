@@ -55,7 +55,9 @@ export default function OnboardingPage() {
 
   const [form, setForm] = useState({
     tin: '',
-    fullName: '',
+    firstName: '',
+    lastName: '',
+    middleInitial: '',
     rdoCode: '',
     registeredAddress: '',
     zipCode: '',
@@ -126,7 +128,9 @@ export default function OnboardingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tin: form.tin,
-          fullName: form.fullName,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          middleInitial: form.middleInitial || undefined,
           rdoCode: form.rdoCode,
           registeredAddress: form.registeredAddress,
           zipCode: form.zipCode,
@@ -173,15 +177,42 @@ export default function OnboardingPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  id="fullName"
-                  value={form.fullName}
-                  onChange={(e) => updateField('fullName', e.target.value)}
+                  id="firstName"
+                  value={form.firstName}
+                  onChange={(e) => updateField('firstName', e.target.value)}
                   required
                 />
-                {fieldError('fullName') && (
-                  <p className="text-sm text-red-600">{fieldError('fullName')}</p>
+                {fieldError('firstName') && (
+                  <p className="text-sm text-red-600">{fieldError('firstName')}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={form.lastName}
+                  onChange={(e) => updateField('lastName', e.target.value)}
+                  required
+                />
+                {fieldError('lastName') && (
+                  <p className="text-sm text-red-600">{fieldError('lastName')}</p>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="middleInitial">Middle Initial</Label>
+                <Input
+                  id="middleInitial"
+                  value={form.middleInitial}
+                  onChange={(e) => updateField('middleInitial', e.target.value.toUpperCase())}
+                  placeholder="J"
+                  maxLength={2}
+                />
+                {fieldError('middleInitial') && (
+                  <p className="text-sm text-red-600">{fieldError('middleInitial')}</p>
                 )}
               </div>
               <div className="space-y-2">
