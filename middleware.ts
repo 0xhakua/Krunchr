@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { requireAuth } from './lib/auth/session'
+import { unsupportedMediaType } from './lib/api-error'
 
 // Run middleware in the Node.js runtime so it can access Prisma and the full
 // Node crypto stack used by jose. The Edge runtime silently fails auth checks
@@ -9,8 +10,28 @@ export const runtime = 'nodejs'
 
 const PUBLIC_PATHS = ['/login', '/api/auth/login']
 
+function isJsonApiRoute(req: NextRequest): boolean {
+  const { pathname } = req.nextUrl
+  const method = req.method ?? ''
+
+  if (!pathname.startsWith('/api/')) return false
+  if (!['POST', 'PUT', 'PATCH'].includes(method)) return false
+
+  // Bulk holiday import accepts text/csv or text/plain.
+  if (pathname === '/api/admin/holidays' && method === 'PUT') return false
+
+  return true
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+
+  if (isJsonApiRoute(req)) {
+    const contentType = req.headers.get('content-type') ?? ''
+    if (!contentType.includes('application/json')) {
+      return unsupportedMediaType('application/json')
+    }
+  }
 
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.next()
