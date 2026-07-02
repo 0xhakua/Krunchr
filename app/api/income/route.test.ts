@@ -6,7 +6,23 @@ import { createTaxpayerWithYear, createATCCode, seedReferenceData } from '@/lib/
 import { signToken } from '@/lib/auth/session'
 import { VAT_THRESHOLD, VAT_WARNING_THRESHOLD } from '@/lib/computation/vat-threshold'
 
+function unauthRequest() {
+  return new NextRequest('http://localhost/api/income', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quarter: 1 }),
+  })
+}
+
 describe('POST /api/income', () => {
+  it('returns 401 when the request is unauthenticated (S9.3)', async () => {
+    // No Cookie header: requireAuth reads an empty token from the request
+    // and returns null, so the route short-circuits with 401.
+    const res = await POST(unauthRequest())
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body).toEqual({ error: 'Unauthorized' })
+  })
   it('returns VAT status and records breach when threshold is crossed', async () => {
     await seedReferenceData()
     const { user, taxYear } = await createTaxpayerWithYear()

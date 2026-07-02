@@ -27,6 +27,17 @@ const basePayload = {
 }
 
 describe('POST /api/taxpayer', () => {
+  it('returns 401 when the request is unauthenticated (S9.3)', async () => {
+    const req = new NextRequest('http://localhost/api/taxpayer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(basePayload),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body).toEqual({ error: 'Unauthorized' })
+  })
   it('pre-confirms 8% election when isNewRegistrant is true', async () => {
     await seedReferenceData()
     const user = await createUser()
