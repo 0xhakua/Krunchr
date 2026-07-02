@@ -4,6 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { initializeTaxYear } from '@/lib/tax-year'
 import { taxpayerSchema } from '@/lib/validation/schemas'
 
+function composeFullName(
+  firstName: string,
+  lastName: string,
+  middleInitial?: string
+): string {
+  const suffix = middleInitial ? ` ${middleInitial.trim()}.` : ''
+  return `${lastName.trim()}, ${firstName.trim()}${suffix}`
+}
+
 export async function GET(req: NextRequest) {
   const session = await requireAuth(req)
   if (!session) {
@@ -92,7 +101,10 @@ export async function POST(req: NextRequest) {
         data: {
           userId: session.sub,
           tin: data.tin,
-          fullName: data.fullName,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          middleInitial: data.middleInitial,
+          fullName: composeFullName(data.firstName, data.lastName, data.middleInitial),
           rdoCode: data.rdoCode,
           registeredAddress: data.registeredAddress,
           zipCode: data.zipCode,
@@ -185,11 +197,21 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    const firstName = data.firstName ?? existingProfile.firstName ?? ''
+    const lastName = data.lastName ?? existingProfile.lastName ?? ''
+    const middleInitial =
+      data.middleInitial !== undefined
+        ? data.middleInitial
+        : existingProfile.middleInitial
+
     const updated = await prisma.taxpayerProfile.update({
       where: { userId: session.sub },
       data: {
         ...(data.tin && { tin: data.tin }),
-        ...(data.fullName && { fullName: data.fullName }),
+        ...(data.firstName && { firstName: data.firstName }),
+        ...(data.lastName && { lastName: data.lastName }),
+        ...(data.middleInitial !== undefined && { middleInitial: data.middleInitial }),
+        fullName: composeFullName(firstName, lastName, middleInitial ?? undefined),
         ...(data.rdoCode && { rdoCode: data.rdoCode }),
         ...(data.registeredAddress && { registeredAddress: data.registeredAddress }),
         ...(data.zipCode && { zipCode: data.zipCode }),

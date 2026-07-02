@@ -16,7 +16,9 @@ async function makeRequest(userId: string, body: object): Promise<NextRequest> {
 
 const basePayload = {
   tin: '123-456-789-9999',
-  fullName: 'New Registrant',
+  firstName: 'New',
+  lastName: 'Registrant',
+  middleInitial: 'R',
   rdoCode: '040',
   registeredAddress: '123 Test St',
   zipCode: '1200',

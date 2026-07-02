@@ -79,7 +79,9 @@ describe('loginSchema (POST /api/auth/login)', () => {
 describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
   const valid = {
     tin: '123-456-789-0123',
-    fullName: 'Maria Clara',
+    firstName: 'Maria',
+    lastName: 'Dela Cruz',
+    middleInitial: 'S',
     rdoCode: '040',
     registeredAddress: '1 Test St',
     zipCode: '1200',
@@ -95,6 +97,12 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
     expect(taxpayerSchema.safeParse(valid).success).toBe(true)
   })
 
+  it('accepts a payload without middleInitial', () => {
+    const { middleInitial: _middleInitial, ...rest } = valid
+    void _middleInitial
+    expect(taxpayerSchema.safeParse(rest).success).toBe(true)
+  })
+
   it('rejects an invalid TIN with the documented NNN-NNN-NNN-NNNN error', () => {
     const result = taxpayerSchema.safeParse({ ...valid, tin: 'not-a-tin' })
     expect(result.success).toBe(false)
@@ -103,6 +111,15 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
       const tinError = flat.fieldErrors.tin?.[0]
       expect(tinError).toMatch(/NNN-NNN-NNN-NNNN/)
     }
+  })
+
+  it('rejects empty first or last name', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, firstName: '' }).success).toBe(false)
+    expect(taxpayerSchema.safeParse({ ...valid, lastName: '' }).success).toBe(false)
+  })
+
+  it('rejects a middleInitial longer than 2 characters', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, middleInitial: 'ABC' }).success).toBe(false)
   })
 
   it('rejects an empty atcCodes array with a custom message', () => {

@@ -26,7 +26,12 @@ export const loginSchema = z.object({
 // ---- POST /api/taxpayer (and PUT) -------------------------------------------
 export const taxpayerSchema = z.object({
   tin: z.string().regex(tinRegex, 'TIN must be in format NNN-NNN-NNN-NNNN'),
-  fullName: z.string().min(1),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  middleInitial: z
+    .string()
+    .max(2, 'Middle initial must be at most 2 characters')
+    .optional(),
   rdoCode: z.string().min(1),
   registeredAddress: z.string().min(1),
   zipCode: z.string().min(1),
