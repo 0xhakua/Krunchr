@@ -121,7 +121,24 @@ describe('POST /api/taxpayer', () => {
     expect(json.fieldErrors.tin).not.toHaveProperty('_errors')
   })
 
-  // S7.3 (#70): when COR does not include 2551Q, the taxpayer is on the
+  it('rejects an unknown Philippine ZIP code with a field error', async () => {
+    await seedReferenceData()
+    const user = await createUser()
+    const atc = await createATCCode({ code: 'WI990', ewtRate: 0.1 })
+
+    const req = await makeRequest(user.id, {
+      ...basePayload,
+      zipCode: '9999',
+      atcCodes: [atc.code],
+    })
+
+    const res = await POST(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(Array.isArray(json.fieldErrors.zipCode)).toBe(true)
+    expect(json.fieldErrors.zipCode[0]).toMatch(/known Philippine ZIP code/i)
+  })
   // 4-return path. The onboarding API must persist the flag and
   // initialize exactly 4 TaxReturn slots (3 × 1701Q + 1 × 1701A/1701),
   // not the 8-slot default. See BR-14.

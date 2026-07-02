@@ -136,6 +136,16 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects an unknown or invalid ZIP code', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, zipCode: '9999' }).success).toBe(false)
+    expect(taxpayerSchema.safeParse({ ...valid, zipCode: '12' }).success).toBe(false)
+    expect(taxpayerSchema.safeParse({ ...valid, zipCode: 'abcd' }).success).toBe(false)
+  })
+
+  it('accepts a known Philippine ZIP code', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, zipCode: '1200' }).success).toBe(true)
+  })
+
   it('rejects a tax year outside 2000–2100', () => {
     expect(taxpayerSchema.safeParse({ ...valid, taxYear: 1999 }).success).toBe(false)
     expect(taxpayerSchema.safeParse({ ...valid, taxYear: 2101 }).success).toBe(false)
