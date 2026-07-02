@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { hashPassword } from '@/lib/auth/password'
 import { prisma } from '@/lib/prisma'
+import { adminUsersPatchSchema, adminUsersResetSchema } from '@/lib/validation/schemas'
 
 function generateTempPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
@@ -66,10 +66,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export const patchSchema = z.object({
-  userId: z.string().min(1),
-  isActive: z.boolean(),
-})
+const patchSchema = adminUsersPatchSchema
 
 export async function PATCH(req: NextRequest) {
   const session = await requireAuth()
@@ -134,9 +131,7 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
-export const resetSchema = z.object({
-  userId: z.string().min(1),
-})
+const resetSchema = adminUsersResetSchema
 
 export async function POST(req: NextRequest) {
   const session = await requireAuth()

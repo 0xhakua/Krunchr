@@ -1,35 +1,35 @@
 import { describe, expect, it } from 'vitest'
-import { loginSchema } from '@/app/api/auth/login/route'
 import {
-  patchSchema as adminUsersPatchSchema,
-  resetSchema as adminUsersResetSchema,
-} from '@/app/api/admin/users/route'
-import { taxpayerSchema, tinRegex } from '@/app/api/taxpayer/route'
-import {
-  createSchema as holidaysCreateSchema,
-  deleteSchema as holidaysDeleteSchema,
-  bulkRowSchema as holidaysBulkRowSchema,
-  bulkImportSchema as holidaysBulkImportSchema,
-} from '@/app/api/admin/holidays/route'
-import { simulateSchema } from '@/app/api/penalties/simulate/route'
-import {
-  upsertSchema as rdoUpsertSchema,
-  updateSchema as rdoUpdateSchema,
-  deleteSchema as rdoDeleteSchema,
-} from '@/app/api/admin/rdo-penalties/route'
-import {
-  createSchema as atcCreateSchema,
-  updateSchema as atcUpdateSchema,
-  deleteSchema as atcDeleteSchema,
-} from '@/app/api/admin/atc/route'
-import {
-  dispositionSchema,
-  settlementSchema,
-} from '@/app/api/overpayment/[taxYear]/route'
-import { createSchema as priorYearCreditCreateSchema } from '@/app/api/prior-year-credit/route'
-import { certificateSchema } from '@/app/api/income/route'
-import { certificateUpdateSchema } from '@/app/api/income/[id]/route'
-import { electionSchema } from '@/app/api/election/route'
+  adminUsersPatchSchema,
+  adminUsersResetSchema,
+  atcCreateSchema,
+  atcDeleteSchema,
+  atcUpdateSchema,
+  certificateSchema,
+  certificateUpdateSchema,
+  electionSchema,
+  holidaysBulkImportSchema,
+  holidaysBulkRowSchema,
+  holidaysCreateSchema,
+  holidaysDeleteSchema,
+  loginSchema,
+  overpaymentDispositionSchema,
+  overpaymentSettlementSchema,
+  penaltiesSimulateSchema,
+  priorYearCreditCreateSchema,
+  rdoDeleteSchema,
+  rdoUpdateSchema,
+  rdoUpsertSchema,
+  taxpayerSchema,
+  tinRegex,
+} from '@/lib/validation/schemas'
+
+// Shorter aliases for the test file body. The canonical names live in
+// lib/validation/schemas; this file references them under the names that
+// the route handler uses.
+const dispositionSchema = overpaymentDispositionSchema
+const settlementSchema = overpaymentSettlementSchema
+const simulateSchema = penaltiesSimulateSchema
 
 // TIN regex is re-exported from app/api/taxpayer/route.ts; this guard
 // is the single source of truth for the NNN-NNN-NNN-NNNN format the

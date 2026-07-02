@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { signToken, verifyPassword, setSessionCookie } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-
-export const loginSchema = z.object({
-  username: z.string().min(1),
-  password: z.string().min(1),
-})
+import { loginSchema } from '@/lib/validation/schemas'
 
 export async function POST(req: NextRequest) {
   try {

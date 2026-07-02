@@ -1,50 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Decimal from 'decimal.js'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
+import {
+  rdoDeleteSchema,
+  rdoUpdateSchema,
+  rdoUpsertSchema,
+} from '@/lib/validation/schemas'
 
-export const upsertSchema = z.object({
-  rdoCode: z
-    .string()
-    .min(1)
-    .max(10)
-    .transform((v) => v.trim().toUpperCase()),
-  compromiseFee: z
-    .string()
-    .regex(/^\d+(\.\d{1,2})?$/, 'compromiseFee must be a positive decimal with up to 2 places')
-    .refine(
-      (v) => {
-        try {
-          return new Decimal(v).greaterThan(0)
-        } catch {
-          return false
-        }
-      },
-      'compromiseFee must be greater than zero'
-    ),
-})
-
-export const updateSchema = z.object({
-  id: z.string().min(1),
-  compromiseFee: z
-    .string()
-    .regex(/^\d+(\.\d{1,2})?$/, 'compromiseFee must be a positive decimal with up to 2 places')
-    .refine(
-      (v) => {
-        try {
-          return new Decimal(v).greaterThan(0)
-        } catch {
-          return false
-        }
-      },
-      'compromiseFee must be greater than zero'
-    ),
-})
-
-export const deleteSchema = z.object({
-  id: z.string().min(1),
-})
+const upsertSchema = rdoUpsertSchema
+const updateSchema = rdoUpdateSchema
+const deleteSchema = rdoDeleteSchema
 
 function requireAdmin(session: Awaited<ReturnType<typeof requireAuth>>) {
   if (!session) {

@@ -1,27 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Decimal from 'decimal.js'
-import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
+import {
+  atcCreateSchema,
+  atcDeleteSchema,
+  atcUpdateSchema,
+} from '@/lib/validation/schemas'
 
-export const createSchema = z.object({
-  code: z.string().min(1).max(10),
-  description: z.string().min(1).max(255),
-  ewtRate: z.string().regex(/^\d+(\.\d{1,4})?$/),
-  isActive: z.boolean().default(true),
-})
-
-export const updateSchema = z.object({
-  code: z.string().min(1).max(10),
-  description: z.string().min(1).max(255).optional(),
-  ewtRate: z.string().regex(/^\d+(\.\d{1,4})?$/).optional(),
-  isActive: z.boolean().optional(),
-})
-
-export const deleteSchema = z.object({
-  code: z.string().min(1).max(10),
-})
+const createSchema = atcCreateSchema
+const updateSchema = atcUpdateSchema
+const deleteSchema = atcDeleteSchema
 
 function requireAdmin(session: Awaited<ReturnType<typeof requireAuth>>) {
   if (!session) {

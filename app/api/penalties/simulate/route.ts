@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { computePenaltyBase, computePenaltyDetail } from '@/lib/computation/penalty-base'
 import type { IncomeTypeValue } from '@/lib/computation/constants'
+import { penaltiesSimulateSchema } from '@/lib/validation/schemas'
 
-export const simulateSchema = z.object({
-  returnId: z.string().min(1),
-  filedDate: z.string().date(),
-})
+const simulateSchema = penaltiesSimulateSchema
 
 export async function POST(req: Request) {
   const session = await requireAuth()

@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Decimal from 'decimal.js'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { recascadeTaxYear } from '@/lib/computation/recascade'
 import { checkAndRecordVatBreach } from '@/lib/computation/vat-threshold'
 import { generateIncomeRecognitionJournal } from '@/lib/journal/generator'
-
-export const certificateSchema = z.object({
-  quarter: z.number().int().min(1).max(4),
-  payorTin: z.string().min(1),
-  payorName: z.string().min(1),
-  atcCode: z.string().min(1),
-  month1Amount: z.union([z.string(), z.number()]),
-  month2Amount: z.union([z.string(), z.number()]),
-  month3Amount: z.union([z.string(), z.number()]),
-  cwtWithheld: z.union([z.string(), z.number()]),
-})
+import { certificateSchema } from '@/lib/validation/schemas'
 
 export async function GET(req: NextRequest) {
   const session = await requireAuth(req)

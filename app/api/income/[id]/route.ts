@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Decimal from 'decimal.js'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { recascadeTaxYear } from '@/lib/computation/recascade'
 import { generateIncomeRecognitionJournal } from '@/lib/journal/generator'
-
-export const certificateUpdateSchema = z.object({
-  quarter: z.number().int().min(1).max(4).optional(),
-  payorTin: z.string().min(1).optional(),
-  payorName: z.string().min(1).optional(),
-  atcCode: z.string().min(1).optional(),
-  month1Amount: z.union([z.string(), z.number()]).optional(),
-  month2Amount: z.union([z.string(), z.number()]).optional(),
-  month3Amount: z.union([z.string(), z.number()]).optional(),
-  cwtWithheld: z.union([z.string(), z.number()]).optional(),
-})
+import { certificateUpdateSchema } from '@/lib/validation/schemas'
 
 async function getCertificateForUser(id: string, userId: string) {
   const profile = await prisma.taxpayerProfile.findUnique({
@@ -75,7 +64,7 @@ export async function PUT(
     }
 
     const body = await req.json()
-    const result = certificateSchema.safeParse(body)
+    const result = certificateUpdateSchema.safeParse(body)
     if (!result.success) {
       return NextResponse.json({ error: result.error.format() }, { status: 400 })
     }
