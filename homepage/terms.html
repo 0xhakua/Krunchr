@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Terms of Use — Krunchr</title>
+<meta name="description" content="Krunchr Terms of Use — the rules for using Krunchr." />
+<link rel="icon" href="logo.jpg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --teal:#0D9488; --teal-hover:#0F766E; --teal-ink:#006A61;
+    --mint-tint:rgba(78,222,163,.2);
+    --ink:#0B1C30; --muted:#45464D;
+    --canvas:#F8F9FF; --card:#FFFFFF;
+    --surf-1:#EFF4FF; --surf-2:#E5EEFF; --surf-3:#DCE9FF; --surf-4:#D3E4FE;
+    --border:#E2E8F0;
+    --ambient:0 4px 6px -1px rgb(15 23 42 / .10), 0 2px 4px -2px rgb(15 23 42 / .05);
+    --font-sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+    --font-heading:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+    --font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font-sans);color:var(--ink);background:var(--canvas);line-height:1.65;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:var(--font-heading);font-weight:700;letter-spacing:-0.02em;line-height:1.2}
+  a{color:var(--teal-ink)}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;border-radius:10px;padding:12px 20px;cursor:pointer;border:1px solid transparent;transition:background-color .15s,color .15s;font-family:inherit}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:var(--ambient)}
+  .btn-primary:hover{background:var(--teal-hover)}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;border-radius:999px;padding:7px 14px;border:1px solid var(--border);background:var(--card)}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:#009668;box-shadow:0 0 0 3px var(--mint-tint)}
+
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(248,249,255,.82);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border)}
+  .nav-inner{display:flex;align-items:center;gap:20px;height:68px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand img{width:40px;height:40px;border-radius:10px;object-fit:cover;box-shadow:var(--ambient)}
+  .brand .lockup{display:flex;flex-direction:column;line-height:1.05}
+  .brand .lockup b{font-family:var(--font-heading);font-size:18px;font-weight:800;letter-spacing:-0.02em}
+  .brand .lockup span{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .nav-links{display:flex;align-items:center;gap:4px;margin-left:8px}
+  .nav-links a{font-size:14.5px;font-weight:500;color:var(--muted);padding:8px 12px;border-radius:8px}
+  .nav-links a:hover{color:var(--ink);background:var(--surf-1)}
+  .nav-links a.active{color:var(--teal-ink);background:var(--surf-1)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  @media(max-width:760px){.nav-links{display:none}}
+
+  .doc-hero{padding:64px 0 28px;background:radial-gradient(700px 360px at 90% -10%,var(--surf-3),transparent 60%)}
+  .doc-hero h1{font-size:clamp(34px,5vw,46px);margin:12px 0 10px}
+  .doc-hero p{color:var(--muted);font-size:15px}
+  .doc-hero p .updated{color:var(--ink);font-weight:600}
+
+  .doc-body{display:grid;grid-template-columns:1fr;gap:40px;padding:40px 0 80px}
+  @media(min-width:980px){.doc-body{grid-template-columns:240px 1fr;gap:56px;padding:56px 0 96px}}
+  .toc{position:sticky;top:88px;align-self:start;font-size:14px}
+  .toc h4{font-family:var(--font-heading);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .toc a{display:block;color:var(--muted);padding:6px 10px;border-radius:7px;border-left:2px solid var(--border)}
+  .toc a:hover{color:var(--ink);background:var(--surf-1)}
+  @media(max-width:979px){.toc{display:none}}
+
+  .prose h2{font-size:22px;margin:40px 0 12px}
+  .prose h3{font-size:16px;margin:24px 0 8px}
+  .prose p,.prose li{color:#2b3340;font-size:15.5px;margin-bottom:12px}
+  .prose ul{padding-left:22px;margin-bottom:14px}
+  .prose li{margin-bottom:7px}
+  .prose a{color:var(--teal-ink);font-weight:600;border-bottom:1px solid var(--teal)}
+  .prose .lead{color:var(--muted);font-size:17px}
+  .prose .callout{background:var(--surf-1);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:10px;padding:16px 18px;margin:20px 0;font-size:14.5px;color:var(--muted)}
+  .prose .mono{font-family:var(--font-mono);font-size:14px;color:var(--teal-ink)}
+  .first h2:first-child{margin-top:0}
+
+  footer{background:var(--ink);color:#cdd6e6;padding:48px 0 28px}
+  .fgrid{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;align-items:center}
+  .f-brand{display:flex;align-items:center;gap:12px}
+  .f-brand img{width:38px;height:38px;border-radius:10px}
+  .f-brand b{font-family:var(--font-heading);color:#fff;font-size:17px;display:block}
+  .f-brand span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7e8aa0}
+  .flinks{display:flex;flex-wrap:wrap;gap:18px}
+  .flinks a{color:#a9b4c7;font-size:14px}
+  .flinks a:hover{color:#86F2E4}
+  .f-bottom{margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;color:#7e8aa0}
+
+  #cookie{position:fixed;left:0;right:0;bottom:0;z-index:100;display:none}
+  #cookie .inner{max-width:1080px;margin:0 auto 18px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 30px -10px rgb(15 23 42 / .25);padding:18px 20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  #cookie p{flex:1;min-width:240px;font-size:14px;color:var(--muted)}
+  #cookie p a{color:var(--teal-ink);font-weight:600;border-bottom:1px solid var(--teal)}
+  #cookie .ck-actions{display:flex;gap:10px}
+  .btn-outline{background:var(--card);color:var(--ink);border:1px solid var(--border)}
+  .btn-outline:hover{border-color:var(--teal)}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html" aria-label="Krunchr home">
+      <img src="logo.jpg" alt="Krunchr logo" />
+      <span class="lockup"><b>Krunchr</b><span>Compliance Engine</span></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html#features">Features</a>
+      <a href="index.html#how">How it works</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html" class="active">Terms</a>
+    </nav>
+    <div class="nav-right">
+      <span class="pill" title="On-chain anchoring is live"><span class="dot"></span> Blockchain Status: Secured</span>
+      <a class="btn btn-primary" href="https://app.krunchr.xyz">Open the app</a>
+    </div>
+  </div>
+</header>
+
+<section class="doc-hero">
+  <div class="wrap">
+    <div class="eyebrow">Legal</div>
+    <h1>Terms of Use</h1>
+    <p><span class="updated">Last updated: July 2, 2026</span> · These terms govern your use of Krunchr.</p>
+  </div>
+</section>
+
+<div class="wrap doc-body">
+  <aside class="toc" aria-label="Contents">
+    <h4>Contents</h4>
+    <a href="#accept">1. Acceptance of terms</a>
+    <a href="#use">2. Use of the service</a>
+    <a href="#services">3. The service</a>
+    <a href="#ip">4. Intellectual property</a>
+    <a href="#submissions">5. Your submissions</a>
+    <a href="#blockchain">6. Blockchain &amp; tax disclaimer</a>
+    <a href="#third">7. Third-party links</a>
+    <a href="#liability">8. Limitation of liability</a>
+    <a href="#indemnity">9. Indemnification</a>
+    <a href="#law">10. Governing law</a>
+    <a href="#changes">11. Changes</a>
+    <a href="#contact">12. Contact us</a>
+  </aside>
+
+  <article class="prose first">
+    <p class="lead">These Terms of Use are an agreement between you and Artisam Labs, the maker of Krunchr. Please read them carefully. By using Krunchr, you agree to be bound by them.</p>
+
+    <div class="callout">Krunchr helps you prepare and file Philippine tax returns, but it is not a substitute for professional tax or legal advice tailored to your situation. See Section 6.</div>
+
+    <h2 id="accept">1. Acceptance of terms</h2>
+    <p>By accessing or using the Krunchr website, app, browser extension, or any related service (together, the "Service"), you agree to these Terms and our <a href="privacy.html">Privacy Policy</a>. If you do not agree, do not use the Service. If you are using the Service on behalf of an entity, you represent that you have authority to bind that entity.</p>
+
+    <h2 id="use">2. Use of the service</h2>
+    <p>You may use the Service only for lawful purposes and in compliance with these Terms. You agree not to:</p>
+    <ul>
+      <li>Use the Service in any way that violates Philippine law or the rights of others;</li>
+      <li>Submit content that is inaccurate, misleading, or fraudulent, or file returns you know to be false;</li>
+      <li>Attempt to gain unauthorized access to the Service, other accounts, or systems;</li>
+      <li>Interfere with or disrupt the Service, including its anchoring on the Stellar network;</li>
+      <li>Reverse engineer, decompile, or scrape the Service, except as permitted by applicable law;</li>
+      <li>Misrepresent your identity or your affiliation with Krunchr or Artisam Labs.</li>
+    </ul>
+    <p>You are responsible for keeping your account credentials confidential and for all activity under your account.</p>
+
+    <h2 id="services">3. The service</h2>
+    <p>Krunchr is a tax-compliance tool that computes Philippine individual tax returns (BIR Forms 2551Q, 1701Q, and 1701A/1701) from Form 2307 data you provide, generates filing packages (including SAWT), and anchors a cryptographic hash of filed returns on the Stellar blockchain as a receipt.</p>
+    <p>We may modify, suspend, or discontinue any feature of the Service at any time, with or without notice. We are not liable to you for any such modification, suspension, or discontinuance. Some features (such as graduated-rate computation) may be incomplete or in development.</p>
+
+    <h2 id="ip">4. Intellectual property</h2>
+    <p>The Service, including its software, design, logos, text, and generated interfaces, is owned by Artisam Labs or its licensors and is protected by Philippine intellectual-property laws. Nothing in these Terms grants you any right to use the Krunchr or Artisam Labs names, logos, or trademarks without prior written consent.</p>
+    <p>You may use the Service for your personal or business tax-compliance needs. You may not copy, redistribute, or resell the Service or any part of it without written permission.</p>
+
+    <h2 id="submissions">5. Your submissions</h2>
+    <p>You retain ownership of the information you submit to Krunchr, including Form 2307 certificates, taxpayer-profile details, and generated filings. You grant Artisam Labs a limited license to use your submissions solely to operate the Service for you — to compute returns, generate packages, anchor hashes on Stellar, and provide the features you request.</p>
+    <p>You represent that the information you submit is accurate and that you have the right to submit it. You are responsible for the truthfulness of every return you file.</p>
+
+    <h2 id="blockchain">6. Blockchain and tax disclaimer</h2>
+    <p><strong>Not tax advice.</strong> Krunchr performs calculations based on the inputs you provide and the rules we have implemented at a given time. It does not review your specific circumstances and is not a substitute for advice from a certified public accountant, tax professional, or lawyer. You remain solely responsible for the accuracy and completeness of your filings and for any tax owed.</p>
+    <p><strong>Blockchain.</strong> Anchoring on the Stellar network writes a public, permanent hash to a decentralized ledger. This hash cannot be deleted. Krunchr writes only a cryptographic fingerprint, never the full contents of your documents. We are not responsible for the operation, availability, or integrity of the Stellar network itself.</p>
+
+    <h2 id="third">7. Third-party links and services</h2>
+    <p>The Service may link to or integrate with third-party websites and networks (for example, government resources and Stellar). We do not control and are not responsible for their content, availability, or practices. You use them at your own risk and subject to their own terms.</p>
+
+    <h2 id="liability">8. Limitation of liability</h2>
+    <p>To the fullest extent permitted by law, Artisam Labs and its affiliates, officers, employees, and contractors shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or for loss of profits or data, arising out of or related to your use of, or inability to use, the Service — whether based on warranty, contract, tort (including negligence), statute, or otherwise, even if we have been advised of the possibility of such damages.</p>
+    <p>Because some jurisdictions do not allow the exclusion of certain liabilities, some of the above limitations may not apply to you.</p>
+
+    <h2 id="indemnity">9. Indemnification</h2>
+    <p>You agree to indemnify and hold harmless Artisam Labs and its affiliates from any claims, damages, losses, or expenses (including reasonable legal fees) arising out of your use of the Service, your violation of these Terms, your infringement of third-party rights, or the inaccuracy of information you submit or file.</p>
+
+    <h2 id="law">10. Governing law</h2>
+    <p>These Terms are governed by the laws of the Republic of the Philippines, without regard to conflict-of-laws principles. You submit to the exclusive jurisdiction of the competent courts of the Philippines for any dispute arising out of or relating to these Terms or your use of the Service.</p>
+
+    <h2 id="changes">11. Changes to these terms</h2>
+    <p>We may revise these Terms at any time by posting an updated version with a revised "Last updated" date. Your continued use of the Service after changes take effect constitutes your acceptance of the revised Terms. Where required, we will provide notice of material changes through the Service or by email.</p>
+
+    <h2 id="contact">12. Contact us</h2>
+    <p>Questions about these Terms? Contact us:</p>
+    <ul>
+      <li>Email: <a href="mailto:krunchr@artisam.xyz">krunchr@artisam.xyz</a></li>
+      <li>Website: <a href="https://artisam.xyz">artisam.xyz</a></li>
+    </ul>
+    <p>Krunchr is a product of Artisam Labs.</p>
+  </article>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="f-brand">
+        <img src="logo.jpg" alt="Krunchr logo" />
+        <div><b>Krunchr</b><span>Compliance Engine</span></div>
+      </div>
+      <div class="flinks">
+        <a href="index.html">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="mailto:krunchr@artisam.xyz">Contact</a>
+        <a href="https://artisam.xyz" target="_blank" rel="noopener">Artisam Labs ↗</a>
+        <a href="https://app.krunchr.xyz" target="_blank" rel="noopener">Chrome extension ↗</a>
+      </div>
+    </div>
+    <div class="f-bottom">© 2026 Artisam Labs. Krunchr is a product of Artisam Labs.</div>
+  </div>
+</footer>
+
+<div id="cookie" role="dialog" aria-label="Cookie consent">
+  <div class="wrap">
+    <div class="inner">
+      <p>We use cookies to keep Krunchr running smoothly and to remember your preferences. See our <a href="privacy.html">Privacy Policy</a>.</p>
+      <div class="ck-actions">
+        <button class="btn btn-outline" id="ck-decline">Decline</button>
+        <button class="btn btn-primary" id="ck-accept">Accept</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var k='krunchr_cookie_consent';
+    var el=document.getElementById('cookie');
+    if(localStorage.getItem(k)!==null) return;
+    el.style.display='block';
+    function set(v){localStorage.setItem(k,v);el.style.display='none';}
+    document.getElementById('ck-accept').onclick=function(){set('accepted')};
+    document.getElementById('ck-decline').onclick=function(){set('declined')};
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Krunchr — Philippine tax compliance, calmly handled</title>
+<meta name="description" content="Krunchr is the compliance engine for Philippine self-employed freelancers. Upload Form 2307, auto-compute BIR 2551Q / 1701Q / 1701A, and file with receipts anchored on the Stellar blockchain." />
+<link rel="icon" href="logo.jpg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* Brand palette — BRAND.md §3 */
+    --teal:#0D9488; --teal-hover:#0F766E; --teal-ink:#006A61;
+    --teal-container:#86F2E4; --teal-container-ink:#006F66;
+    --mint:#4EDEA3; --mint-deep:#009668; --mint-tint:rgba(78,222,163,.2);
+    --info:#3B82F6;
+    --ink:#0B1C30; --muted:#45464D;
+    --error:#BA1A1A; --error-container:#FFDAD6;
+    --canvas:#F8F9FF; --card:#FFFFFF;
+    --surf-1:#EFF4FF; --surf-2:#E5EEFF; --surf-3:#DCE9FF; --surf-4:#D3E4FE;
+    --border:#E2E8F0; --outline:#C6C6CD;
+    --ambient:0 4px 6px -1px rgb(15 23 42 / .10), 0 2px 4px -2px rgb(15 23 42 / .05);
+    --font-sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+    --font-heading:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+    --font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --radius:0.5rem;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font-sans); color:var(--ink); background:var(--canvas);
+    line-height:1.6; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  h1,h2,h3,h4{font-family:var(--font-heading);font-weight:700;letter-spacing:-0.02em;line-height:1.12}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+  /* ---------- buttons / pills ---------- */
+  .btn{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;border-radius:10px;padding:12px 20px;cursor:pointer;border:1px solid transparent;transition:transform .15s,background-color .15s,color .15s,border-color .15s;font-family:inherit}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:var(--ambient)}
+  .btn-primary:hover{background:var(--teal-hover)}
+  .btn-primary:active{transform:scale(.97)}
+  .btn-outline{background:var(--card);color:var(--ink);border-color:var(--border)}
+  .btn-outline:hover{border-color:var(--teal);color:var(--teal-ink)}
+  .btn-ghost{background:transparent;color:var(--teal-ink);padding:10px 14px}
+  .btn-ghost:hover{background:var(--surf-1)}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;border-radius:999px;padding:7px 14px;border:1px solid var(--border);background:var(--card)}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--mint-deep);box-shadow:0 0 0 3px var(--mint-tint)}
+
+  /* ---------- navbar ---------- */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(248,249,255,.82);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border)}
+  .nav-inner{display:flex;align-items:center;gap:20px;height:68px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand img{width:40px;height:40px;border-radius:10px;object-fit:cover;box-shadow:var(--ambient)}
+  .brand .lockup{display:flex;flex-direction:column;line-height:1.05}
+  .brand .lockup b{font-family:var(--font-heading);font-size:18px;font-weight:800;letter-spacing:-0.02em}
+  .brand .lockup span{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .nav-links{display:flex;align-items:center;gap:4px;margin-left:8px}
+  .nav-links a{font-size:14.5px;font-weight:500;color:var(--muted);padding:8px 12px;border-radius:8px;transition:color .15s,background-color .15s}
+  .nav-links a:hover{color:var(--ink);background:var(--surf-1)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .nav-status{display:none}
+  @media(min-width:920px){.nav-status{display:inline-flex}}
+  @media(max-width:760px){.nav-links{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:64px 0 80px;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;background:
+    radial-gradient(900px 500px at 85% -10%, var(--surf-3), transparent 60%),
+    radial-gradient(700px 480px at 10% 10%, var(--surf-2), transparent 55%);
+    z-index:0}
+  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:44px;align-items:center}
+  @media(min-width:980px){.hero-grid{grid-template-columns:1.05fr .95fr;gap:56px}}
+  .hero-copy .eyebrow{color:var(--teal-ink);margin-bottom:18px}
+  .hero h1{font-size:clamp(38px,6vw,60px);font-weight:800}
+  .hero h1 em{font-style:normal;color:var(--teal)}
+  .hero p.lead{font-size:19px;color:var(--muted);margin-top:22px;max-width:540px}
+  .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+  .hero-trust{display:flex;flex-wrap:wrap;gap:22px;margin-top:30px;color:var(--muted);font-size:14px}
+  .hero-trust span{display:inline-flex;align-items:center;gap:8px}
+
+  /* hero visual: filing receipt card over a cover-image placeholder */
+  .hero-visual{position:relative;min-height:440px}
+  .cover-ph{position:absolute;inset:0;border-radius:20px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(135deg,var(--surf-2),var(--surf-4));box-shadow:var(--ambient)}
+  .cover-ph .ph-caption{position:absolute;left:14px;bottom:14px;right:14px;background:rgba(11,28,48,.78);color:#cfe6ff;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;font-size:11.5px;line-height:1.45;backdrop-filter:blur(6px)}
+  .cover-ph .ph-caption b{color:#86F2E4;letter-spacing:.1em;text-transform:uppercase;font-size:10px;display:block;margin-bottom:5px}
+  .receipt{position:relative;z-index:2;margin:26px 26px auto auto;max-width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--ambient);padding:22px;animation:floaty 6s ease-in-out infinite}
+  .receipt .r-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .receipt .r-title{font-family:var(--font-heading);font-size:17px;font-weight:700}
+  .receipt .r-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .receipt .r-row{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-top:1px dashed var(--border)}
+  .receipt .r-row span{color:var(--muted)}
+  .receipt .r-row b{font-weight:600;font-family:var(--font-mono);font-size:12px}
+  .receipt .r-amount{font-family:var(--font-heading);font-size:26px;font-weight:800;color:var(--ink)}
+  .hashbox{margin-top:16px;background:var(--surf-1);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
+  .hashbox .label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:5px}
+  .hashbox .hash{font-family:var(--font-mono);font-size:12px;color:var(--teal-ink);word-break:break-all}
+  .verified{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--mint-deep);background:var(--mint-tint);border:1px solid rgba(78,222,163,.4);padding:5px 10px;border-radius:999px}
+  .ring{position:absolute;right:-22px;bottom:-26px;z-index:3;width:96px;height:96px;background:var(--card);border:1px solid var(--border);border-radius:50%;box-shadow:var(--ambient);display:grid;place-items:center}
+
+  /* ---------- section scaffolding ---------- */
+  section.block{padding:88px 0;border-top:1px solid var(--border)}
+  .sec-head{max-width:720px;margin-bottom:42px}
+  .sec-head h2{font-size:clamp(28px,4vw,40px);margin:14px 0 12px}
+  .sec-head p{color:var(--muted);font-size:17px}
+
+  /* ---------- features bento ---------- */
+  .bento{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:760px){.bento{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:1040px){.bento{grid-template-columns:repeat(3,1fr)}}
+  .feat{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--ambient);padding:26px;transition:border-color .15s,transform .15s;overflow:hidden}
+  .feat:hover{border-color:var(--teal);transform:translateY(-2px)}
+  .feat .ic{width:46px;height:46px;border-radius:12px;background:var(--surf-1);color:var(--teal);display:grid;place-items:center;margin-bottom:18px}
+  .feat h3{font-size:18px;margin-bottom:8px}
+  .feat p{color:var(--muted);font-size:14.5px}
+  .feat.wide{grid-column:span 1}
+  @media(min-width:1040px){.feat.wide{grid-column:span 2}}
+  .feat-ph{margin:18px -26px -26px;height:180px;background:linear-gradient(135deg,var(--surf-2),var(--surf-4));border-top:1px solid var(--border);position:relative;display:flex;align-items:flex-end}
+  .feat-ph .cap{position:absolute;inset:auto 14px 12px;background:rgba(11,28,48,.8);color:#cfe6ff;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;font-size:11px;line-height:1.45;backdrop-filter:blur(6px)}
+  .feat-ph .cap b{color:#86F2E4;letter-spacing:.1em;text-transform:uppercase;font-size:9.5px;display:block;margin-bottom:4px}
+
+  /* ---------- how it works stepper ---------- */
+  .steps{display:grid;grid-template-columns:1fr;gap:0}
+  @media(min-width:820px){.steps{grid-template-columns:repeat(4,1fr);gap:0}}
+  .step{position:relative;padding:0 0 0 0;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--ambient);padding:26px;margin:14px}
+  .step .num{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid var(--info);box-shadow:0 0 0 4px #fff, 0 0 0 5px var(--surf-3);display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--info);margin-bottom:16px}
+  .step.done .num{border-color:var(--mint-deep);color:var(--mint-deep);box-shadow:0 0 0 4px #fff,0 0 0 5px var(--mint-tint)}
+  .step h3{font-size:16px;margin-bottom:6px}
+  .step p{font-size:13.5px;color:var(--muted)}
+  @media(min-width:820px){.step{margin:0;border-radius:0}.step:first-child{border-radius:14px 0 0 14px}.step:last-child{border-radius:0 14px 14px 0}.step+.step{border-left:none}}
+
+  /* ---------- contact ---------- */
+  .contact{display:grid;grid-template-columns:1fr;gap:24px;align-items:center}
+  @media(min-width:820px){.contact{grid-template-columns:1.2fr .8fr}}
+  .contact-card{background:linear-gradient(135deg,#fff,var(--surf-1));border:1px solid var(--border);border-radius:18px;box-shadow:var(--ambient);padding:40px}
+  .contact-card h2{font-size:30px;margin-bottom:12px}
+  .contact-card p{color:var(--muted);font-size:16px;margin-bottom:22px}
+  .email-row{display:inline-flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-family:var(--font-mono);font-size:15px;color:var(--teal-ink)}
+  .email-row:hover{border-color:var(--teal)}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--ink);color:#cdd6e6;padding:64px 0 28px;margin-top:0}
+  footer .fgrid{display:grid;grid-template-columns:1fr;gap:36px}
+  @media(min-width:820px){footer .fgrid{grid-template-columns:1.4fr 1fr 1fr 1fr}}
+  footer h4{font-family:var(--font-heading);color:#fff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+  footer a{color:#a9b4c7;font-size:14px;display:block;padding:6px 0;transition:color .15s}
+  footer a:hover{color:#86F2E4}
+  .f-brand{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .f-brand img{width:42px;height:42px;border-radius:10px}
+  .f-brand b{font-family:var(--font-heading);color:#fff;font-size:19px;display:block}
+  .f-brand span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7e8aa0}
+  .f-tag{color:#a9b4c7;font-size:14px;max-width:300px}
+  .f-bottom{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;color:#7e8aa0}
+  .f-bottom a{display:inline;color:#a9b4c7}
+
+  /* ---------- cookie banner ---------- */
+  #cookie{position:fixed;left:0;right:0;bottom:0;z-index:100;display:none}
+  #cookie .inner{max-width:1080px;margin:0 auto 18px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 30px -10px rgb(15 23 42 / .25);padding:18px 20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  #cookie p{flex:1;min-width:240px;font-size:14px;color:var(--muted)}
+  #cookie p a{color:var(--teal-ink);font-weight:600;border-bottom:1px solid var(--teal)}
+  #cookie .ck-actions{display:flex;gap:10px}
+
+  /* ---------- motion ---------- */
+  .reveal{opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards}
+  .reveal.d1{animation-delay:.08s}.reveal.d2{animation-delay:.16s}.reveal.d3{animation-delay:.24s}.reveal.d4{animation-delay:.32s}.reveal.d5{animation-delay:.4s}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @media(prefers-reduced-motion:reduce){.reveal,.receipt{animation:none;opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- ===================== NAVBAR ===================== -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="Krunchr home">
+      <img src="logo.jpg" alt="Krunchr logo" />
+      <span class="lockup"><b>Krunchr</b><span>Compliance Engine</span></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </nav>
+    <div class="nav-right">
+      <span class="pill nav-status" title="On-chain anchoring is live">
+        <span class="dot"></span> Blockchain Status: Secured
+      </span>
+      <a class="btn btn-primary" href="https://app.krunchr.xyz">Open the app
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow reveal d1">Philippine tax compliance, calmly handled</div>
+      <h1 class="reveal d2">File your BIR returns<br/>without the <em>dread.</em></h1>
+      <p class="lead reveal d3">Krunchr is the compliance engine for self-employed freelancers on the 8% rate. Upload your Form 2307, and we compute 2551Q, 1701Q, and 1701A in the legally-mandated order — then file with a receipt anchored on the Stellar blockchain.</p>
+      <div class="hero-ctas reveal d4">
+        <a class="btn btn-primary" href="https://app.krunchr.xyz">Open the app
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn-outline" href="#how">See how it works</a>
+      </div>
+      <div class="hero-trust reveal d5">
+        <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#009668" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Form 2551Q · 1701Q · 1701A</span>
+        <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#009668" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> RA 11976 penalty rates</span>
+        <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#009668" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Stellar-anchored receipts</span>
+      </div>
+    </div>
+
+    <div class="hero-visual reveal d3" aria-hidden="false">
+      <!-- Cover-image placeholder: replace with generated image -->
+      <div class="cover-ph">
+        <div class="ph-caption">
+          <b>Image generation prompt</b>
+          A calm, top-down editorial flat-lay on a pale blue surface in soft morning light: a laptop showing a clean teal-and-mint tax dashboard, a cup of coffee, a small potted sampaguita plant, and a few neat pastel receipt forms — refined, modern-corporate, no readable text, teal and mint accents, shot on 50mm, shallow depth of field.
+        </div>
+      </div>
+
+      <!-- Floating mock filing receipt (on-chain) -->
+      <div class="receipt" role="img" aria-label="Mock filing receipt anchored on Stellar">
+        <div class="r-top">
+          <div>
+            <div class="r-title">Filing Complete &amp; Secured</div>
+            <div class="r-sub">1701Q · Quarter 2 · 2026</div>
+          </div>
+          <span class="verified">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+            Stellar Verified
+          </span>
+        </div>
+        <div class="r-amount">₱ 11,500.00</div>
+        <div class="r-row"><span>Tax due</span><b>₱ 0.00</b></div>
+        <div class="r-row"><span>Surcharge + interest</span><b>₱ 0.00</b></div>
+        <div class="r-row"><span>Status</span><b style="color:#009668">Filed</b></div>
+        <div class="hashbox">
+          <div class="label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg>
+            Stellar TX hash
+          </div>
+          <div class="hash">kuwenta:ph:rtr_8f3a…c41e · sha256:9a7b…02d4</div>
+        </div>
+      </div>
+
+      <!-- Compliance ring badge -->
+      <div class="ring" aria-hidden="true">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="40" fill="none" stroke="#E2E8F0" stroke-width="8"/>
+          <circle cx="48" cy="48" r="40" fill="none" stroke="#4EDEA3" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="0" transform="rotate(-90 48 48)"/>
+          <text x="48" y="46" text-anchor="middle" font-family="-apple-system,system-ui,sans-serif" font-size="20" font-weight="800" fill="#0D9488">100%</text>
+          <text x="48" y="62" text-anchor="middle" font-family="-apple-system,system-ui,sans-serif" font-size="8.5" fill="#45464D" letter-spacing="1">COMPLIANT</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section class="block" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">What Krunchr does</div>
+      <h2>Everything the filing asks for, handled.</h2>
+      <p>No spreadsheets, no penalty tables to memorize. Drop in your certificates and let the engine do the rest.</p>
+    </div>
+
+    <div class="bento">
+      <article class="feat">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8M8 17h8M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5H5z"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
+        <h3>Upload Form 2307</h3>
+        <p>Drop your certificates each quarter. Every upload recomputes the whole tax year automatically.</p>
+      </article>
+
+      <article class="feat">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div>
+        <h3>Auto-compute every return</h3>
+        <p>2551Q, 1701Q, and 1701A — computed in the legally-mandated sequence, with the 8% path ready today.</p>
+      </article>
+
+      <article class="feat">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3>Penalties &amp; due dates</h3>
+        <p>Reduced RA 11976 rates (10% surcharge, 6% interest) and statutory deadlines rolled past Philippine holidays.</p>
+      </article>
+
+      <article class="feat wide">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg></div>
+        <h3>Stellar-anchored receipts</h3>
+        <p>Every filed return is hashed on-chain — an immutable proof of filing you can verify independently, forever.</p>
+        <div class="feat-ph">
+          <div class="cap"><b>Image generation prompt</b>A close-up, isometric illustration of a glowing teal receipt document linked by a thin luminous chain to a constellation of small nodes on a deep navy background — abstract, modern, calm, mint-and-teal glow, no text.</div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></div>
+        <h3>Filing packages, ready</h3>
+        <p>Generated PDFs and SAWT, stored and downloadable — everything you need to submit and to keep.</p>
+      </article>
+
+      <article class="feat">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></div>
+        <h3>Compliance at a glance</h3>
+        <p>A calm bento dashboard shows status, what's due next, and what's already secured on-chain.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HOW IT WORKS ===================== -->
+<section class="block" id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Four steps, then you're done.</h2>
+      <p>The sequence is enforced by the engine and checked before anything is generated or filed.</p>
+    </div>
+    <div class="steps">
+      <div class="step done">
+        <div class="num">1</div>
+        <h3>Upload Form 2307</h3>
+        <p>Drop in your quarterly certificates. We read the income and creditable withholding tax.</p>
+      </div>
+      <div class="step done">
+        <div class="num">2</div>
+        <h3>We compute</h3>
+        <p>Each return is calculated in order, with penalties and due dates re-checked as of today.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>Review &amp; file</h3>
+        <p>Review the package, then file. A PDF and SAWT are generated and stored for you.</p>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <h3>Anchored on Stellar</h3>
+        <p>A SHA-256 hash of your filing is written to the Stellar network — verifiable forever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section class="block" id="contact">
+  <div class="wrap">
+    <div class="contact">
+      <div class="contact-card">
+        <div class="eyebrow">Contact us</div>
+        <h2>Questions before you file?</h2>
+        <p>We're a small team and we read every message. Reach out and we'll get back to you.</p>
+        <a class="email-row" href="mailto:krunchr@artisam.xyz">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          krunchr@artisam.xyz
+        </a>
+      </div>
+      <div>
+        <a class="btn btn-primary" href="https://app.krunchr.xyz" style="padding:16px 26px;font-size:16px">Open the app
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <p style="color:var(--muted);font-size:14px;margin-top:14px;max-width:300px">No account yet? You can create one in the app — it takes about a minute.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <div class="f-brand">
+          <img src="logo.jpg" alt="Krunchr logo" />
+          <div><b>Krunchr</b><span>Compliance Engine</span></div>
+        </div>
+        <p class="f-tag">Philippine individual tax compliance for self-employed freelancers, with Stellar-anchored filing receipts.</p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <a href="https://app.krunchr.xyz">Open the app</a>
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Use</a>
+        <a href="mailto:krunchr@artisam.xyz">Contact Us</a>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="https://artisam.xyz" target="_blank" rel="noopener">Artisam Labs ↗</a>
+        <a href="mailto:krunchr@artisam.xyz">krunchr@artisam.xyz</a>
+        <a href="https://app.krunchr.xyz" target="_blank" rel="noopener">Download the Chrome extension ↗</a>
+      </div>
+    </div>
+    <div class="f-bottom">
+      <span>© 2026 Artisam Labs. Krunchr is a product of Artisam Labs.</span>
+      <span>Made for Filipino freelancers.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== COOKIE CONSENT ===================== -->
+<div id="cookie" role="dialog" aria-label="Cookie consent">
+  <div class="wrap">
+    <div class="inner">
+      <p>We use cookies to keep Krunchr running smoothly and to remember your preferences. See our <a href="privacy.html">Privacy Policy</a>.</p>
+      <div class="ck-actions">
+        <button class="btn btn-outline" id="ck-decline">Decline</button>
+        <button class="btn btn-primary" id="ck-accept">Accept</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var k='krunchr_cookie_consent';
+    var el=document.getElementById('cookie');
+    if(localStorage.getItem(k)!==null) return;
+    el.style.display='block';
+    function set(v){localStorage.setItem(k,v);el.style.display='none';}
+    document.getElementById('ck-accept').onclick=function(){set('accepted')};
+    document.getElementById('ck-decline').onclick=function(){set('declined')};
+  })();
+</script>
+</body>
+</html>
