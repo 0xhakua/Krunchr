@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
 
 interface AuditLogEntry {
   id: string
@@ -386,8 +387,16 @@ export default function AuditLogPage() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {!loading && logs.length === 0 ? (
-        <p className="text-muted-foreground">No audit log entries match the filters.</p>
+      {loading ? null : logs.length === 0 ? (
+        <EmptyState
+          title="No audit log entries match"
+          description="Try adjusting the filters or export the current view once events are recorded."
+          actions={
+            hasActiveFilter && (
+              <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>
+            )
+          }
+        />
       ) : (
         <Table>
           <TableHeader>

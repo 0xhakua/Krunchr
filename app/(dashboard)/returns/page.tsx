@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { EmptyState } from '@/components/ui/empty-state'
 import { formatPeso, formatDate } from '@/lib/format'
 import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
 
@@ -121,8 +122,19 @@ export default function ReturnsPage() {
       {vatBreached && <VatBreachBanner />}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="grid gap-4">
-        {returns.map((ret) => (
+      {returns.length === 0 ? (
+        <EmptyState
+          title="No returns found"
+          description="Complete onboarding so Kuwenta can initialize your filing sequence for the active tax year."
+          actions={
+            <Link href="/onboarding">
+              <Button variant="outline">Complete Onboarding</Button>
+            </Link>
+          }
+        />
+      ) : (
+        <div className="grid gap-4">
+          {returns.map((ret) => (
           <Card key={ret.id} className={ret.status === 'BLOCKED' ? 'opacity-70' : ''}>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -212,6 +224,7 @@ export default function ReturnsPage() {
           </Card>
         ))}
       </div>
+      )}
     </div>
   )
 }

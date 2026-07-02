@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageShell } from '@/components/ui/page-shell'
+import { ReturnDetailSkeleton } from './loading'
 import { formatPeso, formatDate } from '@/lib/format'
 import { ArrowLeft, FileText, RefreshCw } from 'lucide-react'
 
@@ -338,12 +339,7 @@ export default function ReturnDetailPage() {
   if (!ret) {
     return (
       <PageShell>
-        <PageHeader title="Return" description="Loading return…" />
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Loading return…
-          </CardContent>
-        </Card>
+        <ReturnDetailSkeleton />
       </PageShell>
     )
   }

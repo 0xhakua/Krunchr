@@ -12,6 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { AdminSkeleton } from './loading'
 import {
   Dialog,
   DialogContent,
@@ -295,11 +297,15 @@ export default function AdminPage() {
           onChange={(e) => handleSearchChange(e.target.value)}
           className="max-w-sm"
         />
-        {loading && <span className="text-sm text-muted-foreground">Loading…</span>}
       </div>
 
-      {!loading && users.length === 0 ? (
-        <p className="text-muted-foreground">No users found.</p>
+      {loading ? (
+        <AdminSkeleton />
+      ) : users.length === 0 ? (
+        <EmptyState
+          title="No users found"
+          description="Taxpayer accounts will appear here once they complete onboarding."
+        />
       ) : (
         <Table>
           <TableHeader>

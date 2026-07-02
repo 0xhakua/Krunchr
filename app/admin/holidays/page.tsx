@@ -21,6 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
+import { AdminSkeleton } from '../loading'
 
 interface PublicHoliday {
   id: string
@@ -305,9 +307,12 @@ export default function AdminHolidaysPage() {
       {!message && error && <p className="text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground">Loading holidays…</p>
+        <AdminSkeleton />
       ) : holidays.length === 0 ? (
-        <p className="text-muted-foreground">No holidays configured.</p>
+        <EmptyState
+          title="No holidays configured"
+          description="Add public holidays so statutory filing deadlines roll correctly when they fall on a weekend or holiday."
+        />
       ) : (
         <Table>
           <TableHeader>

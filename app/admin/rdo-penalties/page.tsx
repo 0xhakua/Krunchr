@@ -13,6 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
+import { AdminSkeleton } from '../loading'
 
 interface RDOPenaltySchedule {
   id: string
@@ -239,12 +241,17 @@ export default function AdminRdoPenaltiesPage() {
       )}
 
       {loading ? (
-        <p className="text-muted-foreground">Loading schedules…</p>
+        <AdminSkeleton />
       ) : schedules.length === 0 ? (
-        <p className="text-muted-foreground">
-          No RDO penalty schedules configured. Add one to override the default
-          compromise fee.
-        </p>
+        <EmptyState
+          title="No RDO penalty schedules configured"
+          description="Add a schedule to override the default compromise fee for a specific RDO."
+          actions={
+            !showAddRow && (
+              <Button onClick={() => setShowAddRow(true)}>Add RDO</Button>
+            )
+          }
+        />
       ) : (
         <Table>
           <TableHeader>
