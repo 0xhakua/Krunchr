@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { recascadeTaxYear } from '../recascade'
+import { determineReturnStatus, getReturnBlockReason } from '../sequence'
 import { prisma } from '../../testing/db'
 import {
   createForm2307,
@@ -256,5 +257,58 @@ describe('recascadeTaxYear integration', () => {
     // credits consume the entire tax due (Q1 cash 15000 + CWT 5000).
     expect(annual?.computedTaxDue?.toString()).toBe('20000')
     expect(annual?.netTaxDue?.toString()).toBe('0')
+  })
+
+  it('marks Form 1701A as BLOCKED with reason when VAT threshold is breached (BR-12)', async () => {
+    await seedReferenceData()
+    const { profile, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      incomeType: 'PURE_SELF_EMPLOYMENT',
+      corIncludes2551Q: true,
+      electedRate: 'RATE_8PCT',
+    })
+
+    const atc = await createATCCode({ code: 'WI100' })
+    await createRDOPenaltySchedule({ rdoCode: profile.rdoCode, compromiseFee: 500 })
+
+    // A single quarter at the threshold triggers the VAT breach flag.
+    await createForm2307(taxYear.id, atc.code, {
+      quarter: 1,
+      quarterlyTotal: 3_000_000,
+      cwtWithheld: 300_000,
+    })
+
+    // Simulate the flag set by income ingestion (BR-12).
+    await prisma.taxYear.update({
+      where: { id: taxYear.id },
+      data: { vatBreached: true, vatBreachDate: new Date() },
+    })
+
+    await recascadeTaxYear({ taxYearId: taxYear.id })
+
+    const returns = await prisma.taxReturn.findMany({
+      where: { taxYearId: taxYear.id },
+      orderBy: { sequenceOrder: 'asc' },
+    })
+
+    const annual = returns.find((r) => r.formType === 'FORM_1701A')
+    expect(annual).toBeDefined()
+
+    // The recascade must persist the blocked status for the annual 1701A.
+    expect(annual?.status).toBe('BLOCKED')
+
+    // The sequence resolver must also report the annual return as blocked.
+    const dynamicStatus = determineReturnStatus(
+      annual!.sequenceOrder,
+      returns,
+      profile.corIncludes2551Q,
+      true
+    )
+    expect(dynamicStatus).toBe('BLOCKED')
+
+    // The block reason must explain the VAT-registration requirement.
+    const reason = getReturnBlockReason(annual!, true)
+    expect(reason).toContain('VAT threshold breached')
+    expect(reason).toContain('register for VAT')
   })
 })

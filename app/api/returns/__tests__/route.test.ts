@@ -34,6 +34,7 @@ vi.mock('@/lib/auth/session', async () => {
 })
 
 import { GET as listReturns } from '@/app/api/returns/route'
+import { POST as generateReturn } from '@/app/api/returns/[id]/generate/route'
 
 describe('GET /api/returns', () => {
   beforeAll(async () => {
@@ -112,5 +113,37 @@ describe('GET /api/returns', () => {
     expect(res.status).toBe(401)
     const body = await res.json()
     expect(body).toEqual({ error: 'Unauthorized' })
+  })
+})
+
+describe('POST /api/returns/[id]/generate', () => {
+  it('returns 422 with a structured error when generating 1701A after a VAT breach', async () => {
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+
+    await prisma.taxYear.update({
+      where: { id: taxYear.id },
+      data: { vatBreached: true, vatBreachDate: new Date() },
+    })
+
+    const annual = await prisma.taxReturn.findFirstOrThrow({
+      where: { taxYearId: taxYear.id, formType: 'FORM_1701A' },
+    })
+
+    mockSession.current = { sub: user.id, username: user.username, role: 'TAXPAYER' }
+
+    const res = await generateReturn(
+      new Request(`http://localhost/api/returns/${annual.id}/generate`, {
+        method: 'POST',
+      }),
+      { params: Promise.resolve({ id: annual.id }) }
+    )
+
+    expect(res.status).toBe(422)
+    const body = await res.json()
+    expect(body.code).toBe('VAT_BREACH_1701A_BLOCKED')
+    expect(body.error).toContain('VAT threshold breached')
   })
 })

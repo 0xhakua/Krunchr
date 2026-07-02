@@ -41,10 +41,24 @@ export async function POST(
       return NextResponse.json({ error: 'Return not found' }, { status: 404 })
     }
 
+    // BR-12: a VAT-threshold breach takes the taxpayer out of the 8% flat-rate
+    // scope, so Form 1701A can no longer be generated in Kuwenta.
+    if (taxYear.vatBreached && ret.formType === 'FORM_1701A') {
+      return NextResponse.json(
+        {
+          error:
+            'VAT threshold breached. Kuwenta only supports non-VAT taxpayers. Register for VAT with the BIR and file Form 1701A outside the system.',
+          code: 'VAT_BREACH_1701A_BLOCKED',
+        },
+        { status: 422 }
+      )
+    }
+
     const status = determineReturnStatus(
       ret.sequenceOrder,
       taxYear.returns,
-      profile.corIncludes2551Q
+      profile.corIncludes2551Q,
+      taxYear.vatBreached
     )
 
     if (status === 'BLOCKED') {

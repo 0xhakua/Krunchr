@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
 
 type ATCCode = {
   code: string
@@ -324,6 +325,7 @@ export default function OnboardingPage() {
             <p className="text-sm text-muted-foreground">
               All 5 conditions must pass to use the 8% flat income tax rate.
             </p>
+            {eligibility && !eligibility.checks.belowVatThreshold && <VatBreachBanner />}
             {eligibility && (
               <div className="space-y-2">
                 {Object.entries(eligibility.checks).map(([key, passed]) => (

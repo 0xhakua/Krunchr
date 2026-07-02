@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatPeso, formatDate } from '@/lib/format'
+import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
 
 type ReturnItem = {
   id: string
@@ -33,10 +34,12 @@ type ReturnItem = {
     status: 'PENDING' | 'CONFIRMED' | 'FAILED'
     anchoredAt: string
   } | null
+  blockReason?: string
 }
 
 export default function ReturnsPage() {
   const [returns, setReturns] = useState<ReturnItem[]>([])
+  const [vatBreached, setVatBreached] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -52,6 +55,7 @@ export default function ReturnsPage() {
             return
           }
           setReturns(data.returns || [])
+          setVatBreached(data.vatBreached ?? false)
         }
       } catch {
         if (!cancelled) setError('Failed to load returns')
@@ -114,6 +118,7 @@ export default function ReturnsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Filing Sequence</h1>
+      {vatBreached && <VatBreachBanner />}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="grid gap-4">
@@ -177,6 +182,10 @@ export default function ReturnsPage() {
                     </a>
                   )}
                 </div>
+              )}
+
+              {ret.blockReason && (
+                <p className="text-sm font-medium text-red-600">{ret.blockReason}</p>
               )}
 
               <div className="flex gap-2">
