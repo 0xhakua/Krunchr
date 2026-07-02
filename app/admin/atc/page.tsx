@@ -364,6 +364,7 @@ export default function AdminAtcPage() {
           }
         />
       ) : (
+        <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -425,7 +426,7 @@ export default function AdminAtcPage() {
                   <TableCell className="text-right text-sm text-muted-foreground">
                     {atc.usageCount ?? 0}
                     <span className="ml-1 text-xs">
-                      ({atc.taxpayerCount ?? 0} tax / {atc.certificateCount ?? 0} cert)
+                      ({atc.taxpayerCount ?? 0} taxpayers · {atc.certificateCount ?? 0} certificates)
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -489,6 +490,7 @@ export default function AdminAtcPage() {
             })}
           </TableBody>
         </Table>
+        </div>
       )}
     </div>
   )
