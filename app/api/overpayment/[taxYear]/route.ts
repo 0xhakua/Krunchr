@@ -1,20 +1,15 @@
 import { NextResponse } from 'next/server'
 import Decimal from 'decimal.js'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { generateOverpaymentJournal } from '@/lib/journal/generator'
+import {
+  overpaymentDispositionSchema,
+  overpaymentSettlementSchema,
+} from '@/lib/validation/schemas'
 
-const dispositionSchema = z.object({
-  disposition: z.enum(['CARRY_OVER', 'REFUND', 'TAX_CREDIT_CERTIFICATE']),
-})
-
-const settlementSchema = z.object({
-  event: z.enum(['REFUND_RECEIVED', 'TCC_APPLIED', 'CARRY_OVER_APPLIED']),
-  reference: z.string().min(1).max(120).optional(),
-  tccNumber: z.string().min(1).max(60).optional(),
-  appliedAt: z.string().datetime().optional(),
-})
+const dispositionSchema = overpaymentDispositionSchema
+const settlementSchema = overpaymentSettlementSchema
 
 export async function GET(
   _req: Request,

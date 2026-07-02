@@ -93,6 +93,7 @@ export default function AdminAtcPage() {
     void (async () => {
       await loadCodes()
     })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

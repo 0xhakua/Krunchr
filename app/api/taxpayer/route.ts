@@ -1,24 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { initializeTaxYear } from '@/lib/tax-year'
-
-const tinRegex = /^\d{3}-\d{3}-\d{3}-\d{4}$/
-
-const taxpayerSchema = z.object({
-  tin: z.string().regex(tinRegex, 'TIN must be in format NNN-NNN-NNN-NNNN'),
-  fullName: z.string().min(1),
-  rdoCode: z.string().min(1),
-  registeredAddress: z.string().min(1),
-  zipCode: z.string().min(1),
-  natureOfBusiness: z.string().min(1),
-  incomeType: z.enum(['PURE_SELF_EMPLOYMENT', 'MIXED_INCOME']),
-  corIncludes2551Q: z.boolean(),
-  isNewRegistrant: z.boolean().default(false),
-  atcCodes: z.array(z.string()).min(1, 'Select at least one ATC code'),
-  taxYear: z.number().int().min(2000).max(2100),
-})
+import { taxpayerSchema } from '@/lib/validation/schemas'
 
 export async function GET(req: NextRequest) {
   const session = await requireAuth(req)

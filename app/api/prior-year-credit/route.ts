@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import Decimal from 'decimal.js'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { recascadeTaxYear } from '@/lib/computation/recascade'
@@ -10,13 +9,9 @@ import {
 } from '@/lib/journal/generator'
 import { resolveTaxYearFromRequest, setActiveYearCookie } from '@/lib/active-year'
 import { buildLineage, type LineageCredit } from '@/lib/prior-year-credit-lineage'
+import { priorYearCreditCreateSchema } from '@/lib/validation/schemas'
 
-const createSchema = z.object({
-  amount: z.union([z.string(), z.number()]).transform((v) => String(v)),
-  originYear: z.number().int(),
-  originForm: z.string().min(1),
-  priorDisposition: z.string().min(1),
-})
+const createSchema = priorYearCreditCreateSchema
 
 export async function GET(request: Request) {
   const session = await requireAuth()

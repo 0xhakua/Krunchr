@@ -1,32 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { recascadeTaxYear } from '@/lib/computation/recascade'
 import { canElect } from '@/lib/election-rules'
-
-const electionSchema = z
-  .object({
-    electedRate: z.enum(['RATE_8PCT', 'GRADUATED']),
-    electionPath: z.enum(['ITEM_13_2551Q_Q1', 'ITEM_16_1701Q_Q1', 'FORM_1905']).optional(),
-    disclosuresAcknowledged: z.boolean().refine((v) => v === true, {
-      message: 'All disclosures must be acknowledged',
-    }),
-    // S7.6 (#117): 40% Optional Standard Deduction election. Mutually
-    // exclusive with the 8% flat rate (NIRC Sec 24(A)(2)). The
-    // cross-field check is a `.superRefine` below.
-    osdElection: z.boolean().optional().default(false),
-  })
-  .superRefine((data, ctx) => {
-    if (data.osdElection && data.electedRate === 'RATE_8PCT') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['osdElection'],
-        message:
-          'OSD is not valid for the 8% flat rate (NIRC Sec 24(A)(2)): the 8% rate is computed on gross receipts and does not allow itemised or standard deductions.',
-      })
-    }
-  })
+import { electionSchema } from '@/lib/validation/schemas'
 
 type ElectionPath = 'ITEM_13_2551Q_Q1' | 'ITEM_16_1701Q_Q1' | 'FORM_1905'
 type ElectionMethod = ElectionPath

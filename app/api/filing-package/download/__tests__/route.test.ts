@@ -157,7 +157,7 @@ describe('GET /api/filing-package/download', () => {
   })
 
   it('returns a 400 when no returns are filed', async () => {
-    const { user, taxYear } = await createTaxpayerWithYear({
+    const { user } = await createTaxpayerWithYear({
       year: 2026,
       corIncludes2551Q: true,
     })

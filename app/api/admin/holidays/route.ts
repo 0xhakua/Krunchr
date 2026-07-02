@@ -1,43 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { getDueDatesForYear } from '@/lib/computation/due-dates'
+import {
+  holidaysBulkImportSchema,
+  holidaysBulkRowSchema,
+  holidaysCreateSchema,
+  holidaysDeleteSchema,
+} from '@/lib/validation/schemas'
 
-const createSchema = z.object({
-  date: z.string().date(),
-  name: z.string().min(1).max(255),
-})
-
-const deleteSchema = z.object({
-  id: z.string().min(1),
-})
-
-const bulkRowSchema = z
-  .object({
-    date: z.string().date(),
-    name: z.string().min(1).max(255),
-    year: z
-      .union([z.string(), z.number().finite()])
-      .optional()
-      .transform((v) => {
-        if (v === undefined || v === '' || v === null) return undefined
-        const n = Number(v)
-        return Number.isFinite(n) ? n : undefined
-      })
-      .pipe(z.number().int().min(1900).max(2999).optional()),
-  })
-  .transform((v) => ({
-    date: v.date,
-    name: v.name,
-    year: v.year ?? new Date(v.date).getUTCFullYear(),
-  }))
-
-const bulkImportSchema = z.object({
-  rows: z.array(bulkRowSchema).min(1).max(500),
-  mode: z.enum(['insert', 'upsert']).default('insert'),
-})
+const createSchema = holidaysCreateSchema
+const deleteSchema = holidaysDeleteSchema
+const bulkRowSchema = holidaysBulkRowSchema
+const bulkImportSchema = holidaysBulkImportSchema
 
 function requireAdmin(session: Awaited<ReturnType<typeof requireAuth>>) {
   if (!session) {
