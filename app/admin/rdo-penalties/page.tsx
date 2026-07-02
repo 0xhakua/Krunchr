@@ -253,6 +253,7 @@ export default function AdminRdoPenaltiesPage() {
           }
         />
       ) : (
+        <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -336,6 +337,7 @@ export default function AdminRdoPenaltiesPage() {
             })}
           </TableBody>
         </Table>
+        </div>
       )}
     </div>
   )

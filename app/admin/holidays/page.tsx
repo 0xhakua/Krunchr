@@ -314,6 +314,7 @@ export default function AdminHolidaysPage() {
           description="Add public holidays so statutory filing deadlines roll correctly when they fall on a weekend or holiday."
         />
       ) : (
+        <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -344,6 +345,7 @@ export default function AdminHolidaysPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
 
       {rollPreview && rollPreview.length > 0 && (
@@ -355,6 +357,7 @@ export default function AdminHolidaysPage() {
             Holidays listed above roll every BIR deadline for the selected year.
             Dates marked <strong>Rolled</strong> fell on a weekend or holiday.
           </p>
+          <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -386,6 +389,7 @@ export default function AdminHolidaysPage() {
               })}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
     </div>

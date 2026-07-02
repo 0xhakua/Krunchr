@@ -208,7 +208,7 @@ export default function AdminPage() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Link href="/admin/audit-log">
           <Card className="hover:bg-muted/50 transition-colors h-full">
             <CardHeader className="pb-2">
@@ -307,6 +307,7 @@ export default function AdminPage() {
           description="Taxpayer accounts will appear here once they complete onboarding."
         />
       ) : (
+        <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -378,6 +379,7 @@ export default function AdminPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
       )}
 
       <Dialog open={!!resetResult} onOpenChange={(open) => !open && setResetResult(null)}>
