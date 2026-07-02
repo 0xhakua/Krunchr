@@ -335,4 +335,12 @@ describe('/api/computation/preview', () => {
     expect(body.exemption.raw).toBe('0.00')
     expect(body.taxDue.raw).toBe('130000.00')
   })
+
+  it('returns 401 when the request is unauthenticated (S9.3)', async () => {
+    vi.mocked(requireAuth).mockResolvedValue(null)
+    const res = await GET()
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body).toEqual({ error: 'Unauthorized' })
+  })
 })

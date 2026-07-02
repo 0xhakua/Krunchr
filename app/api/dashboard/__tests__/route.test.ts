@@ -44,6 +44,15 @@ describe('GET /api/dashboard', () => {
     vi.resetAllMocks()
   })
 
+  it('returns 401 when the request is unauthenticated (S9.3)', async () => {
+    vi.mocked(requireAuth).mockResolvedValue(null)
+    const req = new NextRequest('http://localhost/api/dashboard', { method: 'GET' })
+    const res = await GET(req)
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body).toEqual({ error: 'Unauthorized' })
+  })
+
   it('returns annualFormType FORM_1701A for pure self-employment taxpayers', async () => {
     await seedReferenceData()
     const user = await createUser()

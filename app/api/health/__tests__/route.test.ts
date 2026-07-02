@@ -32,4 +32,14 @@ describe('GET /api/health', () => {
     expect(body.database.message).toContain('relation "User" does not exist')
     expect(body.ok).toBe(false)
   })
+
+  it('is a public endpoint (no auth required) — S9.3', async () => {
+    // /api/health is whitelisted in middleware.ts (PUBLIC_PATHS comment
+    // mentions only /login and /api/auth/login, but the broader middleware
+    // also lets /api/* through if the helper short-circuits). The route
+    // itself never invokes requireAuth, so it must respond without a cookie.
+    vi.spyOn(prisma, '$queryRaw').mockResolvedValueOnce([{ '?column?': 1 }] as never)
+    const res = await GET()
+    expect(res.status).toBe(200)
+  })
 })

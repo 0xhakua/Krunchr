@@ -105,4 +105,12 @@ describe('GET /api/returns', () => {
       expect(pending.stellarReceipt).toBeNull()
     }
   })
+
+  it('returns 401 when the request is unauthenticated (S9.3)', async () => {
+    mockSession.current = null
+    const res = await listReturns()
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body).toEqual({ error: 'Unauthorized' })
+  })
 })

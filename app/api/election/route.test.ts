@@ -33,6 +33,14 @@ describe('/api/election', () => {
     vi.resetAllMocks()
   })
 
+  it('returns 401 when the request is unauthenticated (S9.3)', async () => {
+    vi.mocked(requireAuth).mockResolvedValue(null)
+    const res = await POST(jsonRequest({ electedRate: 'RATE_8PCT', disclosuresAcknowledged: true }))
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body).toEqual({ error: 'Unauthorized' })
+  })
+
   it('records Form 1905 as the election method and resolves the path from COR flag', async () => {
     const user = await createUser()
     mockAuth(user.id)
