@@ -13,6 +13,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 import { AdminSkeleton } from './loading'
 import {
   Dialog,
@@ -198,13 +200,11 @@ export default function AdminPage() {
     )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Admin Panel</h1>
-          <p className="text-muted-foreground">Manage taxpayers and system activity.</p>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Admin Panel"
+        description="Manage taxpayers and system activity."
+      />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -409,6 +409,6 @@ export default function AdminPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }

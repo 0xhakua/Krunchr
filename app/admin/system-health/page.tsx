@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 import { AdminSkeleton } from '../loading'
 
 interface SystemHealth {
@@ -143,24 +145,26 @@ export default function SystemHealthPage() {
   }, [load, scheduleAutoRefresh])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">System Health</h1>
-          <p className="text-muted-foreground">
+    <PageShell>
+      <PageHeader
+        title="System Health"
+        description={
+          <>
             Stellar Horizon, storage backend, and database reachability. Auto-refreshes
             every {REFRESH_MS / 1000}s.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/admin">
-            <Button variant="outline">← Back to Admin</Button>
-          </Link>
-          <Button variant="outline" onClick={load} disabled={loading}>
-            {loading ? 'Refreshing…' : 'Refresh now'}
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <Link href="/admin">
+              <Button variant="outline">← Back to Admin</Button>
+            </Link>
+            <Button variant="outline" onClick={load} disabled={loading}>
+              {loading ? 'Refreshing…' : 'Refresh now'}
+            </Button>
+          </div>
+        }
+      />
 
       {error && (
         <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -294,7 +298,7 @@ export default function SystemHealthPage() {
           }
         />
       )}
-    </div>
+    </PageShell>
   )
 }
 
