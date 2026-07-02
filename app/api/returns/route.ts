@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
-import { determineReturnStatus } from '@/lib/computation/sequence'
+import { determineReturnStatus, getReturnBlockReason } from '@/lib/computation/sequence'
 
 export async function GET() {
   const session = await requireAuth()
@@ -30,7 +30,7 @@ export async function GET() {
     })
 
     if (!profile?.taxYears[0]) {
-      return NextResponse.json({ returns: [] })
+      return NextResponse.json({ returns: [], vatBreached: false })
     }
 
     const taxYear = profile.taxYears[0]
@@ -38,8 +38,10 @@ export async function GET() {
       const dynamicStatus = determineReturnStatus(
         ret.sequenceOrder,
         taxYear.returns,
-        profile.corIncludes2551Q
+        profile.corIncludes2551Q,
+        taxYear.vatBreached
       )
+      const blockReason = getReturnBlockReason(ret, taxYear.vatBreached)
 
       const stellarReceipt = ret.stellarReceipt
         ? {
@@ -59,10 +61,15 @@ export async function GET() {
         deadline: ret.statutoryDueDate,
         penalty: ret.penalties ?? null,
         stellarReceipt,
+        blockReason,
       }
     })
 
-    return NextResponse.json({ returns, corIncludes2551Q: profile.corIncludes2551Q })
+    return NextResponse.json({
+      returns,
+      corIncludes2551Q: profile.corIncludes2551Q,
+      vatBreached: taxYear.vatBreached,
+    })
   } catch (err) {
     console.error('List returns error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

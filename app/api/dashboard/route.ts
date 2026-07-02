@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import Decimal from 'decimal.js'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
-import { determineReturnStatus } from '@/lib/computation/sequence'
+import { determineReturnStatus, getReturnBlockReason } from '@/lib/computation/sequence'
 import { getSequence, VAT_THRESHOLD } from '@/lib/computation/constants'
 import {
   ACTIVE_YEAR_QUERY,
@@ -103,8 +103,10 @@ export async function GET(request: Request) {
       const dynamicStatus = determineReturnStatus(
         ret.sequenceOrder,
         taxYear.returns,
-        profile.corIncludes2551Q
+        profile.corIncludes2551Q,
+        taxYear.vatBreached
       )
+      const blockReason = getReturnBlockReason(ret, taxYear.vatBreached)
       const seq = sequence.find(
         (s) => s.formType === ret.formType && s.quarter === ret.quarter
       )
@@ -129,6 +131,7 @@ export async function GET(request: Request) {
         stellarTxId: ret.stellarReceipt?.stellarTxId ?? null,
         stellarStatus: ret.stellarReceipt?.status ?? null,
         explorerUrl: ret.stellarReceipt?.explorerUrl ?? null,
+        blockReason,
       }
     })
 
@@ -167,6 +170,7 @@ export async function GET(request: Request) {
         electionStatus: taxYear.electionStatus,
         electedRate: taxYear.electedRate,
         corIncludes2551Q: profile.corIncludes2551Q,
+        vatBreached: taxYear.vatBreached,
       },
       returns,
       ytd: {

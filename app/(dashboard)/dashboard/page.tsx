@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { FileText, Plus, Rocket, Wallet } from 'lucide-react'
+import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
 
 type DashboardReturn = {
   id: string
@@ -35,6 +36,7 @@ type DashboardReturn = {
   stellarTxId: string | null
   stellarStatus: string | null
   explorerUrl: string | null
+  blockReason?: string
 }
 
 type DashboardData = {
@@ -50,6 +52,7 @@ type DashboardData = {
     electionStatus: string
     electedRate: string | null
     corIncludes2551Q: boolean
+    vatBreached: boolean
   } | null
   returns: DashboardReturn[]
   ytd: {
@@ -208,6 +211,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {taxYear?.vatBreached && <VatBreachBanner />}
+
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -337,6 +342,10 @@ export default function DashboardPage() {
                     <p className="font-medium">{ret.overpaymentAmt}</p>
                   </div>
                 </div>
+
+                {ret.blockReason && (
+                  <p className="text-sm font-medium text-red-600">{ret.blockReason}</p>
+                )}
 
                 {ret.stellarTxId && (
                   <div className="text-sm">

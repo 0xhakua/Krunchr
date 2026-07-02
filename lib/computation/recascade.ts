@@ -156,6 +156,14 @@ export async function recascadeTaxYear({ taxYearId, tx }: RecascadeInput): Promi
         taxCreditsTotal: totalCredits,
         netTaxDue: Decimal.max(netPosition, 0),
         overpaymentAmt: Decimal.max(netPosition.negated(), 0),
+        // BR-12: once the VAT threshold is breached, Form 1701A is out of
+        // scope for a non-VAT taxpayer. Mark it blocked unless already filed.
+        status:
+          taxYear.vatBreached &&
+          annualReturn.formType === 'FORM_1701A' &&
+          annualReturn.status !== 'FILED'
+            ? 'BLOCKED'
+            : undefined,
       },
     })
 
