@@ -22,6 +22,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 import { AdminSkeleton } from '../loading'
 
 interface PublicHoliday {
@@ -197,18 +199,16 @@ export default function AdminHolidaysPage() {
   const totalHolidays = useMemo(() => holidays.length, [holidays])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Holiday Calendar</h1>
-          <p className="text-muted-foreground">
-            Public holidays used to roll statutory filing deadlines.
-          </p>
-        </div>
-        <Link href="/admin">
-          <Button variant="outline">← Back to Admin</Button>
-        </Link>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Holiday Calendar"
+        description="Public holidays used to roll statutory filing deadlines."
+        actions={
+          <Link href="/admin">
+            <Button variant="outline">← Back to Admin</Button>
+          </Link>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <form
@@ -392,6 +392,6 @@ export default function AdminHolidaysPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }

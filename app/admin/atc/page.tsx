@@ -16,6 +16,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 import { AdminSkeleton } from '../loading'
 import {
   Dialog,
@@ -239,89 +241,87 @@ export default function AdminAtcPage() {
   const visibleCodes = useMemo(() => codes, [codes])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">ATC Codes</h1>
-          <p className="text-muted-foreground">
-            Manage Alphanumeric Tax Codes and withholding rates.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/admin">
-            <Button variant="outline">← Back to Admin</Button>
-          </Link>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger>
-              <Button onClick={startCreate}>Add ATC Code</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add ATC Code</DialogTitle>
-                <DialogDescription>
-                  Create a new ATC code for taxpayers to select.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newCode">ATC Code</Label>
-                  <Input
-                    id="newCode"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    placeholder="WI071"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newDescription">Description</Label>
-                  <Input
-                    id="newDescription"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Insurance Agents & Adjusters"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newEwtRate">EWT Rate (decimal)</Label>
-                  <Input
-                    id="newEwtRate"
-                    value={ewtRate}
-                    onChange={(e) => setEwtRate(e.target.value)}
-                    placeholder="0.10"
-                    pattern="^\d+(\.\d{1,4})?$"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">Example: 0.10 for 10%, 0.15 for 15%</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="newIsActive"
-                    checked={isActive}
-                    onCheckedChange={(checked) => setIsActive(checked === true)}
-                  />
-                  <Label htmlFor="newIsActive">Active</Label>
-                </div>
-                {error && <p className="text-sm text-red-600">{error}</p>}
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      resetCreateForm()
-                      setDialogOpen(false)
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">Create</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="ATC Codes"
+        description="Manage Alphanumeric Tax Codes and withholding rates."
+        actions={
+          <div className="flex gap-2">
+            <Link href="/admin">
+              <Button variant="outline">← Back to Admin</Button>
+            </Link>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger>
+                <Button onClick={startCreate}>Add ATC Code</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add ATC Code</DialogTitle>
+                  <DialogDescription>
+                    Create a new ATC code for taxpayers to select.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newCode">ATC Code</Label>
+                    <Input
+                      id="newCode"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.toUpperCase())}
+                      placeholder="WI071"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newDescription">Description</Label>
+                    <Input
+                      id="newDescription"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Insurance Agents & Adjusters"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newEwtRate">EWT Rate (decimal)</Label>
+                    <Input
+                      id="newEwtRate"
+                      value={ewtRate}
+                      onChange={(e) => setEwtRate(e.target.value)}
+                      placeholder="0.10"
+                      pattern="^\d+(\.\d{1,4})?$"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Example: 0.10 for 10%, 0.15 for 15%</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="newIsActive"
+                      checked={isActive}
+                      onCheckedChange={(checked) => setIsActive(checked === true)}
+                    />
+                    <Label htmlFor="newIsActive">Active</Label>
+                  </div>
+                  {error && <p className="text-sm text-red-600">{error}</p>}
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        resetCreateForm()
+                        setDialogOpen(false)
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
+      />
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
         <div className="flex-1 space-y-1">
@@ -492,6 +492,6 @@ export default function AdminAtcPage() {
         </Table>
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }

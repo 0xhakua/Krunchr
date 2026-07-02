@@ -20,6 +20,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 
 interface AuditLogEntry {
   id: string
@@ -182,18 +184,16 @@ export default function AuditLogPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Audit Log</h1>
-          <p className="text-muted-foreground">
-            System audit trail for elections, filings, and Stellar anchors.
-          </p>
-        </div>
-        <Link href="/admin">
-          <Button variant="outline">← Back to Admin</Button>
-        </Link>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Audit Log"
+        description="System audit trail for elections, filings, and Stellar anchors."
+        actions={
+          <Link href="/admin">
+            <Button variant="outline">← Back to Admin</Button>
+          </Link>
+        }
+      />
 
       <div className="rounded-md border bg-muted/20 p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -441,6 +441,6 @@ export default function AuditLogPage() {
         </Table>
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }

@@ -14,6 +14,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 import { AdminSkeleton } from '../loading'
 
 interface RDOPenaltySchedule {
@@ -168,23 +170,21 @@ export default function AdminRdoPenaltiesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">RDO Penalty Schedule</h1>
-          <p className="text-muted-foreground">
-            Compromise penalty amount per RDO for late-filed returns.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/admin">
-            <Button variant="outline">← Back to Admin</Button>
-          </Link>
-          {!showAddRow && (
-            <Button onClick={() => setShowAddRow(true)}>Add RDO</Button>
-          )}
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="RDO Penalty Schedule"
+        description="Compromise penalty amount per RDO for late-filed returns."
+        actions={
+          <div className="flex gap-2">
+            <Link href="/admin">
+              <Button variant="outline">← Back to Admin</Button>
+            </Link>
+            {!showAddRow && (
+              <Button onClick={() => setShowAddRow(true)}>Add RDO</Button>
+            )}
+          </div>
+        }
+      />
 
       {message && <p className="text-sm text-green-600">{message}</p>}
       {!message && error && <p className="text-sm text-red-600">{error}</p>}
@@ -339,6 +339,6 @@ export default function AdminRdoPenaltiesPage() {
         </Table>
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }
