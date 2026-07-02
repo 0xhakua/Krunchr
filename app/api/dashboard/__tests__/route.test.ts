@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { GET } from '../route'
 import { prisma } from '@/lib/testing/db'
-import { createUser, seedReferenceData } from '@/lib/testing/factories'
+import { createForm2307, createTaxpayerWithYear, createATCCode, createUser, seedReferenceData } from '@/lib/testing/factories'
+import { VAT_THRESHOLD, VAT_WARNING_THRESHOLD } from '@/lib/computation/vat-threshold'
+import { checkAndRecordVatBreach } from '@/lib/computation/vat-threshold'
 import { initializeTaxYear } from '@/lib/tax-year'
 import { signToken } from '@/lib/auth/session'
 
@@ -121,5 +123,80 @@ describe('GET /api/dashboard', () => {
     // The annual position must read from the FORM_1701 row, not the
     // (non-existent) FORM_1701A row.
     expect(json.taxpayer.incomeType).toBe('MIXED_INCOME')
+  })
+
+  it('returns YTD gross and VAT threshold aggregate in ytd (S10.1)', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear()
+    const atc = await createATCCode({ code: 'WI010', ewtRate: 0.1 })
+    await createForm2307(taxYear.id, atc.code, { quarterlyTotal: 500_000 })
+
+    vi.mocked(requireAuth).mockResolvedValue({
+      sub: user.id,
+      username: 'test',
+      role: 'TAXPAYER',
+      iat: 1,
+      exp: 9999999999,
+    })
+
+    const res = await GET(await makeRequest(user.id))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.ytd.ytdGross).toBe('500000.00')
+    expect(json.ytd.totalGross).toBe('₱500,000.00')
+    expect(json.ytd.vatThreshold).toBe(VAT_THRESHOLD.toString())
+    expect(json.ytd.warningThreshold).toBe(VAT_WARNING_THRESHOLD.toString())
+    expect(json.ytd.vatThresholdPercent).toBeCloseTo((500_000 / 3_000_000) * 100, 4)
+    expect(json.ytd.vatBreached).toBe(false)
+    expect(json.ytd.vatBreachDate).toBeNull()
+  })
+
+  it('activates warning state when YTD gross reaches ₱2,400,000 (S10.1)', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear()
+    const atc = await createATCCode({ code: 'WI011', ewtRate: 0.1 })
+    await createForm2307(taxYear.id, atc.code, { quarterlyTotal: VAT_WARNING_THRESHOLD.toNumber() })
+
+    vi.mocked(requireAuth).mockResolvedValue({
+      sub: user.id,
+      username: 'test',
+      role: 'TAXPAYER',
+      iat: 1,
+      exp: 9999999999,
+    })
+
+    const res = await GET(await makeRequest(user.id))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.ytd.vatThresholdPercent).toBe(80)
+    expect(json.ytd.vatBreached).toBe(false)
+    expect(json.ytd.vatBreachDate).toBeNull()
+  })
+
+  it('returns breached state with breach date once YTD gross reaches ₱3,000,000 (S10.1)', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear()
+    const atc = await createATCCode({ code: 'WI012', ewtRate: 0.1 })
+    await createForm2307(taxYear.id, atc.code, { quarterlyTotal: VAT_THRESHOLD.toNumber() })
+    await checkAndRecordVatBreach(taxYear.id, prisma)
+
+    vi.mocked(requireAuth).mockResolvedValue({
+      sub: user.id,
+      username: 'test',
+      role: 'TAXPAYER',
+      iat: 1,
+      exp: 9999999999,
+    })
+
+    const res = await GET(await makeRequest(user.id))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.ytd.vatThresholdPercent).toBe(100)
+    expect(json.ytd.vatBreached).toBe(true)
+    expect(json.ytd.vatBreachDate).not.toBeNull()
+    expect(json.taxYear.vatBreached).toBe(true)
   })
 })

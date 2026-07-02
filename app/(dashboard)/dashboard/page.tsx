@@ -57,9 +57,13 @@ type DashboardData = {
   returns: DashboardReturn[]
   ytd: {
     totalGross: string
+    ytdGross: string
     totalCwt: string
     vatThreshold: string
+    warningThreshold: string
     vatThresholdPercent: number
+    vatBreached: boolean
+    vatBreachDate: string | null
   }
   upcoming: DashboardReturn[]
   nextReturnId: string | null
@@ -259,7 +263,15 @@ export default function DashboardPage() {
       </div>
 
       {/* VAT threshold */}
-      <Card className={ytd.vatThresholdPercent >= 80 ? 'border-red-200 bg-red-50/30' : ''}>
+      <Card
+        className={
+          ytd.vatBreached
+            ? 'border-red-300 bg-red-50/50'
+            : ytd.vatThresholdPercent >= 80
+              ? 'border-amber-300 bg-amber-50/30'
+              : ''
+        }
+      >
         <CardHeader className="pb-2">
           <CardTitle className="text-base">VAT Threshold Progress</CardTitle>
           <CardDescription>
@@ -267,10 +279,25 @@ export default function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Progress value={ytd.vatThresholdPercent} />
-          {ytd.vatThresholdPercent >= 80 && (
-            <p className="text-sm text-red-600">Warning: approaching ₱3,000,000 VAT threshold.</p>
-          )}
+          <Progress
+            value={ytd.vatThresholdPercent}
+            indicatorClassName={
+              ytd.vatBreached
+                ? 'bg-red-600'
+                : ytd.vatThresholdPercent >= 80
+                  ? 'bg-amber-500'
+                  : undefined
+            }
+          />
+          {ytd.vatBreached ? (
+            <p className="text-sm font-medium text-red-700">
+              VAT threshold breached on {formatDate(ytd.vatBreachDate)}. Kuwenta only supports non-VAT taxpayers.
+            </p>
+          ) : ytd.vatThresholdPercent >= 80 ? (
+            <p className="text-sm text-amber-700">
+              Warning: YTD gross has reached ₱{Number(ytd.warningThreshold).toLocaleString('en-PH')} (80% of the VAT threshold).
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
