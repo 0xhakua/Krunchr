@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -21,6 +21,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatPeso, formatDate } from '@/lib/format'
+import { EmptyState } from '@/components/ui/empty-state'
+import { JournalSkeleton } from './loading'
 
 type JournalLine = {
   lineOrder: number
@@ -257,18 +259,21 @@ export default function JournalPage() {
       {message && <p className="text-sm text-green-600">{message}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground">Loading journal entries…</p>
+        <JournalSkeleton />
       ) : entries.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No journal entries match</CardTitle>
-            <CardDescription>
-              {filtersActive
-                ? 'Try removing a filter or click Regenerate to rebuild the journal from current data.'
-                : 'Journal entries are generated when you add income, file returns, or set overpayment dispositions. Click Regenerate to build them from existing data.'}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <EmptyState
+          title="No journal entries yet"
+          description={
+            filtersActive
+              ? 'Try removing a filter, or click Regenerate to rebuild the journal from current data.'
+              : 'Journal entries are generated when you add income, file returns, or set overpayment dispositions.'
+          }
+          actions={
+            <Button onClick={regenerate} disabled={regenerating}>
+              {regenerating ? 'Regenerating…' : 'Regenerate'}
+            </Button>
+          }
+        />
       ) : (
         <div className="space-y-6">
           {grouped.map(([subsectionKey, groupEntries]) => (

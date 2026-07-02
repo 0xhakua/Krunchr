@@ -15,6 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
+import { AdminSkeleton } from '../loading'
 import {
   Dialog,
   DialogContent,
@@ -348,13 +350,19 @@ export default function AdminAtcPage() {
       {!message && error && <p className="text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <p className="text-muted-foreground">Loading ATC codes…</p>
+        <AdminSkeleton />
       ) : visibleCodes.length === 0 ? (
-        <p className="text-muted-foreground">
-          {query || includeInactive
-            ? 'No ATC codes match the current filter.'
-            : 'No ATC codes found.'}
-        </p>
+        <EmptyState
+          title="No ATC codes found"
+          description={
+            query || includeInactive
+              ? 'No ATC codes match the current filter.'
+              : 'Create ATC codes so taxpayers can select them during onboarding and income entry.'
+          }
+          actions={
+            <Button onClick={startCreate}>Add ATC Code</Button>
+          }
+        />
       ) : (
         <Table>
           <TableHeader>

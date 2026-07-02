@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/select'
 import { FileText, Plus, Rocket, Wallet } from 'lucide-react'
 import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
+import { EmptyState } from '@/components/ui/empty-state'
+import { DashboardSkeleton } from './loading'
 
 type DashboardReturn = {
   id: string
@@ -157,16 +159,20 @@ export default function DashboardPage() {
     return new Date(value).toLocaleDateString('en-PH')
   }
 
-  if (loading) return <p className="p-6">Loading dashboard…</p>
+  if (loading) return <DashboardSkeleton />
   if (error) return <p className="p-6 text-red-600">{error}</p>
   if (!data?.taxpayer) {
     return (
-      <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold">Welcome to Kuwenta</h1>
-        <p className="text-muted-foreground">Complete onboarding to see your compliance dashboard.</p>
-        <Link href="/onboarding">
-          <Button>Start Onboarding</Button>
-        </Link>
+      <div className="py-6">
+        <EmptyState
+          title="Welcome to Kuwenta"
+          description="Complete onboarding to see your compliance dashboard and filing roadmap."
+          actions={
+            <Link href="/onboarding">
+              <Button>Start Onboarding</Button>
+            </Link>
+          }
+        />
       </div>
     )
   }
