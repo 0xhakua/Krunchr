@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ElectionSkeleton } from './loading'
 
 type ElectionPath = 'ITEM_13_2551Q_Q1' | 'ITEM_16_1701Q_Q1' | 'FORM_1905'
 
@@ -139,7 +140,7 @@ export default function ElectionPage() {
   }
 
   if (!status) {
-    return <p className="p-6">Loading election status...</p>
+    return <ElectionSkeleton />
   }
 
   return (

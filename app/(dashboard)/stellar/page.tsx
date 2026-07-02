@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import QRCode from 'react-qr-code'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
 import { QrCode, ShieldCheck } from 'lucide-react'
 
 interface StellarReceipt {
@@ -142,7 +144,15 @@ export default function StellarPage() {
       </div>
 
       {receipts.length === 0 ? (
-        <p className="text-muted-foreground">No Stellar receipts yet.</p>
+        <EmptyState
+          title="No Stellar receipts yet"
+          description="File a return to anchor a tamper-proof receipt on the Stellar blockchain."
+          actions={
+            <Link href="/returns">
+              <Button variant="outline">Go to Returns</Button>
+            </Link>
+          }
+        />
       ) : (
         <Table>
           <TableHeader>

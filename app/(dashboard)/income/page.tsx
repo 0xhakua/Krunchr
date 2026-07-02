@@ -34,6 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 
 type ATCCode = {
   code: string
@@ -470,7 +471,14 @@ export default function IncomePage() {
                   ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No certificates for this quarter.</p>
+              <EmptyState
+                title={`No certificates for Quarter ${quarter}`}
+                description="Add a BIR Form 2307 certificate to record income and CWT for this quarter."
+                actions={
+                  <Button onClick={startAdd}>Add Certificate</Button>
+                }
+                className="py-8"
+              />
             )}
           </CardContent>
         </Card>
@@ -524,7 +532,14 @@ export default function IncomePage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground">No certificates on file.</p>
+            <EmptyState
+              title="No certificates on file"
+              description="Once you add 2307 certificates, a consolidated income summary will appear here."
+              actions={
+                <Button onClick={startAdd}>Add Certificate</Button>
+              }
+              className="py-8"
+            />
           )}
         </CardContent>
       </Card>

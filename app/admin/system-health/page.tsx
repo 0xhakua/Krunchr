@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { AdminSkeleton } from '../loading'
 
 interface SystemHealth {
   ok: boolean
@@ -166,7 +168,9 @@ export default function SystemHealthPage() {
         </div>
       )}
 
-      {health ? (
+      {loading ? (
+        <AdminSkeleton />
+      ) : health ? (
         <>
           <Card>
             <CardHeader className="pb-2">
@@ -280,7 +284,15 @@ export default function SystemHealthPage() {
           </div>
         </>
       ) : (
-        !loading && <p className="text-muted-foreground">No data.</p>
+        <EmptyState
+          title="No health data"
+          description="System health checks Stellar, storage, and database status. Click Refresh now to run a check."
+          actions={
+            <Button variant="outline" onClick={load} disabled={loading}>
+              Refresh now
+            </Button>
+          }
+        />
       )}
     </div>
   )

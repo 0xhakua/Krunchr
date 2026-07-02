@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { EmptyState } from '@/components/ui/empty-state'
+import { SawtSkeleton } from './loading'
 import { FileDown, Package, ClipboardList, Copy, Check } from 'lucide-react'
 
 type SawtRow = {
@@ -114,7 +116,7 @@ export default function SawtPage() {
     return 'bg-amber-100 text-amber-800'
   }
 
-  if (loading) return <p className="p-6">Loading…</p>
+  if (loading) return <SawtSkeleton />
   if (error) return <p className="p-6 text-red-600">{error}</p>
 
   return (
@@ -186,7 +188,16 @@ export default function SawtPage() {
           </CardHeader>
           <CardContent>
             {sawt.length === 0 ? (
-              <p className="text-muted-foreground">No 2307 certificates recorded yet.</p>
+              <EmptyState
+                title="No SAWT rows yet"
+                description="Add 2307 certificates and they will be aggregated here for BIR eSubmission."
+                actions={
+                  <Link href="/income">
+                    <Button variant="outline">Add 2307 Certificate</Button>
+                  </Link>
+                }
+                className="py-8"
+              />
             ) : (
               <Table>
                 <TableHeader>
