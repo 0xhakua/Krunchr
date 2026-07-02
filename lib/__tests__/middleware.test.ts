@@ -9,8 +9,12 @@ vi.mock('@/lib/auth/session', () => ({
 
 import { middleware } from '../../middleware'
 
-function req(pathname: string): NextRequest {
-  return new NextRequest(`http://localhost${pathname}`, { method: 'GET' })
+function req(
+  pathname: string,
+  method = 'GET',
+  headers?: Record<string, string>
+): NextRequest {
+  return new NextRequest(`http://localhost${pathname}`, { method, headers })
 }
 
 describe('middleware route protection (S9.3)', () => {
@@ -305,6 +309,64 @@ describe('middleware route protection (S9.3)', () => {
       const res = await middleware(req('/dashboard'))
       expect(res.status).not.toBe(401)
       expect(res.headers.get('location')).toBeNull()
+    })
+  })
+
+  describe('Content-Type validation (S10.4)', () => {
+    it('rejects POST /api/income with a non-JSON Content-Type', async () => {
+      const res = await middleware(req('/api/income', 'POST', { 'content-type': 'text/html' }))
+      expect(res.status).toBe(415)
+      const body = await res.json()
+      expect(body).toMatchObject({
+        error: 'Unsupported Media Type',
+        code: 'UNSUPPORTED_MEDIA_TYPE',
+        expected: 'application/json',
+      })
+      expect(mockRequireAuth).not.toHaveBeenCalled()
+    })
+
+    it('rejects POST /api/income with no Content-Type header', async () => {
+      const res = await middleware(req('/api/income', 'POST'))
+      expect(res.status).toBe(415)
+      expect(mockRequireAuth).not.toHaveBeenCalled()
+    })
+
+    it('allows POST /api/income with application/json to reach auth check', async () => {
+      mockRequireAuth.mockResolvedValue(null)
+      const res = await middleware(req('/api/income', 'POST', { 'content-type': 'application/json' }))
+      expect(res.status).toBe(401)
+      expect(mockRequireAuth).toHaveBeenCalledTimes(1)
+    })
+
+    it('rejects PATCH /api/admin/users with text/plain', async () => {
+      const res = await middleware(
+        req('/api/admin/users', 'PATCH', { 'content-type': 'text/plain' })
+      )
+      expect(res.status).toBe(415)
+      expect(mockRequireAuth).not.toHaveBeenCalled()
+    })
+
+    it('allows PATCH /api/admin/users with application/json to reach auth check', async () => {
+      mockRequireAuth.mockResolvedValue(null)
+      const res = await middleware(
+        req('/api/admin/users', 'PATCH', { 'content-type': 'application/json' })
+      )
+      expect(res.status).toBe(401)
+    })
+
+    it('exempts PUT /api/admin/holidays CSV bulk import from JSON requirement', async () => {
+      mockRequireAuth.mockResolvedValue(null)
+      const res = await middleware(
+        req('/api/admin/holidays', 'PUT', { 'content-type': 'text/csv' })
+      )
+      expect(res.status).toBe(401)
+      expect(mockRequireAuth).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not enforce Content-Type on GET requests', async () => {
+      mockRequireAuth.mockResolvedValue(null)
+      const res = await middleware(req('/api/income'))
+      expect(res.status).toBe(401)
     })
   })
 })

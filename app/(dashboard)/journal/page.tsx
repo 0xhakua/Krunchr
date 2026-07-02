@@ -146,7 +146,10 @@ export default function JournalPage() {
     setError('')
     setMessage('')
     try {
-      const res = await fetch('/api/journal/generate', { method: 'POST' })
+      const res = await fetch('/api/journal/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Failed to regenerate journal entries')

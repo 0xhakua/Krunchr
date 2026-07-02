@@ -84,7 +84,10 @@ export default function ReturnsPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/returns/${id}/generate`, { method: 'POST' })
+      const res = await fetch(`/api/returns/${id}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Failed to generate return')
@@ -102,7 +105,10 @@ export default function ReturnsPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/returns/${id}/file`, { method: 'POST' })
+      const res = await fetch(`/api/returns/${id}/file`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Failed to file return')
