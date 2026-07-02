@@ -35,3 +35,20 @@ export function extractApiErrorMessage(data: unknown, fallback: string): string 
   }
   return fallback
 }
+
+import { NextResponse } from 'next/server'
+
+export function unsupportedMediaType(expected = 'application/json') {
+  return NextResponse.json(
+    {
+      error: 'Unsupported Media Type',
+      code: 'UNSUPPORTED_MEDIA_TYPE',
+      expected,
+    },
+    { status: 415 }
+  )
+}
+
+export function badRequest(message: string, code = 'BAD_REQUEST') {
+  return NextResponse.json({ error: message, code }, { status: 400 })
+}

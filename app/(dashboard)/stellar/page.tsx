@@ -99,6 +99,7 @@ export default function StellarPage() {
     try {
       const res = await fetch(`/api/stellar/receipts/${id}/retry`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       })
       const data = await res.json()
       if (!res.ok) {

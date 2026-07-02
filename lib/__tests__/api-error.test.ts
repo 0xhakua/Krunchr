@@ -64,3 +64,36 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(data, 'fallback')).toBe('fallback')
   })
 })
+
+describe('unsupportedMediaType', () => {
+  it('returns a 415 JSON response with default expected type', async () => {
+    const { unsupportedMediaType } = await import('../api-error')
+    const res = unsupportedMediaType()
+    expect(res.status).toBe(415)
+    expect(await res.json()).toEqual({
+      error: 'Unsupported Media Type',
+      code: 'UNSUPPORTED_MEDIA_TYPE',
+      expected: 'application/json',
+    })
+  })
+
+  it('returns a 415 JSON response with a custom expected type', async () => {
+    const { unsupportedMediaType } = await import('../api-error')
+    const res = unsupportedMediaType('text/csv')
+    expect(res.status).toBe(415)
+    expect(await res.json()).toEqual({
+      error: 'Unsupported Media Type',
+      code: 'UNSUPPORTED_MEDIA_TYPE',
+      expected: 'text/csv',
+    })
+  })
+})
+
+describe('badRequest', () => {
+  it('returns a 400 JSON response with the supplied message', async () => {
+    const { badRequest } = await import('../api-error')
+    const res = badRequest('Invalid input')
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'Invalid input', code: 'BAD_REQUEST' })
+  })
+})
