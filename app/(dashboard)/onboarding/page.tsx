@@ -23,6 +23,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
+import { LocationPicker } from '@/components/location-picker'
+import { type ZipCodeEntry } from '@/lib/data/zip-codes'
 
 type ATCCode = {
   code: string
@@ -58,6 +60,8 @@ export default function OnboardingPage() {
     fullName: '',
     rdoCode: '',
     registeredAddress: '',
+    cityMunicipality: '',
+    province: '',
     zipCode: '',
     natureOfBusiness: '',
     incomeType: 'PURE_SELF_EMPLOYMENT',
@@ -78,6 +82,27 @@ export default function OnboardingPage() {
 
   function updateField(field: string, value: string | number | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function selectLocation(entry: ZipCodeEntry | null) {
+    if (!entry) {
+      setForm((prev) => ({
+        ...prev,
+        zipCode: '',
+        cityMunicipality: '',
+        province: '',
+      }))
+      return
+    }
+    setForm((prev) => ({
+      ...prev,
+      zipCode: entry.zipCode,
+      cityMunicipality: entry.cityMunicipality,
+      province: entry.province,
+      registeredAddress:
+        prev.registeredAddress.trim() ||
+        `${entry.cityMunicipality}, ${entry.province}`,
+    }))
   }
 
   function toggleAtc(code: string) {
@@ -210,11 +235,34 @@ export default function OnboardingPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="zipCode">ZIP Code</Label>
-                <Input
+                <LocationPicker
                   id="zipCode"
                   value={form.zipCode}
-                  onChange={(e) => updateField('zipCode', e.target.value)}
-                  required
+                  onChange={selectLocation}
+                  placeholder="Search ZIP code, city, or province"
+                />
+                {fieldError('zipCode') && (
+                  <p className="text-sm text-red-600">{fieldError('zipCode')}</p>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cityMunicipality">City / Municipality</Label>
+                <Input
+                  id="cityMunicipality"
+                  value={form.cityMunicipality}
+                  readOnly
+                  placeholder="Auto-filled from ZIP code"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="province">Province</Label>
+                <Input
+                  id="province"
+                  value={form.province}
+                  readOnly
+                  placeholder="Auto-filled from ZIP code"
                 />
               </div>
             </div>
@@ -224,8 +272,15 @@ export default function OnboardingPage() {
                 id="registeredAddress"
                 value={form.registeredAddress}
                 onChange={(e) => updateField('registeredAddress', e.target.value)}
+                placeholder="Street address, barangay"
                 required
               />
+              <p className="text-xs text-muted-foreground">
+                Add your street address; city and province are filled from the ZIP code picker.
+              </p>
+              {fieldError('registeredAddress') && (
+                <p className="text-sm text-red-600">{fieldError('registeredAddress')}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="natureOfBusiness">Nature of Business / Profession</Label>

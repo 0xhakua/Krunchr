@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js'
 import { z } from 'zod'
+import { isValidZipCode } from '@/lib/data/zip-codes'
 
 /**
  * Centralized Zod schemas for every API route.
@@ -29,7 +30,10 @@ export const taxpayerSchema = z.object({
   fullName: z.string().min(1),
   rdoCode: z.string().min(1),
   registeredAddress: z.string().min(1),
-  zipCode: z.string().min(1),
+  zipCode: z
+    .string()
+    .regex(/^\d{4}$/, 'ZIP code must be a 4-digit Philippine ZIP code')
+    .refine((v) => isValidZipCode(v), 'ZIP code is not a known Philippine ZIP code'),
   natureOfBusiness: z.string().min(1),
   incomeType: z.enum(['PURE_SELF_EMPLOYMENT', 'MIXED_INCOME']),
   corIncludes2551Q: z.boolean(),
