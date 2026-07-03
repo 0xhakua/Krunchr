@@ -54,14 +54,32 @@ describe.skipIf(!IS_WINDOWS)('STORAGE_PATH=./storage override (Windows dev)', ()
 
     const relPath = `roundtrip-${Date.now()}.bin`
     const payload = Buffer.from('kuwenta-storage-windows-override', 'utf8')
-    const writtenAbsPath = await storage.writeFile(relPath, payload)
-    expect(fs.existsSync(writtenAbsPath)).toBe(true)
-    expect(writtenAbsPath).toBe(path.join(WINDOWS_OVERRIDE_DIR, relPath))
+    const writtenPath = await storage.writeFile(relPath, payload)
+    // writeFile now persists the relative path so database records survive
+    // STORAGE_PATH changes and ephemeral filesystems.
+    expect(writtenPath).toBe(relPath)
+    expect(fs.existsSync(path.join(WINDOWS_OVERRIDE_DIR, relPath))).toBe(true)
 
     const readBack = await storage.readFile(relPath)
     expect(readBack.equals(payload)).toBe(true)
 
     expect(storage.fileExists(relPath)).toBe(true)
+  })
+
+  it('reads back legacy absolute paths stored by older versions', async () => {
+    process.env.STORAGE_PATH = WINDOWS_OVERRIDE_DIR
+    vi.resetModules()
+    const storage = await import('../storage')
+
+    const relPath = `legacy-${Date.now()}.bin`
+    const payload = Buffer.from('legacy-absolute-path', 'utf8')
+    const absPath = path.join(WINDOWS_OVERRIDE_DIR, relPath)
+    fs.mkdirSync(path.dirname(absPath), { recursive: true })
+    fs.writeFileSync(absPath, payload)
+
+    const readBack = await storage.readFile(absPath)
+    expect(readBack.equals(payload)).toBe(true)
+    expect(storage.fileExists(absPath)).toBe(true)
   })
 
   it('checkStorageHealth reports the override path as writable', async () => {

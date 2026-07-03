@@ -40,12 +40,15 @@ vi.mock('@/lib/stellar/anchor', () => ({
   storeFilingPackage: vi.fn(async (taxYearId: string, returnId: string) =>
     `returns/${taxYearId}/${returnId}/generated.pdf`
   ),
-  retryAnchorFilingReceipt: vi.fn(async (returnId: string) => ({
-    stellarTxId: `tx-retry-${returnId}`,
-    payloadHash: 'b'.repeat(64),
-    explorerUrl: `https://stellar.expert/explorer/testnet/tx/tx-retry-${returnId}`,
-    status: 'CONFIRMED' as const,
-  })),
+  retryAnchorFilingReceipt: vi.fn(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async (returnId: string, _userId: string, _pdfPath: string) => ({
+      stellarTxId: `tx-retry-${returnId}`,
+      payloadHash: 'b'.repeat(64),
+      explorerUrl: `https://stellar.expert/explorer/testnet/tx/tx-retry-${returnId}`,
+      status: 'CONFIRMED' as const,
+    })
+  ),
 }))
 
 vi.mock('@/lib/pdf/dispatcher', () => ({
