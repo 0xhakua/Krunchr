@@ -15,7 +15,7 @@ async function makeRequest(userId: string, body: object): Promise<NextRequest> {
 }
 
 const basePayload = {
-  tin: '123-456-789-9999',
+  tin: '123-456-789-999',
   firstName: 'New',
   lastName: 'Registrant',
   middleInitial: 'R',
@@ -101,7 +101,7 @@ describe('POST /api/taxpayer', () => {
 
     const req = await makeRequest(user.id, {
       ...basePayload,
-      tin: '12345', // invalid: must match NNN-NNN-NNN-NNNN
+      tin: '12345', // invalid: must match NNN-NNN-NNN-NNN
       atcCodes: [], // invalid: at least one required
     })
 
@@ -114,7 +114,7 @@ describe('POST /api/taxpayer', () => {
     // Field errors are flat string arrays keyed by field name.
     expect(json.fieldErrors).toBeTypeOf('object')
     expect(Array.isArray(json.fieldErrors.tin)).toBe(true)
-    expect(json.fieldErrors.tin[0]).toMatch(/NNN-NNN-NNN-NNNN/)
+    expect(json.fieldErrors.tin[0]).toMatch(/NNN-NNN-NNN-NNN/)
     expect(Array.isArray(json.fieldErrors.atcCodes)).toBe(true)
     // No nested `_errors` shape that would crash React.
     expect(json).not.toHaveProperty('_errors')

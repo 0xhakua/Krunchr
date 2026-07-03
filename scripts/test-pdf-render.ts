@@ -33,7 +33,7 @@ function dataFor(formType: FilingPdfData['ret']['formType'], quarter: number | n
     },
     taxpayer: {
       fullName: 'Maria Dela Cruz',
-      tin: '123-456-789-0001',
+      tin: '123-456-789-001',
       rdoCode: '040',
       registeredAddress: '123 Test St',
       zipCode: '1200',

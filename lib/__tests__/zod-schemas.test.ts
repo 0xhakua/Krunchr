@@ -32,25 +32,25 @@ const settlementSchema = overpaymentSettlementSchema
 const simulateSchema = penaltiesSimulateSchema
 
 // TIN regex is re-exported from app/api/taxpayer/route.ts; this guard
-// is the single source of truth for the NNN-NNN-NNN-NNNN format the
+// is the single source of truth for the NNN-NNN-NNN-NNN format the
 // AGENT.md BR mandates. These tests lock in the regex itself.
 describe('TIN regex (S9.2 / AGENT.md BR)', () => {
   it('matches a valid 12-digit TIN with three dashes', () => {
-    expect(tinRegex.test('123-456-789-0123')).toBe(true)
-    expect(tinRegex.test('000-000-000-0000')).toBe(true)
+    expect(tinRegex.test('123-456-789-012')).toBe(true)
+    expect(tinRegex.test('000-000-000-000')).toBe(true)
   })
 
   it('rejects missing or extra dashes', () => {
-    expect(tinRegex.test('1234567890123')).toBe(false)
-    expect(tinRegex.test('123-456-7890123')).toBe(false)
-    expect(tinRegex.test('123-456-789-012')).toBe(false)
-    expect(tinRegex.test('123-456-789-01234')).toBe(false)
+    expect(tinRegex.test('123456789012')).toBe(false)
+    expect(tinRegex.test('123-456-789012')).toBe(false)
+    expect(tinRegex.test('123-456-789-01')).toBe(false)
+    expect(tinRegex.test('123-456-789-0123')).toBe(false)
   })
 
   it('rejects non-digit characters', () => {
     expect(tinRegex.test('123-456-789-012a')).toBe(false)
-    expect(tinRegex.test('abc-def-ghi-jklm')).toBe(false)
-    expect(tinRegex.test(' 123-456-789-0123')).toBe(false)
+    expect(tinRegex.test('abc-def-ghi-jkl')).toBe(false)
+    expect(tinRegex.test(' 123-456-789-012')).toBe(false)
   })
 })
 
@@ -78,7 +78,7 @@ describe('loginSchema (POST /api/auth/login)', () => {
 
 describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
   const valid = {
-    tin: '123-456-789-0123',
+    tin: '123-456-789-012',
     firstName: 'Maria',
     lastName: 'Dela Cruz',
     middleInitial: 'S',
@@ -103,13 +103,13 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
     expect(taxpayerSchema.safeParse(rest).success).toBe(true)
   })
 
-  it('rejects an invalid TIN with the documented NNN-NNN-NNN-NNNN error', () => {
+  it('rejects an invalid TIN with the documented NNN-NNN-NNN-NNN error', () => {
     const result = taxpayerSchema.safeParse({ ...valid, tin: 'not-a-tin' })
     expect(result.success).toBe(false)
     if (!result.success) {
       const flat = result.error.flatten()
       const tinError = flat.fieldErrors.tin?.[0]
-      expect(tinError).toMatch(/NNN-NNN-NNN-NNNN/)
+      expect(tinError).toMatch(/NNN-NNN-NNN-NNN/)
     }
   })
 

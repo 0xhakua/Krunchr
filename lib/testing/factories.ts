@@ -45,7 +45,7 @@ export async function createTaxpayerProfile(
   return prisma.taxpayerProfile.create({
     data: {
       userId,
-      tin: overrides.tin ?? `123-456-789-${Math.floor(Math.random() * 9000) + 1000}`,
+      tin: overrides.tin ?? `123-456-789-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`,
       firstName,
       lastName,
       middleInitial,

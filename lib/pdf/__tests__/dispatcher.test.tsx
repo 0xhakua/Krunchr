@@ -32,7 +32,7 @@ function makeData(formType: FilingPdfData['ret']['formType'], quarter: number | 
     },
     taxpayer: {
       fullName: 'Maria Dela Cruz',
-      tin: '123-456-789-0001',
+      tin: '123-456-789-001',
       rdoCode: '040',
       registeredAddress: '123 Test St, Makati City',
       zipCode: '1200',

@@ -28,7 +28,7 @@ first time.
 3. **A few test Form 2307 figures.** When you reach step 6 you'll add at
    least one 2307 certificate. You can use the demo data seeded for
    `maria`, or invent your own: pick a quarter (1–4), a payor TIN
-   (`000-000-000-0000` is fine for the demo), a payor name, an ATC code
+   (`000-000-000-000` is fine for the demo), a payor name, an ATC code
    (`WI100` = professional fees is a safe default), and a quarterly
    gross amount + CWT.
 
@@ -66,7 +66,7 @@ The wizard has four steps:
 
 ### 2a. Personal information
 - Full name (as on the BIR registration)
-- TIN — must be in the format `NNN-NNN-NNN-NNNN` (e.g. `123-456-789-0000`)
+- TIN — must be in the format `NNN-NNN-NNN-NNN` (e.g. `123-456-789-000`)
 - RDO code (3 digits, e.g. `040`)
 - Registered address
 - ZIP code
@@ -109,7 +109,7 @@ Click **Complete Onboarding**.
 
 **If you see "Validation failed"** in red at the top: the form rejected
 your input. The most common trigger is a TIN that doesn't match
-`NNN-NNN-NNN-NNNN`, or a blank required field. The fix from #101
+`NNN-NNN-NNN-NNN`, or a blank required field. The fix from #101
 surfaces the actual field error in the toast, so read the red text
 carefully and fix the named field. (Older builds just said "Validation
 failed" with no detail — make sure you're on the latest build.)
@@ -126,7 +126,7 @@ your taxes.
 2. Click **Add 2307** (or whatever the current label says).
 3. Fill in:
    - **Quarter:** 1, 2, 3, or 4
-   - **Payor TIN:** any value (use `000-000-000-0000` if you don't have a real one)
+   - **Payor TIN:** any value (use `000-000-000-000` if you don't have a real one)
    - **Payor name:** anything (e.g. "Acme Corp")
    - **ATC code:** choose from the list
    - **Monthly amounts:** split your quarterly gross across the 3

@@ -6,10 +6,10 @@ describe('extractApiErrorMessage', () => {
     const data = {
       error: 'Validation failed',
       formErrors: [],
-      fieldErrors: { tin: ['TIN must be in format NNN-NNN-NNN-NNNN'] },
+      fieldErrors: { tin: ['TIN must be in format NNN-NNN-NNN-NNN'] },
     }
     expect(extractApiErrorMessage(data, 'fallback')).toBe(
-      'TIN must be in format NNN-NNN-NNN-NNNN'
+      'TIN must be in format NNN-NNN-NNN-NNN'
     )
   })
 
@@ -18,14 +18,14 @@ describe('extractApiErrorMessage', () => {
       error: 'Validation failed',
       formErrors: [],
       fieldErrors: {
-        tin: ['TIN must be in format NNN-NNN-NNN-NNNN'],
+        tin: ['TIN must be in format NNN-NNN-NNN-NNN'],
         atcCodes: ['Select at least one ATC code'],
       },
     }
     // Order is insertion order in V8; either field error is acceptable as long as
     // it is one of the two.
     const msg = extractApiErrorMessage(data, 'fallback')
-    expect(['TIN must be in format NNN-NNN-NNN-NNNN', 'Select at least one ATC code']).toContain(msg)
+    expect(['TIN must be in format NNN-NNN-NNN-NNN', 'Select at least one ATC code']).toContain(msg)
   })
 
   it('returns the first form error when there are no field errors', () => {
@@ -60,7 +60,7 @@ describe('extractApiErrorMessage', () => {
     // Regression for #97: the old API returned Zod's format() output. Even if a
     // stray server still does that, the helper must not throw and must produce
     // some message (here: the fallback).
-    const data = { _errors: [], tin: { _errors: ['TIN must be in format NNN-NNN-NNN-NNNN'] } }
+    const data = { _errors: [], tin: { _errors: ['TIN must be in format NNN-NNN-NNN-NNN'] } }
     expect(extractApiErrorMessage(data, 'fallback')).toBe('fallback')
   })
 })

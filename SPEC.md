@@ -61,7 +61,7 @@ A web-based tax compliance engine for Filipino self-employed professionals and f
 
 Step 1 — Personal Information
 - Full registered name (as on BIR COR)
-- TIN (format: NNN-NNN-NNN-NNNN, validated and duplicate-checked)
+- TIN (format: NNN-NNN-NNN-NNN, validated and duplicate-checked)
 - RDO Code
 - Registered address, ZIP code
 - Nature of business / profession
@@ -492,7 +492,7 @@ model TaxpayerProfile {
   id              String    @id @default(cuid())
   userId          String    @unique
   user            User      @relation(fields: [userId], references: [id])
-  tin             String    @unique  // NNN-NNN-NNN-NNNN
+  tin             String    @unique  // NNN-NNN-NNN-NNN
   fullName        String
   rdoCode         String
   registeredAddress String
