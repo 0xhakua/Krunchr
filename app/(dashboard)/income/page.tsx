@@ -1,5 +1,6 @@
 'use client'
 
+import Decimal from 'decimal.js'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -139,7 +140,19 @@ export default function IncomePage() {
   }
 
   function updateForm(field: string, value: string | number) {
-    setForm((prev) => ({ ...prev, [field]: value }))
+    setForm((prev) => {
+      const next = { ...prev, [field]: value }
+      if (['atcCode', 'month1Amount', 'month2Amount', 'month3Amount'].includes(field)) {
+        const atc = atcCodes.find((a) => a.code === next.atcCode)
+        if (atc) {
+          const total = new Decimal(String(next.month1Amount || 0))
+            .plus(new Decimal(String(next.month2Amount || 0)))
+            .plus(new Decimal(String(next.month3Amount || 0)))
+          next.cwtWithheld = total.times(atc.ewtRate).toDecimalPlaces(2).toFixed(2)
+        }
+      }
+      return next
+    })
   }
 
   function startEdit(cert: Certificate) {
