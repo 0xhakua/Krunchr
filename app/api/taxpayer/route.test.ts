@@ -101,7 +101,7 @@ describe('POST /api/taxpayer', () => {
 
     const req = await makeRequest(user.id, {
       ...basePayload,
-      tin: '12345', // invalid: must match NNN-NNN-NNN-NNN
+      tin: '12345', // invalid: must match NNN-NNN-NNN or NNN-NNN-NNN-NNN
       atcCodes: [], // invalid: at least one required
     })
 
@@ -114,11 +114,29 @@ describe('POST /api/taxpayer', () => {
     // Field errors are flat string arrays keyed by field name.
     expect(json.fieldErrors).toBeTypeOf('object')
     expect(Array.isArray(json.fieldErrors.tin)).toBe(true)
-    expect(json.fieldErrors.tin[0]).toMatch(/NNN-NNN-NNN-NNN/)
+    expect(json.fieldErrors.tin[0]).toMatch(/NNN-NNN-NNN/)
     expect(Array.isArray(json.fieldErrors.atcCodes)).toBe(true)
     // No nested `_errors` shape that would crash React.
     expect(json).not.toHaveProperty('_errors')
     expect(json.fieldErrors.tin).not.toHaveProperty('_errors')
+  })
+
+  it('accepts a 9-digit TIN and stores it as the 12-digit form (issue #180)', async () => {
+    await seedReferenceData()
+    const user = await createUser()
+    const atc = await createATCCode({ code: 'WI989', ewtRate: 0.1 })
+
+    const req = await makeRequest(user.id, {
+      ...basePayload,
+      tin: '123-456-789',
+      atcCodes: [atc.code],
+    })
+
+    const res = await POST(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(201)
+    expect(json.profile.tin).toBe('123-456-789-000')
   })
 
   it('rejects an unknown Philippine ZIP code with a field error', async () => {

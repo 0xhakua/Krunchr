@@ -254,12 +254,12 @@ export default function OnboardingPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tin">TIN (NNN-NNN-NNN-NNN)</Label>
+                <Label htmlFor="tin">TIN (NNN-NNN-NNN or NNN-NNN-NNN-NNN)</Label>
                 <Input
                   id="tin"
                   value={form.tin}
                   onChange={(e) => updateField('tin', formatTin(e.target.value))}
-                  placeholder="000-000-000-000"
+                  placeholder="000-000-000"
                   maxLength={14}
                   required
                 />

@@ -66,7 +66,9 @@ The wizard has four steps:
 
 ### 2a. Personal information
 - Full name (as on the BIR registration)
-- TIN — must be in the format `NNN-NNN-NNN-NNN` (e.g. `123-456-789-000`)
+- TIN — must be in the format `NNN-NNN-NNN` or `NNN-NNN-NNN-NNN`
+  (e.g. `123-456-789-000`). A 9-digit individual TIN is accepted and
+  stored as `123-456-789-000`.
 - RDO code (3 digits, e.g. `040`)
 - Registered address
 - ZIP code
@@ -109,7 +111,7 @@ Click **Complete Onboarding**.
 
 **If you see "Validation failed"** in red at the top: the form rejected
 your input. The most common trigger is a TIN that doesn't match
-`NNN-NNN-NNN-NNN`, or a blank required field. The fix from #101
+`NNN-NNN-NNN` or `NNN-NNN-NNN-NNN`, or a blank required field. The fix from #101
 surfaces the actual field error in the toast, so read the red text
 carefully and fix the named field. (Older builds just said "Validation
 failed" with no detail — make sure you're on the latest build.)
