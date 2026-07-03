@@ -157,12 +157,16 @@ export default function OnboardingPage() {
     setLoading(true)
     setError('')
     setFieldErrors({})
+
+    const tin = formatTin(form.tin)
+    setForm((prev) => ({ ...prev, tin }))
+
     try {
       const res = await fetch('/api/taxpayer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tin: form.tin,
+          tin,
           firstName: form.firstName,
           lastName: form.lastName,
           middleInitial: form.middleInitial || undefined,
@@ -256,6 +260,7 @@ export default function OnboardingPage() {
                   value={form.tin}
                   onChange={(e) => updateField('tin', formatTin(e.target.value))}
                   placeholder="000-000-000-0000"
+                  maxLength={15}
                   required
                 />
                 {fieldError('tin') && (
