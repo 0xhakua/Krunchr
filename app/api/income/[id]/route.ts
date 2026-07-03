@@ -66,7 +66,15 @@ export async function PUT(
     const body = await req.json()
     const result = certificateUpdateSchema.safeParse(body)
     if (!result.success) {
-      return NextResponse.json({ error: result.error.format() }, { status: 400 })
+      const flat = result.error.flatten()
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          formErrors: flat.formErrors,
+          fieldErrors: flat.fieldErrors,
+        },
+        { status: 400 }
+      )
     }
 
     const data = result.data
