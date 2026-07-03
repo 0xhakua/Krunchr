@@ -1,9 +1,32 @@
 import crypto from 'crypto'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   encodeAnchorPayload,
   parseAnchorOperations,
+  retryAnchorFilingReceipt,
 } from '../anchor'
+import * as storage from '@/lib/storage'
+import * as dispatcher from '@/lib/pdf/dispatcher'
+
+vi.mock('@/lib/storage', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/storage')>('@/lib/storage')
+  return {
+    ...actual,
+    readFile: vi.fn(),
+  }
+})
+
+vi.mock('@/lib/pdf/dispatcher', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/pdf/dispatcher')>('@/lib/pdf/dispatcher')
+  return {
+    ...actual,
+    renderFilingPdf: vi.fn(),
+  }
+})
+
+beforeEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe('encodeAnchorPayload', () => {
   it('splits the hash and ISO timestamp into two manageData entries', () => {
@@ -91,5 +114,52 @@ describe('parseAnchorOperations', () => {
     ])
 
     expect(parsed).toEqual({ payloadHash: hash, filedDate })
+  })
+})
+
+describe('retryAnchorFilingReceipt', () => {
+  const returnId = 'cm00000000000000000000002'
+  const userId = 'user-123'
+  const pdfPath = 'returns/ty-123/ret-456/generated.pdf'
+  const pdfBuffer = Buffer.from('pdf-bytes')
+  const regeneratedBuffer = Buffer.from('regenerated-pdf-bytes')
+
+  it('re-anchors a PDF that is still on disk', async () => {
+    vi.spyOn(storage, 'readFile').mockResolvedValue(pdfBuffer)
+    vi.spyOn(dispatcher, 'renderFilingPdf').mockResolvedValue(null)
+
+    const result = await retryAnchorFilingReceipt(returnId, userId, pdfPath)
+
+    expect(storage.readFile).toHaveBeenCalledWith(pdfPath)
+    expect(dispatcher.renderFilingPdf).not.toHaveBeenCalled()
+    // Stellar is not configured in tests, so anchoring fails gracefully and
+    // still reports the hash of the PDF it attempted to anchor.
+    expect(result.status).toBe('FAILED')
+    expect(result.payloadHash).toBe(crypto.createHash('sha256').update(pdfBuffer).digest('hex'))
+  })
+
+  it('regenerates the PDF from return data when the stored file is missing', async () => {
+    const error = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
+    vi.spyOn(storage, 'readFile').mockRejectedValue(error)
+    vi.spyOn(dispatcher, 'renderFilingPdf').mockResolvedValue(regeneratedBuffer)
+
+    const result = await retryAnchorFilingReceipt(returnId, userId, pdfPath)
+
+    expect(storage.readFile).toHaveBeenCalledWith(pdfPath)
+    expect(dispatcher.renderFilingPdf).toHaveBeenCalledWith(returnId, userId)
+    expect(result.status).toBe('FAILED')
+    expect(result.payloadHash).toBe(
+      crypto.createHash('sha256').update(regeneratedBuffer).digest('hex')
+    )
+  })
+
+  it('throws a clear error when the PDF is missing and cannot be regenerated', async () => {
+    const error = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
+    vi.spyOn(storage, 'readFile').mockRejectedValue(error)
+    vi.spyOn(dispatcher, 'renderFilingPdf').mockResolvedValue(null)
+
+    await expect(retryAnchorFilingReceipt(returnId, userId, pdfPath)).rejects.toThrow(
+      'Filing PDF not found at path:'
+    )
   })
 })

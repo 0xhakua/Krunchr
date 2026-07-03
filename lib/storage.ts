@@ -12,28 +12,32 @@ export function getStorageType(): string {
   return STORAGE_TYPE
 }
 
-export async function writeFile(localPath: string, buffer: Buffer): Promise<string> {
-  if (STORAGE_TYPE === 'local') {
-    const fullPath = path.join(STORAGE_PATH, localPath)
-    await fs.promises.mkdir(path.dirname(fullPath), { recursive: true })
-    await fs.promises.writeFile(fullPath, buffer)
-    return fullPath
+function resolveStoragePath(inputPath: string): string {
+  // Backward compatibility: some existing records store the absolute path
+  // returned by older versions of writeFile. Relative paths are preferred
+  // because they survive STORAGE_PATH changes and ephemeral filesystems.
+  if (path.isAbsolute(inputPath)) {
+    return inputPath
   }
+  return path.join(STORAGE_PATH, inputPath)
+}
 
-  // Railway Volume also uses the filesystem mount, so the logic is identical
+export async function writeFile(localPath: string, buffer: Buffer): Promise<string> {
   const fullPath = path.join(STORAGE_PATH, localPath)
   await fs.promises.mkdir(path.dirname(fullPath), { recursive: true })
   await fs.promises.writeFile(fullPath, buffer)
-  return fullPath
+  // Persist the relative path so the storage root can move or be remounted
+  // without invalidating database records.
+  return localPath
 }
 
 export async function readFile(localPath: string): Promise<Buffer> {
-  const fullPath = path.join(STORAGE_PATH, localPath)
+  const fullPath = resolveStoragePath(localPath)
   return fs.promises.readFile(fullPath)
 }
 
 export function fileExists(localPath: string): boolean {
-  const fullPath = path.join(STORAGE_PATH, localPath)
+  const fullPath = resolveStoragePath(localPath)
   return fs.existsSync(fullPath)
 }
 

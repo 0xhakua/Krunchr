@@ -6,6 +6,7 @@ import {
 } from './client'
 import { TransactionBuilder, Operation, BASE_FEE } from '@stellar/stellar-sdk'
 import { writeFile, readFile } from '../storage'
+import { renderFilingPdf } from '../pdf/dispatcher'
 
 export interface AnchorResult {
   stellarTxId: string
@@ -192,20 +193,33 @@ export async function storeFilingPackage(
  * Retry anchoring for a return whose previous Stellar receipt failed.
  *
  * Reads the previously stored PDF and re-submits the manageData operation.
- * Throws a descriptive error if the PDF cannot be read so the caller can
- * surface a meaningful message instead of a generic 500.
+ * If the PDF is missing (common on ephemeral deployment filesystems such as
+ * Railway), it is regenerated from the tax return data before anchoring.
+ * Throws a descriptive error if the PDF cannot be read or regenerated so the
+ * caller can surface a meaningful message instead of a generic 500.
  */
 export async function retryAnchorFilingReceipt(
   returnId: string,
+  userId: string,
   pdfPath: string
 ): Promise<AnchorResult> {
+  let pdfBuffer: Buffer
   try {
-    const pdfBuffer = await readFile(pdfPath)
-    return anchorFilingReceipt(returnId, pdfBuffer)
+    pdfBuffer = await readFile(pdfPath)
   } catch (err) {
     if (err instanceof Error && (err as NodeJS.ErrnoException).code === 'ENOENT') {
-      throw new Error(`Filing PDF not found at path: ${pdfPath}`)
+      const regenerated = await renderFilingPdf(returnId, userId)
+      if (!regenerated) {
+        throw new Error(
+          `Filing PDF not found at path: ${pdfPath} and could not be regenerated from the return data`
+        )
+      }
+      pdfBuffer = regenerated
+    } else {
+      throw new Error(
+        `Failed to read filing PDF for retry: ${err instanceof Error ? err.message : 'unknown error'}`
+      )
     }
-    throw new Error(`Failed to read filing PDF for retry: ${err instanceof Error ? err.message : 'unknown error'}`)
   }
+  return anchorFilingReceipt(returnId, pdfBuffer)
 }

@@ -54,6 +54,7 @@ export async function POST(
 
     const result = await retryAnchorFilingReceipt(
       receipt.taxReturn.id,
+      session.sub,
       receipt.taxReturn.pdfPath
     )
 
@@ -91,6 +92,10 @@ export async function POST(
   } catch (err) {
     console.error('Retry stellar receipt error:', err)
     const message = err instanceof Error ? err.message : 'Retry failed'
-    return NextResponse.json({ error: message }, { status: 500 })
+    // A missing or unrecoverable PDF is a client-addressable state issue,
+    // not an unexpected server error. Surface it as 404 so callers can
+    // re-file the return to regenerate the PDF if needed.
+    const status = message.includes('Filing PDF not found') ? 404 : 500
+    return NextResponse.json({ error: message }, { status })
   }
 }
