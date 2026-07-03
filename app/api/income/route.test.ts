@@ -83,4 +83,36 @@ describe('POST /api/income', () => {
     expect(json.vatStatus.warningActive).toBe(true)
     expect(json.vatStatus.thresholdReached).toBe(false)
   })
+
+  it('returns structured validation errors on invalid payload', async () => {
+    await seedReferenceData()
+    const { user } = await createTaxpayerWithYear()
+
+    const token = await signToken({ sub: user.id, username: user.username, role: 'TAXPAYER' })
+    const req = new NextRequest('http://localhost/api/income', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: `kuwenta_session=${token}` },
+      body: JSON.stringify({
+        quarter: 5,
+        payorTin: '',
+        payorName: '',
+        atcCode: '',
+        month1Amount: 'not-a-number',
+        month2Amount: '',
+        month3Amount: '',
+        cwtWithheld: '',
+      }),
+    })
+
+    const res = await POST(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(json.error).toBe('Validation failed')
+    expect(json.formErrors).toBeDefined()
+    expect(json.fieldErrors).toBeDefined()
+    expect(json.fieldErrors.quarter).toBeDefined()
+    expect(json.fieldErrors.payorTin).toBeDefined()
+    expect(json.fieldErrors.atcCode).toBeDefined()
+  })
 })

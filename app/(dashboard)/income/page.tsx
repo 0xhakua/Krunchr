@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { extractApiErrorMessage } from '@/lib/api-error'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -80,6 +81,7 @@ export default function IncomePage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Certificate | null>(null)
   const [form, setForm] = useState(emptyForm)
@@ -142,6 +144,11 @@ export default function IncomePage() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  function fieldError(name: string): string | null {
+    const arr = fieldErrors[name]
+    return Array.isArray(arr) && arr.length > 0 ? arr[0] : null
+  }
+
   function startEdit(cert: Certificate) {
     setEditing(cert)
     setForm({
@@ -154,12 +161,16 @@ export default function IncomePage() {
       month3Amount: cert.month3Amount,
       cwtWithheld: cert.cwtWithheld,
     })
+    setError('')
+    setFieldErrors({})
     setOpen(true)
   }
 
   function startAdd() {
     setEditing(null)
     setForm(emptyForm)
+    setError('')
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -167,6 +178,7 @@ export default function IncomePage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setFieldErrors({})
 
     const payload = {
       ...form,
@@ -187,7 +199,10 @@ export default function IncomePage() {
 
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error || 'Failed to save certificate')
+        setError(extractApiErrorMessage(data, 'Failed to save certificate'))
+        if (data && typeof data === 'object' && data.fieldErrors && typeof data.fieldErrors === 'object') {
+          setFieldErrors(data.fieldErrors as Record<string, string[]>)
+        }
         return
       }
 
@@ -304,6 +319,9 @@ export default function IncomePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {fieldError('quarter') && (
+                    <p className="text-sm text-red-600">{fieldError('quarter')}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="atcCode">ATC Code</Label>
@@ -322,6 +340,9 @@ export default function IncomePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {fieldError('atcCode') && (
+                    <p className="text-sm text-red-600">{fieldError('atcCode')}</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -332,6 +353,9 @@ export default function IncomePage() {
                   onChange={(e) => updateForm('payorName', e.target.value)}
                   required
                 />
+                {fieldError('payorName') && (
+                  <p className="text-sm text-red-600">{fieldError('payorName')}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="payorTin">Payor TIN</Label>
@@ -341,6 +365,9 @@ export default function IncomePage() {
                   onChange={(e) => updateForm('payorTin', e.target.value)}
                   required
                 />
+                {fieldError('payorTin') && (
+                  <p className="text-sm text-red-600">{fieldError('payorTin')}</p>
+                )}
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {['month1Amount', 'month2Amount', 'month3Amount'].map((field, i) => (
@@ -354,6 +381,9 @@ export default function IncomePage() {
                       onChange={(e) => updateForm(field, e.target.value)}
                       required
                     />
+                    {fieldError(field) && (
+                      <p className="text-sm text-red-600">{fieldError(field)}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -367,6 +397,9 @@ export default function IncomePage() {
                   onChange={(e) => updateForm('cwtWithheld', e.target.value)}
                   required
                 />
+                {fieldError('cwtWithheld') && (
+                  <p className="text-sm text-red-600">{fieldError('cwtWithheld')}</p>
+                )}
               </div>
               {error && <p className="text-sm text-red-600">{error}</p>}
               <Button type="submit" className="w-full" disabled={loading}>
