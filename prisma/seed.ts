@@ -56,7 +56,7 @@ async function main() {
       username: 'maria',
       password: 'Test1234!',
       profile: {
-        tin: '123-456-789-0001',
+        tin: '123-456-789-001',
         firstName: 'Maria',
         lastName: 'Dela Cruz',
         middleInitial: 'S',
@@ -75,7 +75,7 @@ async function main() {
       username: 'juan',
       password: 'Test1234!',
       profile: {
-        tin: '123-456-789-0002',
+        tin: '123-456-789-002',
         firstName: 'Juan',
         lastName: 'Santos',
         middleInitial: '',
@@ -94,7 +94,7 @@ async function main() {
       username: 'anna',
       password: 'Test1234!',
       profile: {
-        tin: '123-456-789-0003',
+        tin: '123-456-789-003',
         firstName: 'Anna',
         lastName: 'Reyes',
         middleInitial: 'M',

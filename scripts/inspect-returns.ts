@@ -4,7 +4,7 @@ async function main() {
   const returns = await prisma.taxReturn.findMany({
     where: {
       taxYear: {
-        taxpayer: { tin: '123-456-789-0001' },
+        taxpayer: { tin: '123-456-789-001' },
       },
     },
     include: { penalties: true },

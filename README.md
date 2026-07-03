@@ -329,6 +329,7 @@ No `LICENSE` file is present in this repository. `[PLACEHOLDER: License name]`
 - [`docs/quick-start-guide.md`](./docs/quick-start-guide.md) — first-time user walkthrough
 - [`docs/test-flow-guide.md`](./docs/test-flow-guide.md) — end-to-end demo/test flow guide
 - [`docs/client-update.md`](./docs/client-update.md) — current project status in plain language
+- [`docs/client-guides/INDEX.md`](./docs/client-guides/INDEX.md) — client-provided BIR form guides and study materials
 - [`docs/migrations.md`](./docs/migrations.md) — database migration conventions
 - [`docs/railway-env.md`](./docs/railway-env.md) — Railway environment/deployment notes
 - [`docs/railway-cli-runbook.md`](./docs/railway-cli-runbook.md) — Railway CLI one-off command recipes

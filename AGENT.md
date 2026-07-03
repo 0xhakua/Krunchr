@@ -429,7 +429,7 @@ Follow all of these without exception:
 
 **Input Validation**
 - [ ] All API input validated with Zod before touching the database
-- [ ] TIN format validated: `/^\d{3}-\d{3}-\d{3}-\d{4}$/`
+- [ ] TIN format validated: `/^\d{3}-\d{3}-\d{3}-\d{3}$/`
 - [ ] All monetary amounts parsed as strings and converted to Decimal — never as JS numbers
 - [ ] File uploads: validate MIME type and file size server-side
 
