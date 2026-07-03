@@ -192,11 +192,20 @@ export async function storeFilingPackage(
  * Retry anchoring for a return whose previous Stellar receipt failed.
  *
  * Reads the previously stored PDF and re-submits the manageData operation.
+ * Throws a descriptive error if the PDF cannot be read so the caller can
+ * surface a meaningful message instead of a generic 500.
  */
 export async function retryAnchorFilingReceipt(
   returnId: string,
   pdfPath: string
 ): Promise<AnchorResult> {
-  const pdfBuffer = await readFile(pdfPath)
-  return anchorFilingReceipt(returnId, pdfBuffer)
+  try {
+    const pdfBuffer = await readFile(pdfPath)
+    return anchorFilingReceipt(returnId, pdfBuffer)
+  } catch (err) {
+    if (err instanceof Error && (err as NodeJS.ErrnoException).code === 'ENOENT') {
+      throw new Error(`Filing PDF not found at path: ${pdfPath}`)
+    }
+    throw new Error(`Failed to read filing PDF for retry: ${err instanceof Error ? err.message : 'unknown error'}`)
+  }
 }
