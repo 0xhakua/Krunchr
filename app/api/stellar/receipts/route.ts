@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
-  const session = await requireAuth()
+export async function GET(req: NextRequest) {
+  const session = await requireAuth(req)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -28,7 +28,7 @@ export async function GET() {
 
     const receipts = (profile?.taxYears ?? []).flatMap((taxYear) =>
       taxYear.returns
-        .filter((ret) => ret.stellarReceipt !== null)
+        .filter((ret) => ret.stellarReceipt)
         .map((ret) => ({
           id: ret.stellarReceipt!.id,
           returnId: ret.id,
@@ -48,6 +48,7 @@ export async function GET() {
     return NextResponse.json({ receipts })
   } catch (err) {
     console.error('List stellar receipts error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

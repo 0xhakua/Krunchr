@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { retryAnchorFilingReceipt } from '@/lib/stellar/anchor'
 
 export async function POST(
-  _req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireAuth()
+  const session = await requireAuth(req)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -90,6 +90,7 @@ export async function POST(
     return NextResponse.json({ receipt: updated })
   } catch (err) {
     console.error('Retry stellar receipt error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Retry failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
