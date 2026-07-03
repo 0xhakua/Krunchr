@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Bell, Layers, Link2 } from 'lucide-react'
+import { Bell, Link2 } from 'lucide-react'
 import { getSession } from '@/lib/auth'
-import { Button } from '@/components/ui/button'
 import { SidebarNav } from './sidebar-nav'
 import { UserMenu } from './user-menu'
+import { SidebarHeader } from './sidebar-header'
+import { SidebarFooter } from './sidebar-footer'
+import { MobileSidebar } from './mobile-sidebar'
 
 export interface AppShellProps {
   children: React.ReactNode
@@ -16,39 +18,28 @@ export async function AppShell({ children }: AppShellProps) {
     redirect('/login')
   }
 
+  const isAdmin = session.role === 'ADMIN'
+
   return (
     <div className="min-h-screen flex bg-background text-foreground">
-      {/* Branded sidebar (BRAND.md §6) */}
-      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4">
-        <div className="mb-6 flex items-center gap-3 px-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Layers className="size-5" />
-          </div>
-          <div className="leading-tight">
-            <div className="font-heading text-lg font-black text-foreground">Krunchr</div>
-            <div className="text-xs font-medium text-muted-foreground">Compliance Engine</div>
-          </div>
-        </div>
+      {/* Branded sidebar (BRAND.md §6) — sticky on desktop, hidden on mobile */}
+      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4">
+        <SidebarHeader />
 
-        <Link href="/income" className="mb-6 block">
-          <Button className="w-full">Start New Filing</Button>
-        </Link>
+        <SidebarFooter />
 
-        <SidebarNav isAdmin={session.role === 'ADMIN'} />
-
-        <div className="mt-auto flex items-center justify-between rounded-lg border border-sidebar-border bg-card px-3 py-2">
-          <span className="text-xs font-medium text-muted-foreground">Stellar Network</span>
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-            <span className="size-2 rounded-full bg-primary" />
-            Active
-          </span>
-        </div>
+        <SidebarNav isAdmin={isAdmin} />
       </aside>
 
       {/* Content column */}
       <div className="flex flex-1 flex-col min-w-0">
         <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-card px-4 md:px-10">
-          <span className="font-heading text-xl font-bold text-foreground md:hidden">Krunchr</span>
+          <div className="flex items-center gap-3">
+            <MobileSidebar isAdmin={isAdmin} />
+            <Link href="/dashboard" className="font-heading text-xl font-bold text-foreground md:hidden">
+              Krunchr
+            </Link>
+          </div>
           <div className="ml-auto flex items-center gap-4">
             <div className="hidden items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 sm:flex">
               <Link2 className="size-4 text-primary" />
