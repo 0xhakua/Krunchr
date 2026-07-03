@@ -41,6 +41,7 @@ minio_data/
 
 # claude worktrees
 .claude/
+.worktrees/
 
 # vercel
 .vercel
