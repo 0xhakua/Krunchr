@@ -28,7 +28,7 @@ model TaxpayerProfile {
   id                String     @id @default(cuid())
   userId            String     @unique
   user              User       @relation(fields: [userId], references: [id])
-  tin               String     @unique  // NNN-NNN-NNN-NNN
+  tin               String     @unique  // NNN-NNN-NNN or NNN-NNN-NNN-NNN (9-digit inputs normalised to 12)
   firstName         String?
   lastName          String?
   middleInitial     String?

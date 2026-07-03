@@ -16,8 +16,14 @@ import { isValidZipCode } from '@/lib/data/zip-codes'
  */
 
 // ---- TIN regex (AGENT.md BR) -------------------------------------------------
-// Philippine TIN is 9 digits + 3-digit branch code, formatted NNN-NNN-NNN-NNN.
-export const tinRegex = /^\d{3}-\d{3}-\d{3}-\d{3}$/
+// Philippine TIN is 9 digits for an individual or 12 digits for a branch.
+// Both NNN-NNN-NNN and NNN-NNN-NNN-NNN are accepted; 9-digit inputs are
+// normalised to the 12-digit form by appending the '-000' branch code.
+export const tinRegex = /^\d{3}-\d{3}-\d{3}(-\d{3})?$/
+
+function normalizeTin(tin: string): string {
+  return /^\d{3}-\d{3}-\d{3}$/.test(tin) ? `${tin}-000` : tin
+}
 
 // ---- POST /api/auth/login ---------------------------------------------------
 export const loginSchema = z.object({
@@ -27,7 +33,9 @@ export const loginSchema = z.object({
 
 // ---- POST /api/taxpayer (and PUT) -------------------------------------------
 export const taxpayerSchema = z.object({
-  tin: z.string().regex(tinRegex, 'TIN must be in format NNN-NNN-NNN-NNN'),
+  tin: z.string()
+    .regex(tinRegex, 'TIN must be in format NNN-NNN-NNN or NNN-NNN-NNN-NNN')
+    .transform(normalizeTin),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   middleInitial: z

@@ -32,7 +32,7 @@ const settlementSchema = overpaymentSettlementSchema
 const simulateSchema = penaltiesSimulateSchema
 
 // TIN regex is re-exported from app/api/taxpayer/route.ts; this guard
-// is the single source of truth for the NNN-NNN-NNN-NNN format the
+// is the single source of truth for the NNN-NNN-NNN[-NNN] format the
 // AGENT.md BR mandates. These tests lock in the regex itself.
 describe('TIN regex (S9.2 / AGENT.md BR)', () => {
   it('matches a valid 12-digit TIN with three dashes', () => {
@@ -40,8 +40,14 @@ describe('TIN regex (S9.2 / AGENT.md BR)', () => {
     expect(tinRegex.test('000-000-000-000')).toBe(true)
   })
 
+  it('matches a valid 9-digit TIN with two dashes', () => {
+    expect(tinRegex.test('123-456-789')).toBe(true)
+    expect(tinRegex.test('000-000-000')).toBe(true)
+  })
+
   it('rejects missing or extra dashes', () => {
     expect(tinRegex.test('123456789012')).toBe(false)
+    expect(tinRegex.test('123456789')).toBe(false)
     expect(tinRegex.test('123-456-789012')).toBe(false)
     expect(tinRegex.test('123-456-789-01')).toBe(false)
     expect(tinRegex.test('123-456-789-0123')).toBe(false)
@@ -103,13 +109,21 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
     expect(taxpayerSchema.safeParse(rest).success).toBe(true)
   })
 
-  it('rejects an invalid TIN with the documented NNN-NNN-NNN-NNN error', () => {
+  it('rejects an invalid TIN with the documented format error', () => {
     const result = taxpayerSchema.safeParse({ ...valid, tin: 'not-a-tin' })
     expect(result.success).toBe(false)
     if (!result.success) {
       const flat = result.error.flatten()
       const tinError = flat.fieldErrors.tin?.[0]
-      expect(tinError).toMatch(/NNN-NNN-NNN-NNN/)
+      expect(tinError).toMatch(/NNN-NNN-NNN/)
+    }
+  })
+
+  it('accepts a 9-digit TIN and normalises it to the 12-digit form', () => {
+    const result = taxpayerSchema.safeParse({ ...valid, tin: '123-456-789' })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.tin).toBe('123-456-789-000')
     }
   })
 
