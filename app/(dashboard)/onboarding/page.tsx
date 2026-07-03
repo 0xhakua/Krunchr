@@ -47,6 +47,16 @@ type EligibilityCheck = {
 
 const steps = ['Personal Information', 'Eligibility Check', 'ATC Codes', 'Tax Year']
 
+function formatTin(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 12)
+  const parts: string[] = []
+  if (digits.length > 0) parts.push(digits.slice(0, 3))
+  if (digits.length > 3) parts.push(digits.slice(3, 6))
+  if (digits.length > 6) parts.push(digits.slice(6, 9))
+  if (digits.length > 9) parts.push(digits.slice(9, 12))
+  return parts.join('-')
+}
+
 export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -233,7 +243,6 @@ export default function OnboardingPage() {
                   id="middleInitial"
                   value={form.middleInitial}
                   onChange={(e) => updateField('middleInitial', e.target.value.toUpperCase())}
-                  placeholder="J"
                   maxLength={2}
                 />
                 {fieldError('middleInitial') && (
@@ -245,7 +254,7 @@ export default function OnboardingPage() {
                 <Input
                   id="tin"
                   value={form.tin}
-                  onChange={(e) => updateField('tin', e.target.value)}
+                  onChange={(e) => updateField('tin', formatTin(e.target.value))}
                   placeholder="000-000-000-0000"
                   required
                 />
