@@ -12,7 +12,8 @@ function getClientIp(req: NextRequest): string {
   if (forwarded) {
     return forwarded.split(',')[0].trim()
   }
-  return req.ip ?? 'unknown'
+  // NextRequest is based on the Web Request API and does not expose a remote address.
+  return 'unknown'
 }
 
 export async function POST(req: NextRequest) {
