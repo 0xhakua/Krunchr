@@ -14,34 +14,41 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [errors, setErrors] = useState<Record<string, string[]>>({})
+  const [topLevelError, setTopLevelError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
+    setErrors({})
+    setTopLevelError('')
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, confirmPassword }),
       })
 
+      const data = await res.json()
+
       if (!res.ok) {
-        const data = await res.json()
-        setError(data.error || 'Login failed')
+        if (data.details) {
+          setErrors(data.details)
+        }
+        setTopLevelError(data.error || 'Registration failed')
         return
       }
 
-      router.push('/dashboard')
+      router.push('/onboarding')
     } catch {
-      setError('An unexpected error occurred')
+      setTopLevelError('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
@@ -52,7 +59,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Kuwenta</CardTitle>
-          <CardDescription>Sign in with your admin account</CardDescription>
+          <CardDescription>Create your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -66,6 +73,9 @@ export default function LoginPage() {
                 required
                 autoComplete="username"
               />
+              {errors.username && (
+                <p className="text-sm text-red-600">{errors.username[0]}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -75,19 +85,36 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
+              {errors.password && (
+                <p className="text-sm text-red-600">{errors.password[0]}</p>
+              )}
             </div>
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+              />
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-600">{errors.confirmPassword[0]}</p>
+              )}
+            </div>
+            {topLevelError && (
+              <p className="text-sm text-red-600">{topLevelError}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Creating account...' : 'Create account'}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-primary hover:underline">
-                Create account
+              Already have an account?{' '}
+              <Link href="/login" className="text-primary hover:underline">
+                Log in
               </Link>
             </p>
           </form>
