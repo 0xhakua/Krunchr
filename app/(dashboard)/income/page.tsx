@@ -87,6 +87,8 @@ export default function IncomePage() {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Certificate | null>(null)
   const [form, setForm] = useState(emptyForm)
+  const [importLoading, setImportLoading] = useState(false)
+  const [importWarnings, setImportWarnings] = useState<string[]>([])
 
   async function loadData() {
     try {
@@ -185,7 +187,90 @@ export default function IncomePage() {
     setForm(emptyForm)
     setError('')
     setFieldErrors({})
+    setImportWarnings([])
     setOpen(true)
+  }
+
+  function startDuplicate(cert: Certificate) {
+    setEditing(null)
+    const nextQuarter = cert.quarter < 4 ? cert.quarter + 1 : cert.quarter
+    const atc = atcCodes.find((a) => a.code === cert.atcCode)
+    const total = new Decimal(String(cert.month1Amount || 0))
+      .plus(new Decimal(String(cert.month2Amount || 0)))
+      .plus(new Decimal(String(cert.month3Amount || 0)))
+    const cwtWithheld = atc
+      ? total.times(atc.ewtRate).toDecimalPlaces(2).toFixed(2)
+      : cert.cwtWithheld
+    setForm({
+      quarter: nextQuarter,
+      payorTin: cert.payorTin,
+      payorName: cert.payorName,
+      atcCode: cert.atcCode,
+      month1Amount: cert.month1Amount,
+      month2Amount: cert.month2Amount,
+      month3Amount: cert.month3Amount,
+      cwtWithheld,
+    })
+    setError('')
+    setFieldErrors({})
+    setImportWarnings([])
+    setOpen(true)
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportLoading(true)
+    setError('')
+    setImportWarnings([])
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/income/import', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(extractApiErrorMessage(data, 'Import failed'))
+        return
+      }
+      const extracted = data.extracted as {
+        payorTin?: string
+        payorName?: string
+        atcCode?: string
+        quarter?: number
+        month1Amount?: string
+        month2Amount?: string
+        month3Amount?: string
+        cwtWithheld?: string
+        warnings?: string[]
+      }
+      const atc = atcCodes.find((a) => a.code === extracted.atcCode)
+      const month1 = extracted.month1Amount || ''
+      const month2 = extracted.month2Amount || ''
+      const month3 = extracted.month3Amount || ''
+      let cwtWithheld = extracted.cwtWithheld || ''
+      if (!cwtWithheld && atc && month1 && month2 && month3) {
+        const total = new Decimal(month1).plus(month2).plus(month3)
+        cwtWithheld = total.times(atc.ewtRate).toDecimalPlaces(2).toFixed(2)
+      }
+      setForm({
+        quarter: extracted.quarter || form.quarter,
+        payorTin: extracted.payorTin || '',
+        payorName: extracted.payorName || '',
+        atcCode: atc ? extracted.atcCode! : '',
+        month1Amount: month1,
+        month2Amount: month2,
+        month3Amount: month3,
+        cwtWithheld,
+      })
+      setImportWarnings(extracted.warnings || [])
+    } catch {
+      setError('Import failed')
+    } finally {
+      setImportLoading(false)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -311,12 +396,39 @@ export default function IncomePage() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>{editing ? 'Edit Certificate' : 'Add Certificate'}</DialogTitle>
+              <DialogTitle>{editing ? 'Edit Certificate' : form.quarter !== emptyForm.quarter || form.payorTin ? 'Add Certificate (pre-filled)' : 'Add Certificate'}</DialogTitle>
               <DialogDescription>
-                Enter quarterly 2307 details. CWT is validated against the ATC rate.
+                {editing
+                  ? 'Update quarterly 2307 details. CWT is validated against the ATC rate.'
+                  : 'Enter quarterly 2307 details, import from a file, or duplicate an existing certificate. CWT is validated against the ATC rate.'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {!editing && (
+                <div className="space-y-2 rounded-md border p-3">
+                  <Label htmlFor="importFile">Import from File (JPG, PNG, PDF, DOCX)</Label>
+                  <Input
+                    id="importFile"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf,.docx"
+                    onChange={handleImportFile}
+                    disabled={importLoading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Upload a BIR Form 2307 image or document. Extracted values are editable before saving.
+                  </p>
+                  {importLoading && <p className="text-sm text-muted-foreground">Reading file...</p>}
+                  {importWarnings.length > 0 && (
+                    <div className="space-y-1">
+                      {importWarnings.map((warning, idx) => (
+                        <p key={idx} className="text-sm text-amber-600">
+                          {warning}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quarter">Quarter</Label>
@@ -514,6 +626,9 @@ export default function IncomePage() {
                                 )}
                               </TableCell>
                               <TableCell className="text-right space-x-2">
+                                <Button variant="outline" size="sm" onClick={() => startDuplicate(cert)}>
+                                  Duplicate
+                                </Button>
                                 <Button variant="outline" size="sm" onClick={() => startEdit(cert)}>
                                   Edit
                                 </Button>
