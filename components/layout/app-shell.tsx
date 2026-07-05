@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Bell, Link2 } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { getSession } from '@/lib/auth'
 import { SidebarNav } from './sidebar-nav'
 import { UserMenu } from './user-menu'
@@ -26,9 +26,9 @@ export async function AppShell({ children }: AppShellProps) {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4">
         <SidebarHeader />
 
-        <SidebarFooter />
-
         <SidebarNav isAdmin={isAdmin} />
+
+        <SidebarFooter />
       </aside>
 
       {/* Content column */}
@@ -41,12 +41,6 @@ export async function AppShell({ children }: AppShellProps) {
             </Link>
           </div>
           <div className="ml-auto flex items-center gap-4">
-            <div className="hidden items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 sm:flex">
-              <Link2 className="size-4 text-primary" />
-              <span className="text-xs font-semibold text-muted-foreground">
-                Blockchain Status: Secured
-              </span>
-            </div>
             <button
               type="button"
               aria-label="Notifications"

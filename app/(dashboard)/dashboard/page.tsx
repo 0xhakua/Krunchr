@@ -371,8 +371,10 @@ export default function DashboardPage() {
                       {deadlineText(ret)}
                     </CardDescription>
                   </div>
-                  <Badge className={statusColor(ret.status)}>{ret.status}</Badge>
-                  <InfoTooltip side="left">{statusTooltip(ret)}</InfoTooltip>
+                  <div className="flex items-center gap-2">
+                    <Badge className={statusColor(ret.status)}>{ret.status}</Badge>
+                    <InfoTooltip side="left">{statusTooltip(ret)}</InfoTooltip>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
