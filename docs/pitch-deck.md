@@ -3,6 +3,11 @@
 > APAC Stellar Hackathon 2026 · Local Finance & Real World Access track
 > One slide per section, `---` separates slides. Speaker notes follow each slide.
 > A readable recording script is included at the end of this file.
+>
+> **Generated outputs:**
+> - `pitch-deck.html` — browser-based 16:9 slide deck with keyboard navigation and speaker notes.
+> - `pitch-deck-Krunchr.pptx` — PowerPoint version with brand styling and the SVG logo rendered inline.
+> - `logo-{colored,white,dark}-pptx.png` — logo renders used inside the PPTX.
 
 ---
 

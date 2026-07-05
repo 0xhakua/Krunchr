@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Krunchr — Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --teal:#0D9488; --teal-hover:#0F766E; --teal-ink:#006A61;
+    --mint:#4EDEA3; --mint-deep:#009668; --mint-tint:rgba(78,222,163,.2);
+    --info:#3B82F6;
+    --ink:#0B1C30; --muted:#45464D;
+    --error:#BA1A1A;
+    --canvas:#F8F9FF; --card:#FFFFFF;
+    --surf-1:#EFF4FF; --surf-2:#E5EEFF; --surf-3:#DCE9FF; --surf-4:#D3E4FE;
+    --border:#E2E8F0; --outline:#C6C6CD;
+    --ambient:0 4px 6px -1px rgb(15 23 42 / .10), 0 2px 4px -2px rgb(15 23 42 / .05);
+    --font-sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+    --font-heading:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+    --font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --radius:0.75rem;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#000}
+  body{font-family:var(--font-sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+  #app{
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    background:#0B1C30;
+  }
+  #deck{
+    width:1600px;height:900px;
+    position:relative;
+    background:var(--canvas);
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 25px 80px rgba(0,0,0,.35);
+    transform-origin:center center;
+  }
+
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    padding:72px 96px;
+    background:var(--canvas);
+  }
+  .slide.active{display:flex}
+
+  /* ---------- typography ---------- */
+  h1,h2,h3,h4{font-family:var(--font-heading);font-weight:700;letter-spacing:-0.025em;line-height:1.08;color:var(--ink)}
+  .display{font-size:88px;font-weight:800;letter-spacing:-0.03em}
+  .headline{font-size:56px;font-weight:700}
+  .subhead{font-size:32px;font-weight:600;color:var(--muted);line-height:1.3}
+  .eyebrow{font-size:14px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal-ink);margin-bottom:18px}
+  .lead{font-size:26px;line-height:1.45;color:var(--muted);max-width:920px}
+  .body{font-size:22px;line-height:1.55;color:var(--muted)}
+  .small{font-size:16px;color:var(--muted);line-height:1.5}
+
+  /* ---------- bullets / lists ---------- */
+  .bullet-list{list-style:none;display:grid;gap:22px;margin-top:32px}
+  .bullet-list li{
+    position:relative;padding-left:36px;font-size:24px;line-height:1.45;color:var(--ink);font-weight:500
+  }
+  .bullet-list li::before{
+    content:"";position:absolute;left:0;top:10px;width:10px;height:10px;border-radius:50%;background:var(--teal)
+  }
+  .bullet-list li strong{color:var(--teal-ink);font-weight:700}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+
+  /* ---------- cards ---------- */
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:28px;box-shadow:var(--ambient)
+  }
+  .card h3{font-size:22px;margin-bottom:10px}
+  .card p{font-size:17px;color:var(--muted);line-height:1.5}
+
+  /* ---------- logo ---------- */
+  .logo-mark{width:64px;height:64px}
+  .logo-lockup{display:flex;align-items:center;gap:18px}
+  .logo-lockup .word{font-family:var(--font-heading);font-size:38px;font-weight:800;letter-spacing:-0.02em;color:var(--ink)}
+  .logo-lockup .tag{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+  /* ---------- status pills ---------- */
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;border-radius:999px;padding:8px 16px;border:1px solid var(--border);background:var(--card)}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--mint-deep);box-shadow:0 0 0 4px var(--mint-tint)}
+
+  /* ---------- decorative shapes ---------- */
+  .blob{
+    position:absolute;border-radius:50%;filter:blur(90px);opacity:.45;pointer-events:none
+  }
+  .blob-teal{background:var(--teal)}
+  .blob-mint{background:var(--mint)}
+  .blob-blue{background:var(--surf-4)}
+
+  /* ---------- placeholders ---------- */
+  .img-placeholder{
+    background:linear-gradient(135deg,var(--surf-1),var(--surf-2));
+    border:2px dashed var(--border);border-radius:var(--radius);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:32px;color:var(--muted);gap:12px;
+    position:relative;overflow:hidden
+  }
+  .img-placeholder .icon{width:48px;height:48px;color:var(--outline)}
+  .img-placeholder .label{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+  .img-placeholder .hint{font-size:15px;line-height:1.4;max-width:340px}
+
+  /* ---------- slide-specific layouts ---------- */
+  /* Slide 1: Title */
+  .slide-title{justify-content:center;align-items:flex-start;text-align:left}
+  .slide-title .hero-row{display:flex;align-items:center;gap:32px;margin-bottom:40px}
+  .slide-title .display{color:var(--ink)}
+  .slide-title .display em{font-style:normal;color:var(--teal)}
+  .slide-title .subhead{margin-top:16px;max-width:840px}
+  .slide-title .meta-row{display:flex;align-items:center;gap:28px;margin-top:48px;font-size:18px;color:var(--muted)}
+  .slide-title .track-pill{background:var(--teal);color:#fff;border:none}
+
+  /* Slide 2: Problem */
+  .slide-problem{justify-content:center}
+  .slide-problem .problem-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center}
+  .slide-problem .visual{height:520px}
+  .slide-problem .visual .warning-stack{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center
+  }
+  .paper-stack{
+    width:280px;height:360px;background:#fff;border:1px solid var(--border);border-radius:12px;
+    box-shadow:0 12px 30px rgba(11,28,48,.12);position:relative;transform:rotate(-6deg)
+  }
+  .paper-stack::before,.paper-stack::after{
+    content:"";position:absolute;inset:0;background:#fff;border:1px solid var(--border);border-radius:12px
+  }
+  .paper-stack::before{transform:rotate(8deg) translate(18px,-14px)}
+  .paper-stack::after{transform:rotate(14deg) translate(34px,-26px)}
+  .deadline-circle{
+    position:absolute;width:90px;height:90px;border-radius:50%;background:var(--error);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;text-align:center;
+    box-shadow:0 6px 20px rgba(186,26,26,.25);transform:rotate(12deg)
+  }
+
+  /* Slide 3: Solution */
+  .slide-solution{justify-content:center}
+  .slide-solution .solution-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:40px}
+  .feature-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:var(--ambient)}
+  .feature-card .num{width:44px;height:44px;border-radius:12px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;margin-bottom:18px}
+  .feature-card h3{font-size:24px;margin-bottom:10px}
+  .feature-card p{font-size:17px;color:var(--muted);line-height:1.5}
+
+  /* Slide 4: Demo */
+  .slide-demo{justify-content:center}
+  .demo-flow{display:flex;align-items:stretch;gap:18px;margin-top:40px}
+  .demo-step{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px 22px;text-align:center;box-shadow:var(--ambient);position:relative}
+  .demo-step .step-num{width:36px;height:36px;border-radius:50%;background:var(--surf-2);color:var(--teal-ink);display:flex;align-items:center;justify-content:center;font-weight:800;margin:0 auto 16px}
+  .demo-step h4{font-size:18px;margin-bottom:8px}
+  .demo-step p{font-size:15px;color:var(--muted);line-height:1.4}
+  .demo-step::after{
+    content:"→";position:absolute;right:-22px;top:50%;transform:translateY(-50%);
+    font-size:24px;color:var(--teal);font-weight:700
+  }
+  .demo-step:last-child::after{display:none}
+
+  /* Slide 5: How it works */
+  .slide-works{justify-content:center}
+  .works-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:56px;align-items:center}
+  .architecture{
+    display:flex;flex-direction:column;gap:16px
+  }
+  .arch-row{
+    display:flex;align-items:center;gap:18px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 26px;box-shadow:var(--ambient)
+  }
+  .arch-row .icon-box{width:46px;height:46px;border-radius:12px;background:var(--surf-1);display:flex;align-items:center;justify-content:center;color:var(--teal)}
+  .arch-row h4{font-size:20px;margin-bottom:2px}
+  .arch-row p{font-size:15px;color:var(--muted)}
+  .arch-arrow{font-size:22px;color:var(--teal);text-align:center;margin:-6px 0}
+
+  /* Slide 6: Market */
+  .slide-market{justify-content:center}
+  .market-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:34px;box-shadow:var(--ambient);text-align:center}
+  .stat-card .stat{font-size:56px;font-weight:800;color:var(--teal);line-height:1}
+  .stat-card .stat-label{font-size:17px;color:var(--muted);margin-top:10px}
+
+  /* Slide 7: Roadmap */
+  .slide-roadmap{justify-content:center}
+  .roadmap-list{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:36px}
+  .road-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px;box-shadow:var(--ambient)}
+  .road-item .status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+  .road-item .status.ready{color:var(--mint-deep)}
+  .road-item .status.next{color:var(--info)}
+  .road-item .status.future{color:var(--muted)}
+  .road-item h4{font-size:20px;margin-bottom:6px}
+  .road-item p{font-size:15px;color:var(--muted);line-height:1.45}
+
+  /* Slide 8: Team */
+  .slide-team{justify-content:center;align-items:center;text-align:center}
+  .slide-team .headline{margin-bottom:12px}
+  .slide-team .subhead{margin-bottom:48px}
+  .team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-bottom:48px;width:100%;max-width:1000px}
+  .team-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 24px;box-shadow:var(--ambient)}
+  .team-card .avatar{width:72px;height:72px;border-radius:50%;background:var(--surf-2);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px}
+  .team-card h4{font-size:22px;margin-bottom:4px}
+  .team-card p{font-size:15px;color:var(--muted)}
+  .links{display:flex;justify-content:center;gap:28px;font-size:18px;color:var(--teal-ink);font-weight:600}
+
+  /* ---------- footer / controls ---------- */
+  .slide-footer{
+    position:absolute;bottom:0;left:0;right:0;height:64px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 48px;border-top:1px solid var(--border);background:rgba(248,249,255,.85);backdrop-filter:blur(6px)
+  }
+  .slide-footer .brand-mini{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+  .slide-footer .brand-mini svg{width:24px;height:24px}
+  .slide-footer .progress{font-size:14px;color:var(--muted);font-weight:600}
+  .slide-footer .controls{display:flex;align-items:center;gap:12px}
+  .btn-icon{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s
+  }
+  .btn-icon:hover{background:var(--surf-1);border-color:var(--teal)}
+  .btn-icon svg{width:18px;height:18px;color:var(--ink)}
+
+  /* ---------- speaker notes ---------- */
+  #notes{
+    position:absolute;bottom:64px;left:0;right:0;
+    background:#0B1C30;color:#E5EEFF;padding:24px 48px;
+    font-size:17px;line-height:1.55;
+    transform:translateY(100%);transition:transform .25s ease;
+    max-height:260px;overflow-y:auto;z-index:20
+  }
+  #notes.open{transform:translateY(0)}
+  #notes .label{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mint);margin-bottom:8px}
+  .notes-toggle{
+    position:absolute;bottom:76px;right:48px;z-index:30;
+    background:#0B1C30;color:#fff;border:none;border-radius:8px;padding:8px 16px;
+    font-size:13px;font-weight:700;cursor:pointer;opacity:.7;transition:opacity .15s
+  }
+  .notes-toggle:hover{opacity:1}
+
+  /* ---------- help overlay ---------- */
+  .help{
+    position:absolute;top:18px;right:24px;z-index:40;
+    display:flex;gap:12px;font-size:13px;color:var(--muted);font-weight:500
+  }
+  .help kbd{
+    background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-family:var(--font-sans);font-size:12px
+  }
+
+  @media (max-width: 900px){
+    #deck{width:100vw;height:56.25vw;border-radius:0}
+    .slide{padding:40px 32px}
+    .display{font-size:48px}
+    .headline{font-size:36px}
+    .subhead{font-size:22px}
+    .bullet-list li{font-size:18px}
+    .two-col,.problem-grid,.solution-grid,.works-grid,.market-grid,.roadmap-list{grid-template-columns:1fr}
+    .demo-flow{flex-direction:column}
+    .demo-step::after{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="deck">
+
+    <!-- Slide 1: Title -->
+    <section class="slide slide-title active" data-slide="1">
+      <div class="blob blob-teal" style="width:700px;height:700px;top:-200px;right:-180px;opacity:.18"></div>
+      <div class="blob blob-mint" style="width:500px;height:500px;bottom:-120px;left:-120px;opacity:.22"></div>
+      <div class="hero-row">
+        <svg class="logo-mark" viewBox="0 0 512 512" aria-hidden="true">
+          <rect width="512" height="512" rx="128" fill="#F8F9FF"/>
+          <path fill="#4EDEA3" fill-rule="evenodd" d="M336 220 A28 28 0 0 1 364 192 H404 A28 28 0 0 1 432 220 V260 A28 28 0 0 1 404 288 H364 A28 28 0 0 1 336 260 Z M360 230 A14 14 0 0 1 374 216 H394 A14 14 0 0 1 408 230 V250 A14 14 0 0 1 394 264 H374 A14 14 0 0 1 360 250 Z"/>
+          <path d="M128 168 L240 344 L336 240" fill="none" stroke="#0D9488" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <div class="eyebrow">APAC Stellar Hackathon 2026 · Local Finance &amp; Real World Access</div>
+          <h1 class="display">Krunchr</h1>
+        </div>
+      </div>
+      <p class="subhead"><strong>Compliance Engine — Philippine tax filing, automated.</strong></p>
+      <p class="lead" style="margin-top:28px">Turns one of the most anxious chores a Filipino freelancer faces — filing BIR taxes — into something that just feels <em style="color:var(--teal);font-style:normal">handled</em>.</p>
+      <div class="meta-row">
+        <span class="pill track-pill">Local Finance &amp; Real World Access</span>
+        <span>Team: [PLACEHOLDER]</span>
+        <span>Contact: krunchr@artisam.xyz</span>
+      </div>
+      <aside class="notes">This is Krunchr — a compliance engine that takes one of the most anxious chores a Filipino freelancer faces, filing their BIR taxes, and turns it into something that just feels handled. We're pitching in the Local Finance and Real World Access track because the problem we're solving is local first: the Philippine tax system. I'm [name], and over the next few minutes I'll show you why this matters, what we built, and where it's going.</aside>
+    </section>
+
+    <!-- Slide 2: Problem -->
+    <section class="slide slide-problem" data-slide="2">
+      <div class="blob blob-blue" style="width:600px;height:600px;top:-150px;right:-150px;opacity:.35"></div>
+      <div class="eyebrow">The Problem</div>
+      <h2 class="headline" style="max-width:900px">Eight returns a year. One mistake costs money, time, and trust.</h2>
+      <div class="problem-grid" style="margin-top:40px">
+        <ul class="bullet-list">
+          <li>A freelancer on the 8% flat rate owes <strong>up to 8 BIR returns a year</strong> — 2551Q ×4, 1701Q ×3, 1701A — in strict legal order.</li>
+          <li>The rules interact badly: the 8% election is <strong>irrevocable</strong>; mixed-income earners lose the ₱250,000 exemption; penalties changed under RA 11976; due dates roll past Philippine holidays.</li>
+          <li>One wrong sequence or missed deadline → <strong>surcharge, daily interest, compromise penalties</strong>, and a black mark banks and embassies ask about.</li>
+          <li>Once filed, all a freelancer has is a <strong>scanned PDF</strong> — no quick, trustworthy way for a third party to verify it.</li>
+        </ul>
+        <div class="visual">
+          <div class="img-placeholder" style="height:100%">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
+            <div class="label">Placeholder image</div>
+            <div class="hint">Generate with pitch-deck-prompts.md #2: overwhelmed freelancer buried in tax forms, deadlines, and penalties.</div>
+            <div class="warning-stack" style="pointer-events:none;opacity:.25">
+              <div class="paper-stack"></div>
+              <div class="deadline-circle" style="top:60px;right:80px">DUE<br/>APR 15</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">Here's the pain. A self-employed freelancer in the Philippines on the 8% flat rate isn't filing one form — they're filing up to eight, every year, in a legally-mandated order, each with a different deadline. The rules interact in nasty ways: the 8% election locks for the whole year, mixed-income earners lose a 250,000-peso exemption, and the penalty rates literally changed under new legislation. Get the sequence or a deadline wrong, and you owe a surcharge, daily interest, and a compromise penalty — and you carry a mark that banks and embassies ask about. And once you do file, all you have to prove it is a scanned PDF that anyone could have edited. This is a problem of complexity and trust, and it hits people who can't afford an accountant every quarter.</aside>
+    </section>
+
+    <!-- Slide 3: Solution -->
+    <section class="slide slide-solution" data-slide="3">
+      <div class="blob blob-mint" style="width:600px;height:600px;bottom:-200px;left:-180px;opacity:.22"></div>
+      <div class="eyebrow">The Solution</div>
+      <h2 class="headline">Krunchr turns eight confusing returns into <em style="color:var(--teal);font-style:normal">one upload</em>.</h2>
+      <div class="solution-grid">
+        <div class="feature-card">
+          <div class="num">1</div>
+          <h3>Upload Form 2307s</h3>
+          <p>Drop in withholding certificates. The engine recomputes your entire tax year, every return, in the correct legal sequence.</p>
+        </div>
+        <div class="feature-card">
+          <div class="num">2</div>
+          <h3>Correct by Construction</h3>
+          <p>8% rules, RA 11976 penalty rates, holiday-aware due dates, and mixed-income exemption rules are enforced in code.</p>
+        </div>
+        <div class="feature-card">
+          <div class="num">3</div>
+          <h3>Tamper-Evident Receipt</h3>
+          <p>Every filed return is anchored on Stellar. Banks, embassies, or auditors can verify it in seconds, not trust a PDF.</p>
+        </div>
+        <div class="feature-card">
+          <div class="num">4</div>
+          <h3>One-Click Filing Package</h3>
+          <p>All return PDFs, the SAWT summary, and a cover sheet — bundled and ready to download.</p>
+        </div>
+      </div>
+      <aside class="notes">Our solution is one sentence: Krunchr turns eight confusing returns into one upload. You drop in your Form 2307 withholding certificates, and the engine recomputes your entire tax year — every return, in the exact order the BIR requires. The correctness is built into the engine, not left to the user: the 8% rules, the new RA 11976 penalty rates, holiday-aware due dates, and the rule that mixed-income earners lose the 250k exemption. Each filed return becomes a tamper-evident receipt that a bank or embassy can verify in seconds instead of trusting a scanned PDF. And the whole package — every form, the SAWT, a cover sheet — downloads in one click.</aside>
+    </section>
+
+    <!-- Slide 4: Demo -->
+    <section class="slide slide-demo" data-slide="4">
+      <div class="blob blob-teal" style="width:500px;height:500px;top:-180px;right:-100px;opacity:.18"></div>
+      <div class="eyebrow">Live Demo</div>
+      <h2 class="headline">The single demo moment</h2>
+      <p class="lead" style="margin-top:10px">From onboarding to verified compliance in about 30 seconds.</p>
+      <div class="demo-flow">
+        <div class="demo-step">
+          <div class="step-num">1</div>
+          <h4>Onboard</h4>
+          <p>Maria finishes a 3-minute setup: TIN, RDO, tax codes.</p>
+        </div>
+        <div class="demo-step">
+          <div class="step-num">2</div>
+          <h4>Upload 2307s</h4>
+          <p>Her withholding certificates land in the dashboard.</p>
+        </div>
+        <div class="demo-step">
+          <div class="step-num">3</div>
+          <h4>Returns Compute</h4>
+          <p>All 8 returns run in sequence: Blocked → Pending → Generated → Filed.</p>
+        </div>
+        <div class="demo-step">
+          <div class="step-num">4</div>
+          <h4>File &amp; Anchor</h4>
+          <p>A Stellar TX ID and scannable QR appear on the receipt.</p>
+        </div>
+        <div class="demo-step">
+          <div class="step-num">5</div>
+          <h4>Verify</h4>
+          <p>A loan officer scans it — compliance confirmed in ~30 seconds.</p>
+        </div>
+      </div>
+      <div class="img-placeholder" style="margin-top:36px;height:180px">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <div class="label">Demo screen recording placeholder</div>
+        <div class="hint">Insert ~60–90s video: onboarding → upload 2307 → returns compute → file one → QR / verification. End on green dashboard.</div>
+      </div>
+      <aside class="notes">Here's the moment the whole product is built around. Maria finishes a three-minute onboarding, then uploads her Form 2307 certificates. The dashboard lights up — every one of her eight returns computes in sequence, and you can see statuses move from Blocked, to Pending, to Generated, to Filed. She files one return and gets a transaction ID plus a QR code. The punchline: she hands her phone to a loan officer, they scan it, and her compliance is confirmed in about thirty seconds. No BIR queue, no PDF hunting. On the slide you'll see the screen recording of exactly that flow.</aside>
+    </section>
+
+    <!-- Slide 5: How it works -->
+    <section class="slide slide-works" data-slide="5">
+      <div class="blob blob-blue" style="width:650px;height:650px;bottom:-250px;right:-200px;opacity:.3"></div>
+      <div class="eyebrow">How It Works</div>
+      <h2 class="headline">One app. One engine. One immutable receipt.</h2>
+      <div class="works-grid" style="margin-top:36px">
+        <div class="architecture">
+          <div class="arch-row">
+            <div class="icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div><h4>Upload income</h4><p>Form 2307 certificates trigger a full-year recascade.</p></div>
+          </div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-row">
+            <div class="icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+            </div>
+            <div><h4>Pure computation engine</h4><p>Every return, in order, with RA 11976 penalties and holiday deadlines.</p></div>
+          </div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-row">
+            <div class="icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div><h4>Generate BIR PDF</h4><p>Official-form PDFs plus SAWT and cover sheet.</p></div>
+          </div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-row">
+            <div class="icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div><h4>Anchor hash on Stellar</h4><p>A SHA-256 fingerprint is stored as a manageData operation per return.</p></div>
+          </div>
+        </div>
+        <div>
+          <ul class="bullet-list" style="margin-top:0">
+            <li><strong>Money is never floating-point</strong> — all math runs through decimal.js, so a peso is always a peso.</li>
+            <li><strong>Append-only audit trail</strong> — elections, filings, retries, and dispositions are logged forever.</li>
+            <li><strong>Failure is graceful</strong> — if anchoring hiccups, the filing still succeeds and retries later.</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">Here's the shape of it, without the buzzwords. It's one app with one database and one computation engine. A user uploads income, the engine figures out every return, the server generates the official BIR PDF, and a fingerprint of that PDF is anchored on-chain so it can be verified later. Two details we're proud of: we never do money in floating-point, so a peso is always a peso; and every meaningful action — an election, a filing, a retry — is written to an append-only audit log, so nothing is ever silently edited or deleted. And the design is forgiving: if the on-chain step has a hiccup, the filing still succeeds and the receipt is retried later. The user never sees a failure they have to fix.</aside>
+    </section>
+
+    <!-- Slide 6: Impact / Market -->
+    <section class="slide slide-market" data-slide="6">
+      <div class="blob blob-mint" style="width:550px;height:550px;top:-150px;left:-150px;opacity:.2"></div>
+      <div class="eyebrow">Impact &amp; Market</div>
+      <h2 class="headline">Local finance, with real-world access unlocked.</h2>
+      <div class="market-grid">
+        <div>
+          <ul class="bullet-list" style="margin-top:0">
+            <li><strong>Who needs this:</strong> millions of Filipino freelancers on the 8% flat rate who file manually, hire quarterly accountants, or don't file and accumulate penalties.</li>
+            <li><strong>Why now:</strong> the BIR 8% regime, the Ease of Paying Taxes Act, and a growing freelance economy make a guided, correct filing path genuinely useful.</li>
+            <li><strong>The trust unlock:</strong> a verifiable receipt turns a private chore into something banks, embassies, and auditors confirm in seconds.</li>
+            <li><strong>Built for the track:</strong> local finance first, with real-world access via the Stellar-anchored receipt.</li>
+          </ul>
+        </div>
+        <div class="stats" style="display:flex;flex-direction:column;gap:24px">
+          <div class="stat-card">
+            <div class="stat">8 → 1</div>
+            <div class="stat-label">Returns turned into one upload</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat">~30s</div>
+            <div class="stat-label">Third-party compliance verification</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat">∞</div>
+            <div class="stat-label">Tamper-evident audit trail</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">Who needs this? Every Filipino freelancer on the 8% rate — there are millions of them — who today either file manually, pay an accountant every quarter, or just don't file and let penalties pile up. The timing is right: the 8% regime, the Ease of Paying Taxes Act, and a fast-growing freelance economy make a guided, correct-by-construction filing path genuinely useful for the first time. And the trust unlock is the part that fits this track: the verifiable receipt turns a private chore into something a bank, embassy, or auditor can confirm in seconds. That's real-world access, not just a developer convenience. It's local finance done correctly, with a payoff you can hand to a loan officer.</aside>
+    </section>
+
+    <!-- Slide 7: What's next -->
+    <section class="slide slide-roadmap" data-slide="7">
+      <div class="blob blob-blue" style="width:500px;height:500px;bottom:-180px;right:-120px;opacity:.3"></div>
+      <div class="eyebrow">What's Next</div>
+      <h2 class="headline">Honest gaps that form the roadmap.</h2>
+      <div class="roadmap-list">
+        <div class="road-item">
+          <div class="status next">In progress</div>
+          <h4>Graduated-rate path</h4>
+          <p>8% is the finished demo; graduated bracket math exists but the end-to-end flow isn't complete.</p>
+        </div>
+        <div class="road-item">
+          <div class="status next">In progress</div>
+          <h4>Mixed-income → Form 1701</h4>
+          <p>Routing and the 1701 PDF template exist; the full annual-return flow is the next mile.</p>
+        </div>
+        <div class="road-item">
+          <div class="status next">In progress</div>
+          <h4>VAT-threshold enforcement</h4>
+          <p>Warning at ₱3M exists; the hard "register for VAT" block is next.</p>
+        </div>
+        <div class="road-item">
+          <div class="status future">Future</div>
+          <h4>Self-serve registration</h4>
+          <p>Accounts are admin-seeded today; a public sign-up flow is needed for real adoption.</p>
+        </div>
+        <div class="road-item">
+          <div class="status future">Future</div>
+          <h4>OCR for Form 2307</h4>
+          <p>Auto-read the certificate with a phone camera instead of typing figures.</p>
+        </div>
+        <div class="road-item">
+          <div class="status future">Future</div>
+          <h4>Mainnet + public verifier</h4>
+          <p>Move off testnet and give third parties a one-link verification page.</p>
+        </div>
+      </div>
+      <aside class="notes">A few honest gaps, because they're the roadmap. The 8% path is the finished demo, but the graduated-rate option — for users who don't pick 8% — only has the math in the engine; the full flow isn't done. Mixed-income earners route to a different annual form, Form 1701, and we have the template but not the finished flow. We warn at the 3-million-peso VAT threshold; the next step is a hard block that tells the user they must register for VAT. Accounts are admin-seeded today, so self-serve sign-up is on the list, and we'd love to auto-read the 2307 with a phone camera instead of typing figures. Finally, we anchor on testnet today — moving to mainnet with a public one-link verifier page is what makes the trust unlock real for banks and embassies.</aside>
+    </section>
+
+    <!-- Slide 8: Team / Thanks -->
+    <section class="slide slide-team" data-slide="8">
+      <div class="blob blob-teal" style="width:700px;height:700px;top:-220px;left:-200px;opacity:.16"></div>
+      <div class="blob blob-mint" style="width:500px;height:500px;bottom:-180px;right:-150px;opacity:.2"></div>
+      <svg class="logo-mark" viewBox="0 0 512 512" aria-hidden="true" style="margin-bottom:24px">
+        <rect width="512" height="512" rx="128" fill="#F8F9FF"/>
+        <path fill="#4EDEA3" fill-rule="evenodd" d="M336 220 A28 28 0 0 1 364 192 H404 A28 28 0 0 1 432 220 V260 A28 28 0 0 1 404 288 H364 A28 28 0 0 1 336 260 Z M360 230 A14 14 0 0 1 374 216 H394 A14 14 0 0 1 408 230 V250 A14 14 0 0 1 394 264 H374 A14 14 0 0 1 360 250 Z"/>
+        <path d="M128 168 L240 344 L336 240" fill="none" stroke="#0D9488" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 class="headline">Thank you.</h2>
+      <p class="subhead" style="margin-top:8px">Eight returns. One upload. Handled.</p>
+      <div class="team-grid">
+        <div class="team-card"><div class="avatar">?</div><h4>[Name]</h4><p>[Role]</p></div>
+        <div class="team-card"><div class="avatar">?</div><h4>[Name]</h4><p>[Role]</p></div>
+        <div class="team-card"><div class="avatar">?</div><h4>[Name]</h4><p>[Role]</p></div>
+      </div>
+      <div class="links">
+        <span>app.krunchr.xyz</span>
+        <span>krunchr.xyz</span>
+        <span>krunchr@artisam.xyz</span>
+      </div>
+      <aside class="notes">I'm [name], and this is the team — [placeholder]. You can try the app at app.krunchr.xyz, or read more on our landing page; the contact is krunchr@artisam.xyz. Thanks to the organizers, the Stellar community, and most of all the Filipino freelancers who patiently told us how filing actually feels in practice. That's Krunchr — eight returns, one upload, handled. We'd love your questions.</aside>
+    </section>
+
+    <!-- Footer -->
+    <div class="slide-footer">
+      <div class="brand-mini">
+        <svg viewBox="0 0 512 512" aria-hidden="true">
+          <rect width="512" height="512" rx="128" fill="#F8F9FF"/>
+          <path fill="#4EDEA3" fill-rule="evenodd" d="M336 220 A28 28 0 0 1 364 192 H404 A28 28 0 0 1 432 220 V260 A28 28 0 0 1 404 288 H364 A28 28 0 0 1 336 260 Z M360 230 A14 14 0 0 1 374 216 H394 A14 14 0 0 1 408 230 V250 A14 14 0 0 1 394 264 H374 A14 14 0 0 1 360 250 Z"/>
+          <path d="M128 168 L240 344 L336 240" fill="none" stroke="#0D9488" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Krunchr
+      </div>
+      <div class="progress"><span id="current">1</span> / <span id="total">8</span></div>
+      <div class="controls">
+        <button class="btn-icon" id="prev" aria-label="Previous slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="btn-icon" id="next" aria-label="Next slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Speaker notes panel -->
+    <div id="notes"><div class="label">Speaker notes</div><div id="notes-text"></div></div>
+    <button class="notes-toggle" id="notes-toggle">Notes (N)</button>
+
+    <div class="help">
+      <span><kbd>←</kbd> <kbd>→</kbd> navigate</span>
+      <span><kbd>F</kbd> fullscreen</span>
+      <span><kbd>N</kbd> notes</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const currentEl = document.getElementById('current');
+  const totalEl = document.getElementById('total');
+  const notes = document.getElementById('notes');
+  const notesText = document.getElementById('notes-text');
+  const notesToggle = document.getElementById('notes-toggle');
+  let current = 0;
+
+  totalEl.textContent = slides.length;
+
+  function show(index){
+    if(index < 0) index = 0;
+    if(index >= slides.length) index = slides.length - 1;
+    current = index;
+    slides.forEach((s,i) => s.classList.toggle('active', i === current));
+    currentEl.textContent = current + 1;
+    const note = slides[current].querySelector('.notes');
+    notesText.textContent = note ? note.textContent.trim() : '';
+  }
+
+  document.getElementById('prev').addEventListener('click', () => show(current - 1));
+  document.getElementById('next').addEventListener('click', () => show(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); show(current + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); show(current - 1); }
+    else if(e.key.toLowerCase() === 'n'){ notes.classList.toggle('open'); }
+    else if(e.key.toLowerCase() === 'f'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  notesToggle.addEventListener('click', () => notes.classList.toggle('open'));
+
+  // Scale deck to fit viewport while preserving 16:9
+  function fit(){
+    const deck = document.getElementById('deck');
+    const scale = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+    deck.style.transform = `scale(${scale})`;
+  }
+  window.addEventListener('resize', fit);
+  fit();
+  show(0);
+</script>
+</body>
+</html>

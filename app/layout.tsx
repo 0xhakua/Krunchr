@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: "Krunchr — Compliance Engine",
   description:
     "Philippine tax compliance for self-employed freelancers, with Stellar-anchored filing receipts.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

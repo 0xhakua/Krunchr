@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Krunchr logo white">
+  <rect width="512" height="512" rx="128" fill="#0B1C30"/>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="
+    M 336 220
+    A 28 28 0 0 1 364 192
+    H 404
+    A 28 28 0 0 1 432 220
+    V 260
+    A 28 28 0 0 1 404 288
+    H 364
+    A 28 28 0 0 1 336 260
+    Z
+    M 360 230
+    A 14 14 0 0 1 374 216
+    H 394
+    A 14 14 0 0 1 408 230
+    V 250
+    A 14 14 0 0 1 394 264
+    H 374
+    A 14 14 0 0 1 360 250
+    Z
+  "/>
+  <path d="M128 168 L240 344 L336 240" fill="none" stroke="#FFFFFF" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

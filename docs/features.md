@@ -290,3 +290,203 @@ Each entry:
 - PR: `#114`
 - What changed: Fix #67: S6.6 - Verify /api/computation/preview works under graduated.
 - Files touched: `app/api/computation/preview/__tests__/route.test.ts`, `app/api/computation/preview/route.ts`
+
+### 2026-07-01 — PR #125 — commit uncommitted docs and refresh changelog
+- PR: `#125`
+- What changed: docs: commit uncommitted docs and refresh changelog.
+- Files touched: `docs/client-update.md`, `docs/features.md`, `docs/quick-start-guide.md`, `docs/railway-cli-runbook.md`, `docs/test-flow-guide.md`
+
+### 2026-07-01 — PR #118 — S7.1: verify Form 1701 (not 1701A) for MIXED_INCOME end-to-end
+- PR: `#118`
+- What changed: S7.1: verify Form 1701 (not 1701A) for MIXED_INCOME end-to-end.
+- Files touched: `lib/computation/__tests__/recascade.integration.test.ts`
+
+### 2026-07-01 — PR #119 — S7.2: dispatcher routes FORM_1701 to the mixed-income template
+- PR: `#119`
+- What changed: S7.2: dispatcher routes FORM_1701 to the mixed-income template.
+- Files touched: `lib/pdf/__tests__/dispatcher.test.tsx`, `scripts/test-pdf-render.ts`
+
+### 2026-07-01 — PR #120 — S7.3: cover 4-return path in the taxpayer onboarding API
+- PR: `#120`
+- What changed: S7.3: cover 4-return path in the taxpayer onboarding API.
+- Files touched: `app/api/taxpayer/route.test.ts`
+
+### 2026-07-01 — PR #121 — S7.4: surface Form 1701 vs 1701A for mixed-income users
+- PR: `#121`
+- What changed: S7.4: surface Form 1701 vs 1701A for mixed-income users.
+- Files touched: `app/(dashboard)/dashboard/page.tsx`, `app/(dashboard)/onboarding/page.tsx`, `app/api/dashboard/__tests__/route.test.ts`, `app/api/dashboard/route.ts`
+
+### 2026-07-01 — PR #122 — S7.5: thread electedRate through recascadeTaxYear and the live breakdown endpoint
+- PR: `#122`
+- What changed: S7.5: thread electedRate through recascadeTaxYear and the live breakdown endpoint.
+- Files touched: `app/api/computation/[returnId]/route.ts`, `lib/computation/__tests__/recascade.integration.test.ts`, `lib/computation/recascade.ts`
+
+### 2026-07-01 — PR #123 — Audit: rename 8PCT_ELECTION_CONFIRMED to rate-agnostic ELECTION_CONFIRMED
+- PR: `#123`
+- What changed: Audit: rename 8PCT_ELECTION_CONFIRMED to rate-agnostic ELECTION_CONFIRMED.
+- Files touched: `SPEC.md`, `app/admin/audit-log/page.tsx`, `app/api/election/route.test.ts`, `app/api/election/route.ts`, `prisma/schema.prisma`
+
+### 2026-07-01 — PR #124 — S7.6: persist OSD election on TaxYear + election API + preview
+- PR: `#124`
+- What changed: S7.6: persist OSD election on TaxYear + election API + preview.
+- Files touched: `app/(dashboard)/election/page.tsx`, `app/api/computation/preview/__tests__/route.test.ts`, `app/api/computation/preview/route.ts`, `app/api/election/route.test.ts`, `app/api/election/route.ts`, `prisma/migrations/20260701000000_add_osd_election_to_tax_year/migration.sql`, `prisma/schema.prisma`
+
+### 2026-07-01 — PR #126 — S8.1: /admin/users full management UI
+- PR: `#126`
+- What changed: S8.1: /admin/users full management UI.
+- Files touched: `app/admin/page.tsx`, `app/api/admin/users/__tests__/route.test.ts`, `app/api/admin/users/route.ts`, `app/api/auth/login/route.ts`, `lib/auth/session.ts`, `lib/testing/factories.ts`, `prisma/migrations/20260701055618_add_is_active_to_user/migration.sql`, `prisma/schema.prisma`
+
+### 2026-07-01 — PR #127 — S8.2: /admin/atc — full CRUD UI with filter, inline edit, and usage counts
+- PR: `#127`
+- What changed: S8.2: /admin/atc — full CRUD UI with filter, inline edit, and usage counts.
+- Files touched: `app/admin/atc/page.tsx`, `app/api/admin/atc/__tests__/route.test.ts`, `app/api/admin/atc/route.ts`
+
+### 2026-07-01 — PR #129 — S8.4: /admin/rdo-penalties — inline-editable table, add row, strict positive validation
+- PR: `#129`
+- What changed: S8.4: /admin/rdo-penalties — inline-editable table, add row, strict positive validation.
+- Files touched: `app/admin/rdo-penalties/page.tsx`, `app/api/admin/rdo-penalties/__tests__/route.test.ts`, `app/api/admin/rdo-penalties/route.ts`
+
+### 2026-07-01 — PR #130 — S8.5: /admin/system-health — live latency, free bytes, migration status, auto-refresh
+- PR: `#130`
+- What changed: S8.5: /admin/system-health — live latency, free bytes, migration status, auto-refresh.
+- Files touched: `app/admin/system-health/page.tsx`, `app/api/admin/system-health/__tests__/route.test.ts`, `app/api/admin/system-health/route.ts`, `lib/stellar/client.ts`, `lib/storage.ts`
+
+### 2026-07-01 — PR #131 — S8.6: /admin/audit-log — shared filter parser, CSV export, username filter
+- PR: `#131`
+- What changed: S8.6: /admin/audit-log — shared filter parser, CSV export, username filter.
+- Files touched: `app/admin/audit-log/page.tsx`, `app/api/admin/audit-log/export/__tests__/route.test.ts`, `app/api/admin/audit-log/export/route.ts`, `app/api/admin/audit-log/route.ts`, `lib/audit-log/__tests__/filters.test.ts`, `lib/audit-log/filters.ts`
+
+### 2026-07-01 — PR #128 — S8.3: /admin/holidays — year filter, CSV bulk import, and rolling preview
+- PR: `#128`
+- What changed: S8.3: /admin/holidays — year filter, CSV bulk import, and rolling preview.
+- Files touched: `app/admin/holidays/page.tsx`, `app/api/admin/holidays/__tests__/route.test.ts`, `app/api/admin/holidays/route.ts`
+
+### 2026-07-01 — PR #132 — run middleware in Node.js runtime
+- PR: `#132`
+- What changed: fix(auth): run middleware in Node.js runtime.
+- Files touched: `middleware.ts`
+
+### 2026-07-01 — PR #133 — wire logout button in dashboard header avatar dropdown
+- PR: `#133`
+- What changed: fix(#87): wire logout button in dashboard header avatar dropdown.
+- Files touched: `app/(dashboard)/_components/user-menu.tsx`, `app/(dashboard)/layout.tsx`, `app/api/auth/logout/__tests__/route.test.ts`, `app/api/auth/logout/route.ts`, `components/ui/dropdown-menu.tsx`
+
+### 2026-07-02 — PR #134 — add 401/403 auth tests for every API route and middleware (S9.3)
+- PR: `#134`
+- What changed: test(#80): add 401/403 auth tests for every API route and middleware (S9.3).
+- Files touched: `app/api/computation/preview/__tests__/route.test.ts`, `app/api/dashboard/__tests__/route.test.ts`, `app/api/election/route.test.ts`, `app/api/health/__tests__/route.test.ts`, `app/api/income/route.test.ts`, `app/api/returns/__tests__/route.test.ts`, `app/api/taxpayer/route.test.ts`, `lib/__tests__/middleware.test.ts`
+
+### 2026-07-02 — PR #136 — add integration tests for state-mutating API endpoints (S9.1)
+- PR: `#136`
+- What changed: test(#78): add integration tests for state-mutating API endpoints (S9.1).
+- Files touched: `app/api/__tests__/state-mutating.test.ts`
+
+### 2026-07-02 — PR #135 — export all Zod schemas and add unit tests (S9.2)
+- PR: `#135`
+- What changed: test(#79): export all Zod schemas and add unit tests (S9.2).
+- Files touched: `app/admin/atc/page.tsx`, `app/api/admin/atc/route.ts`, `app/api/admin/holidays/route.ts`, `app/api/admin/rdo-penalties/route.ts`, `app/api/admin/users/route.ts`, `app/api/auth/login/route.ts`, `app/api/election/route.ts`, `app/api/filing-package/download/__tests__/route.test.ts`, `app/api/income/[id]/route.ts`, `app/api/income/route.ts`, `app/api/overpayment/[taxYear]/route.ts`, `app/api/penalties/simulate/route.ts`, … (+4 more)
+
+### 2026-07-02 — PR #137 — S10.2 VAT breach banner + 1701A block
+- PR: `#137`
+- What changed: Fix #83: S10.2 VAT breach banner + 1701A block.
+- Files touched: `app/(dashboard)/dashboard/page.tsx`, `app/(dashboard)/onboarding/page.tsx`, `app/(dashboard)/returns/page.tsx`, `app/api/dashboard/route.ts`, `app/api/returns/[id]/generate/route.ts`, `app/api/returns/__tests__/route.test.ts`, `app/api/returns/route.ts`, `app/api/returns/sequence/route.ts`, `components/dashboard/vat-breach-banner.tsx`, `lib/computation/__tests__/recascade.integration.test.ts`, `lib/computation/__tests__/sequence.test.ts`, `lib/computation/recascade.ts`, … (+1 more)
+
+### 2026-07-02 — PR #138 — S10.1 dashboard VAT progress bar
+- PR: `#138`
+- What changed: Fix #82: S10.1 dashboard VAT progress bar.
+- Files touched: `app/(dashboard)/dashboard/page.tsx`, `app/api/dashboard/__tests__/route.test.ts`, `app/api/dashboard/route.ts`, `components/ui/progress.tsx`
+
+### 2026-07-02 — PR #139 — S10.3 loading/empty states across dashboard pages
+- PR: `#139`
+- What changed: Fix #84: S10.3 loading/empty states across dashboard pages.
+- Files touched: `app/(dashboard)/dashboard/loading.tsx`, `app/(dashboard)/dashboard/page.tsx`, `app/(dashboard)/election/loading.tsx`, `app/(dashboard)/election/page.tsx`, `app/(dashboard)/income/loading.tsx`, `app/(dashboard)/income/page.tsx`, `app/(dashboard)/journal/loading.tsx`, `app/(dashboard)/journal/page.tsx`, `app/(dashboard)/onboarding/loading.tsx`, `app/(dashboard)/prior-year-credit/loading.tsx`, `app/(dashboard)/returns/[id]/loading.tsx`, `app/(dashboard)/returns/[id]/page.tsx`, … (+16 more)
+
+### 2026-07-02 — PR #140 — S10.4 security headers in next.config.ts
+- PR: `#140`
+- What changed: Fix #85: S10.4 security headers in next.config.ts.
+- Files touched: `app/(dashboard)/journal/page.tsx`, `app/(dashboard)/returns/[id]/page.tsx`, `app/(dashboard)/returns/page.tsx`, `app/(dashboard)/stellar/page.tsx`, `lib/__tests__/api-error.test.ts`, `lib/__tests__/middleware.test.ts`, `lib/__tests__/next-config.test.ts`, `lib/api-error.ts`, `middleware.ts`, `next.config.ts`
+
+### 2026-07-02 — PR #142 — Admin page UI polish: responsive tables, dashboard grid, and audit log formatting
+- PR: `#142`
+- What changed: Fix #141: Admin page UI polish: responsive tables, dashboard grid, and audit log formatting.
+- Files touched: `app/admin/atc/page.tsx`, `app/admin/audit-log/page.tsx`, `app/admin/holidays/page.tsx`, `app/admin/page.tsx`, `app/admin/rdo-penalties/page.tsx`
+
+### 2026-07-02 — PR #146 — Split full name into first name, last name, and middle initial on onboarding
+- PR: `#146`
+- What changed: Fix #145: Split full name into first name, last name, and middle initial on onboarding.
+- Files touched: `app/(dashboard)/onboarding/page.tsx`, `app/api/taxpayer/route.test.ts`, `app/api/taxpayer/route.ts`, `lib/__tests__/zod-schemas.test.ts`, `lib/testing/factories.ts`, `lib/validation/schemas.ts`, `prisma/migrations/20260702092433_add_name_components_to_taxpayer_profile/migration.sql`, `prisma/schema.prisma`, `prisma/seed.ts`
+
+### 2026-07-02 — PR #147 — Add shared dashboard page shell to admin pages
+- PR: `#147`
+- What changed: Fix #144: Add shared dashboard page shell to admin pages.
+- Files touched: `app/(dashboard)/layout.tsx`, `app/admin/atc/page.tsx`, `app/admin/audit-log/page.tsx`, `app/admin/holidays/page.tsx`, `app/admin/layout.tsx`, `app/admin/page.tsx`, `app/admin/rdo-penalties/page.tsx`, `app/admin/system-health/page.tsx`, `components/layout/app-shell.tsx`, `components/layout/sidebar-nav.tsx`, `components/layout/user-menu.tsx`
+
+### 2026-07-02 — PR #148 — Add ZIP code + location dropdown to onboarding
+- PR: `#148`
+- What changed: Fix #143: Add ZIP code + location dropdown to onboarding.
+- Files touched: `app/(dashboard)/onboarding/page.tsx`, `app/api/taxpayer/route.test.ts`, `components/location-picker.tsx`, `lib/__tests__/zod-schemas.test.ts`, `lib/data/__tests__/zip-codes.test.ts`, `lib/data/zip-codes.json`, `lib/data/zip-codes.ts`, `lib/validation/schemas.ts`
+
+### 2026-07-03 — PR #171 — Onboarding: auto-format TIN with hyphens and remove middle initial placeholder
+- PR: `#171`
+- What changed: Fix #149: Onboarding: auto-format TIN with hyphens and remove middle initial placeholder.
+- Files touched: `app/(dashboard)/onboarding/page.tsx`
+
+### 2026-07-03 — PR #172 — Income: auto-calculate CWT Withheld from ATC rate and monthly amounts
+- PR: `#172`
+- What changed: Fix #150: Income: auto-calculate CWT Withheld from ATC rate and monthly amounts.
+- Files touched: `app/(dashboard)/income/page.tsx`
+
+### 2026-07-03 — PR #173 — Income: adding certificate crashes with React error #31 on validation failure
+- PR: `#173`
+- What changed: Fix #153: Income: adding certificate crashes with React error #31 on validation failure.
+- Files touched: `app/(dashboard)/income/page.tsx`, `app/api/income/[id]/route.test.ts`, `app/api/income/[id]/route.ts`, `app/api/income/route.test.ts`, `app/api/income/route.ts`
+
+### 2026-07-03 — PR #174 — Stellar page shows Internal server error (500) and anchoring transactions fail
+- PR: `#174`
+- What changed: Fix #151: Stellar page shows Internal server error (500) and anchoring transactions fail.
+- Files touched: `app/api/stellar/receipts/[id]/retry/route.ts`, `app/api/stellar/receipts/route.test.ts`, `app/api/stellar/receipts/route.ts`, `lib/stellar/anchor.ts`
+
+### 2026-07-03 — PR #176 — Onboarding step 4 still rejects TIN with 400 despite auto-formatter
+- PR: `#176`
+- What changed: Fix #175: Onboarding step 4 still rejects TIN with 400 despite auto-formatter.
+- Files touched: `app/(dashboard)/onboarding/page.tsx`
+
+### 2026-07-03 — PR #178 — correct Philippine TIN format to NNN-NNN-NNN-NNN
+- PR: `#178`
+- What changed: fix(validation): correct Philippine TIN format to NNN-NNN-NNN-NNN.
+- Files touched: `.gitignore`, `AGENT.md`, `README.md`, `SPEC.md`, `app/(dashboard)/onboarding/page.tsx`, `app/api/taxpayer/route.test.ts`, `docs/client-guides/1701A Jan 2018 v5 with rates.pdf`, `docs/client-guides/1701Q Guide Jan 2018_copy.pdf`, `docs/client-guides/1701Q Jan 2018 final rev2_copy.pdf`, `docs/client-guides/INDEX.md`, `docs/client-guides/Kuwenta_1701Q_1701A_Study_Guide.docx`, `docs/test-flow-guide.md`, … (+9 more)
+
+### 2026-07-03 — PR #179 — regenerate missing PDF on retry and store relative paths
+- PR: `#179`
+- What changed: fix(stellar): regenerate missing PDF on retry and store relative paths.
+- Files touched: `app/api/__tests__/state-mutating.test.ts`, `app/api/stellar/receipts/[id]/retry/route.ts`, `lib/__tests__/storage.test.ts`, `lib/stellar/__tests__/anchor.test.ts`, `lib/stellar/anchor.ts`, `lib/storage.ts`
+
+### 2026-07-03 — PR #183 — Onboarding still returns 'TIN must be in format NNN-NNN-NNN-NNN'
+- PR: `#183`
+- What changed: Fix #180: Onboarding still returns 'TIN must be in format NNN-NNN-NNN-NNN'.
+- Files touched: `AGENT.md`, `SPEC.md`, `app/(dashboard)/onboarding/page.tsx`, `app/api/taxpayer/route.test.ts`, `docs/test-flow-guide.md`, `eslint.config.mjs`, `lib/__tests__/zod-schemas.test.ts`, `lib/validation/schemas.ts`, `prisma/schema.prisma`
+
+### 2026-07-04 — PR #184 — Onboarding: redirect already-onboarded users to dashboard
+- PR: `#184`
+- What changed: Fix #156: Onboarding: redirect already-onboarded users to dashboard.
+- Files touched: `app/(dashboard)/onboarding/onboarding-form.tsx`, `app/(dashboard)/onboarding/page.tsx`
+
+### 2026-07-04 — PR #185 — Dashboard: make sidebar sticky and add mobile hamburger menu
+- PR: `#185`
+- What changed: Fix #154: Dashboard: make sidebar sticky and add mobile hamburger menu.
+- Files touched: `components/layout/app-shell.tsx`, `components/layout/mobile-sidebar.tsx`, `components/layout/sidebar-footer.tsx`, `components/layout/sidebar-header.tsx`, `components/layout/sidebar-nav.tsx`, `components/ui/sheet.tsx`
+
+### 2026-07-04 — PR #186 — Auth: add user registration flow so new users can create accounts
+- PR: `#186`
+- What changed: Fix #157: Auth: add user registration flow so new users can create accounts.
+- Files touched: `app/api/auth/register/__tests__/route.test.ts`, `app/api/auth/register/route.ts`, `app/login/page.tsx`, `app/register/page.tsx`, `lib/rate-limit.ts`, `lib/validation/schemas.ts`, `middleware.ts`
+
+### 2026-07-05 — PR #188 — Add contextual tooltips and empty-state guides for new users
+- PR: `#188`
+- What changed: Fix #187: Add contextual tooltips and empty-state guides for new users.
+- Files touched: `app/(dashboard)/dashboard/page.tsx`, `app/(dashboard)/election/page.tsx`, `app/(dashboard)/income/page.tsx`, `app/(dashboard)/returns/page.tsx`, `app/(dashboard)/stellar/page.tsx`, `components/ui/info-tooltip.tsx`, `components/ui/tooltip.tsx`
+
+### 2026-07-05 — PR #190 — Right-align dashboard status badge and move Stellar indicator to sidebar footer
+- PR: `#190`
+- What changed: Fix #189: Right-align dashboard status badge and move Stellar indicator to sidebar footer.
+- Files touched: `app/(dashboard)/dashboard/page.tsx`, `components/layout/app-shell.tsx`
