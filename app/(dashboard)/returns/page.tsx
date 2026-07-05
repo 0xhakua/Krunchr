@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
 import { formatPeso, formatDate } from '@/lib/format'
 import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 type ReturnItem = {
   id: string
@@ -124,7 +125,13 @@ export default function ReturnsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Filing Sequence</h1>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold">Filing Sequence</h1>
+        <p className="text-sm text-muted-foreground">
+          Returns must be generated and filed in order. A return stays BLOCKED until every
+          earlier return in the sequence is filed.
+        </p>
+      </div>
       {vatBreached && <VatBreachBanner />}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -211,14 +218,28 @@ export default function ReturnsPage() {
                   <Button variant="outline" size="sm">View</Button>
                 </Link>
                 {ret.status === 'PENDING' && (
-                  <Button size="sm" onClick={() => generateReturn(ret.id)} disabled={loading}>
-                    Generate
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button size="sm" onClick={() => generateReturn(ret.id)} disabled={loading}>
+                          Generate
+                        </Button>
+                      }
+                    />
+                    <TooltipContent>Compute the BIR form and preview the tax due.</TooltipContent>
+                  </Tooltip>
                 )}
                 {ret.status === 'GENERATED' && (
-                  <Button size="sm" onClick={() => fileReturn(ret.id)} disabled={loading}>
-                    Mark as Filed
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button size="sm" onClick={() => fileReturn(ret.id)} disabled={loading}>
+                          Mark as Filed
+                        </Button>
+                      }
+                    />
+                    <TooltipContent>Finalize the filing, generate the PDF, and anchor a Stellar receipt.</TooltipContent>
+                  </Tooltip>
                 )}
                 {ret.status === 'FILED' && (
                   <a href={`/api/returns/${ret.id}/pdf`} target="_blank" rel="noreferrer">

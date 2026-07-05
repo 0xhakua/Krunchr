@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/ui/empty-state'
 import { QrCode, ShieldCheck } from 'lucide-react'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 interface StellarReceipt {
   id: string
@@ -122,12 +123,16 @@ export default function StellarPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold">Stellar Compliance Receipts</h1>
-        <p className="text-muted-foreground">
-          All on-chain filing receipts for the current taxable year.
-        </p>
+        <InfoTooltip side="right">
+          Each filed return is anchored on the Stellar blockchain as a tamper-proof receipt.
+          The receipt stores the SHA-256 hash of the PDF filing package and a timestamp.
+        </InfoTooltip>
       </div>
+      <p className="text-muted-foreground">
+        All on-chain filing receipts for the current taxable year.
+      </p>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

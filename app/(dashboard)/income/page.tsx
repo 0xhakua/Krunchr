@@ -37,6 +37,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 type ATCCode = {
   code: string
@@ -423,6 +424,11 @@ export default function IncomePage() {
         </Dialog>
       </div>
 
+      <p className="text-sm text-muted-foreground">
+        Upload your BIR Form 2307 certificates (per payor, per quarter). Kuwenta uses these
+        to compute tax due, apply CWT credits, and update your filing sequence automatically.
+      </p>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -442,7 +448,13 @@ export default function IncomePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">VAT Threshold</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+              VAT Threshold
+              <InfoTooltip side="top">
+                Kuwenta supports non-VAT taxpayers. If your annual gross exceeds ₱3,000,000,
+                you must register for VAT and the 8% option is no longer available.
+              </InfoTooltip>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{totals.vatThresholdPercent.toFixed(1)}%</p>
