@@ -2,71 +2,84 @@
 
 > Compliance Engine — Philippine tax filing, automated and anchored on-chain.
 
-Krunchr is a web-based tax compliance system for Filipino self-employed professionals and freelancers on the BIR's 8% flat income-tax rate. The hero flow: a user uploads their BIR Form 2307 withholding certificates, Krunchr computes their full tax position and generates all legally-mandated returns in sequence, and every filed return is hashed, PDF-packaged, and anchored as a tamper-proof receipt on the Stellar blockchain.
+Krunchr is a web application that automates Philippine BIR tax compliance for self-employed freelancers and mixed-income earners on the 8% flat income-tax rate, and cryptographically anchors proof of every filed return on the Stellar network. A user uploads their BIR Form 2307 withholding certificates; Krunchr computes their full tax position, walks them through all eight legally-mandated returns (2551Q ×4, 1701Q ×3, 1701A/1701) in the correct statutory order, generates ready-to-file BIR PDFs and a SAWT summary, and — on filing — SHA-256-hashes the signed return and writes that hash to the Stellar ledger as a `manageData` entry. The result is a compliance record that isn't just "saved to a database," but independently, publicly verifiable by anyone who queries the chain: a bank underwriting a loan, an embassy processing a visa, or a BIR auditor, in seconds, without trusting Krunchr's servers.
+
+For the Stellar ecosystem, Krunchr is a live, non-speculative "Real World Access" use case in a market where Stellar already has payment-rail traction (Coins.ph, MoneyGram's PHP/USDC corridor) but — as far as this project's research could establish — no shipped tax-compliance or government-RegTech product: it demonstrates Stellar's low-cost `manageData`/anchoring primitives solving an actual, everyday compliance problem for millions of Philippine freelancers, and (per the roadmap in [issue-tracked research](#further-reading)) opens a path toward deeper ecosystem integration — Soroban-based attestation registries, SEP-12/24 anchor payouts for freelancers paid in USDC, and portable verifiable-compliance credentials — that go well beyond the current hash-anchoring implementation.
 
 ## Status
 
 | | |
 |---|---|
 | **Version** | `0.1.0` (from `package.json`; no git tags/releases published) [inferred: pre-release/hackathon build] |
-| **Branch** | `develop` (default), CI runs on `develop` and `main` |
+| **Branch** | `develop` (default), CI runs on `develop` and `main`; CI currently green |
 | **License** | Not specified — no `LICENSE` file in the repo |
-| **Track** | APAC Stellar Hackathon 2026 — Local Finance & Real World Access (per `README.md`/`SPEC.md`) |
+| **Track** | APAC Stellar Hackathon 2026 — Local Finance & Real World Access (per `SPEC.md`) |
+| **Maturity** | Actively developed (100+ commits in the days prior to this update) — computation engine, admin tooling, and Stellar anchoring are substantially ahead of what `SPEC.md`/`CLAUDE.md` describe; see [Known Gaps](#known-gaps-vs-specmd) below |
 
 ## Problem
 
-Filipino self-employed professionals and freelancers electing the 8% flat income-tax rate must file up to **8 sequential BIR returns per year** (2551Q ×4, 1701Q ×3, 1701A), each with strict prerequisite ordering, statutory deadlines, and legally-specific computation rules — e.g. mixed-income earners get no ₱250,000 exemption and must use Form 1701 instead of 1701A; the 8% election is irrevocable once made; RA 11976 changed penalty rates (10% surcharge / 6% interest, not the old 25%/12%); the ₱500 registration fee was abolished in favor of a ₱30 DST. Manual filing is error-prone against this many interacting rules, and once filed, there is no simple, verifiable way for a third party (a bank, an embassy, an auditor) to confirm a return was genuinely filed and unaltered. (Grounded in `SPEC.md` Overview and Business Rules.)
+Filipino self-employed professionals and freelancers must file up to **8 sequential BIR returns per year** (2551Q ×4, 1701Q ×3, 1701A), each with strict prerequisite ordering, statutory deadlines, and legally-specific computation rules — e.g. mixed-income earners get no ₱250,000 exemption and must use Form 1701 instead of 1701A; the 8% election is irrevocable once made; RA 11976 changed penalty rates (10% surcharge / 6% interest, not the old 25%/12%); the ₱500 registration fee was abolished in favor of a ₱30 DST; graduated-rate filers can additionally elect a 40% Optional Standard Deduction. Manual filing is error-prone against this many interacting rules, and once filed, there is no simple, verifiable way for a third party (a bank, an embassy, an auditor) to confirm a return was genuinely filed and unaltered. (Grounded in `SPEC.md` Overview and Business Rules.)
 
 ## Vision / Purpose
 
-Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Access** track, Krunchr's stated goal (per `SPEC.md`) is a single demo moment: a freelancer uploads their 2307 certificates, the system computes their full tax position, generates all sequenced returns, and each filed return is permanently anchored on Stellar — producing a compliance trail that banks and embassies can verify in seconds. Longer-term, the project targets full BIR filing-sequence automation for 8%-electee taxpayers, with graduated-rate support, VAT-threshold enforcement, and admin tooling called out in `SPEC.md`/`CLAUDE.md` as remaining work. [inferred: hackathon-originated project maturing toward a real compliance product]
+Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Access** track, Krunchr's stated goal (per `SPEC.md`) is a single demo moment: a freelancer uploads their 2307 certificates, the system computes their full tax position, generates all sequenced returns, and each filed return is permanently anchored on Stellar — producing a compliance trail that banks and embassies can verify in seconds. That demo moment is implemented and working end-to-end today. Beyond the hackathon deliverable, the codebase has grown into a fuller compliance product — self-service registration, graduated-rate and OSD computation, SAWT generation, prior-year-credit lineage tracking, and a nearly-complete admin console — positioning it as a real product rather than a single demo path. [inferred: hackathon-originated project maturing toward a real compliance product]
 
 ## Target Users
 
 - **Self-employed freelancers on the 8% flat rate** — need a guided, correct-by-construction path through 8 mandatory returns without hiring an accountant for every quarter.
+- **Graduated-rate filers** — need TRAIN-law bracket computation and an optional 40% standard deduction, correctly kept mutually exclusive from the 8% election.
 - **Mixed-income earners (salary + freelance)** — need computations that correctly skip the ₱250,000 exemption and route to Form 1701 instead of 1701A.
 - **Banks / embassies / third-party verifiers** — need a fast, tamper-evident way to confirm a filing actually happened, via the Stellar-anchored hash rather than trusting a scanned PDF.
-- **BIR-compliance admins** *(role: `ADMIN`)* — need to manage ATC codes, RDO penalty schedules, holiday calendars, and audit logs across taxpayers.
+- **BIR-compliance admins** *(role: `ADMIN`)* — need to manage ATC codes, RDO penalty schedules, holiday calendars, users, and audit logs across taxpayers.
 
 ## Features
 
-**Onboarding & Eligibility**
-- Taxpayer registration (TIN, RDO code, income type, COR-2551Q flag, new-registrant flag) — `app/onboarding` / `/api/taxpayer`
-- 5-point eligibility validation (individual taxpayer, self-employment income, non-VAT, gross receipts < ₱3,000,000, no prior graduated-rate Q1 filing) — `/api/taxpayer/eligibility`
+**Auth & Onboarding**
+- Self-service registration with rate limiting and Zod validation, alongside seeded accounts — `app/register`, `/api/auth/register` *(note: this postdates `SPEC.md`, which still describes admin-seeded-only accounts — see [Known Gaps](#known-gaps-vs-specmd))*
+- 4-step taxpayer onboarding (personal info, eligibility, ATC setup, tax-year init) with TIN normalization and ZIP lookup — `app/(dashboard)/onboarding`
+- 5-point eligibility validation (individual taxpayer, self-employment income, non-VAT, gross receipts < ₱3,000,000, no prior graduated-rate Q1 filing) — `/api/taxpayer/eligibility`, `lib/computation/eligibility.ts`
 - ATC code setup with a lookup table and admin-configurable EWT rates — `/api/atc`
+- Contextual tooltips and empty-state guidance across onboarding/election/dashboard for first-time users — `components/ui/info-tooltip`, per-page `loading.tsx`/empty states
 
 **Income Management**
-- Form 2307 (withholding certificate) CRUD, grouped by quarter and payor, with CWT-vs-ATC-rate validation — `/api/income`, `/api/income/[id]`
-- YTD income/CWT summaries and VAT-threshold tracking, with PDF/Excel export — `/api/income/summary`, `/api/income/summary/export`
+- Form 2307 (withholding certificate) CRUD, grouped by quarter and payor, with CWT-vs-ATC-rate auto-validation — `/api/income`, `/api/income/[id]`
+- YTD income/CWT summaries and VAT-threshold tracking (with an 80%-of-₱3M warning), PDF/Excel export — `/api/income/summary`, `/api/income/summary/export`
 - Every 2307 mutation triggers a recascade of all downstream return computations — `lib/computation/recascade.ts`, `/api/computation/recascade`
 
-**Tax Rate Election**
+**Tax Rate Election & Computation**
 - Supports all three legal election paths — Item 13 (2551Q Q1), Item 16 (1701Q Q1), or Form 1905 — with the actual BIR line item resolved and stored separately from the recording method — `/api/election`, `lib/election-rules.ts`
-- Mandatory four-point disclosure confirmation before locking the election, logged to the audit trail — `/api/election/history`
-
-**Filing Sequence & Computation**
-- Enforces the legally-mandated return order (8-return or 4-return path depending on COR) with `BLOCKED → PENDING → GENERATED → FILED` status gating — `lib/computation/sequence.ts`, `/api/returns/sequence`
-- Pure, typed computation engines for percentage tax (2551Q), cumulative quarterly income tax (1701Q), and annual income tax (1701A/1701) — `lib/computation/`
+- Mandatory disclosure confirmation before locking the election, logged to the audit trail — `/api/election/history`
+- 8% flat-rate **and** TRAIN-law graduated-bracket computation, plus an optional 40% Optional Standard Deduction (mutually exclusive with the 8% rate, enforced at the computation layer) — `lib/computation/constants.ts` (`TRAIN_BRACKETS`), `annual-income.ts`, `quarterly-income.ts`
 - Dry-run computation preview without persisting — `/api/computation/preview`
-- Penalty computation and forecasting under RA 11976 reduced rates (10% surcharge, 6% interest) — `/api/penalties/[returnId]`, `/api/penalties/simulate`
-- Prior-year credit and overpayment disposition (carry-over / refund / tax credit certificate) — `/api/prior-year-credit/[id]`, `/api/overpayment/[taxYear]`
+- Penalty computation and forecasting under RA 11976 reduced rates (10% surcharge, 6% interest), with RDO-specific compromise penalties and holiday-aware due dates — `lib/computation/penalties.ts`, `due-dates.ts`, `/api/penalties/[returnId]`, `/api/penalties/simulate`
+- Prior-year credit lineage tracking and overpayment disposition (carry-over / refund / tax credit certificate), modeled as a full settlement lifecycle — `lib/prior-year-credit-lineage.ts`, `/api/prior-year-credit/[id]`, `/api/overpayment/[taxYear]`
 
-**Filing & Documents**
-- Server-side BIR-form PDF generation via `@react-pdf/renderer`, dispatched per form type — `lib/pdf/dispatcher.tsx`
-- Full filing-package ZIP download (all returns + cover sheet + income summary) — `/api/filing-package/download`
-- Auto-generated double-entry journal entries (subsections 9A–9G) on filing events, with chart-of-accounts lookup and CSV export — `lib/journal/`, `/api/journal/*`
+**Filing Sequence & Documents**
+- Enforces the legally-mandated return order (8-return or 4-return path depending on COR) with `BLOCKED → PENDING → GENERATED → FILED` status gating — `lib/computation/sequence.ts`, `/api/returns/sequence`
+- Server-side BIR-form PDF generation via `@react-pdf/renderer` for 2551Q, 1701Q, 1701A, and 1701 (mixed-income) — `lib/pdf/dispatcher.tsx`, `lib/pdf/templates/`
+- SAWT (Summary Alphalist of Withholding Taxes) generation with attachments, plus a full filing-package ZIP (all return PDFs + cover sheet + SAWT) — `/api/sawt`, `/api/sawt/export`, `/api/sawt/attachments`, `/api/filing-package/download`
+- Auto-generated double-entry journal entries (subsections 9A–9G, ~20 entry types) on filing/election/overpayment events, with chart-of-accounts lookup and CSV/XLSX export — `lib/journal/`, `/api/journal/*`
 
 **Stellar Blockchain Anchoring**
-- On filing, the return PDF is SHA-256 hashed and anchored via two Stellar `manageData` operations (hash + ISO timestamp) — `lib/stellar/anchor.ts`
-- Anchoring failure does not block filing; a `StellarReceipt` is created/updated with status `FAILED` and can be retried — `/api/stellar/receipts/[id]/retry`
-- On-chain verification re-fetches the Horizon `manageData` entries and compares the hash against the stored PDF — `lib/stellar/verify.ts`, `/api/stellar/verify`
+- On filing, the return PDF is SHA-256 hashed and anchored via two Stellar `manageData` operations (hash + ISO timestamp, keys `kuwenta:ph:{id}`/`kuwenta:ts:{id}`) — `lib/stellar/anchor.ts`
+- Anchoring failure does not block filing; a `StellarReceipt` is created/updated with status `FAILED` and can be retried (including regenerating a missing PDF) — `/api/stellar/receipts/[id]/retry`
+- On-chain verification re-fetches the Horizon `manageData` entries and compares the hash against the stored PDF, with a QR-code receipt view — `lib/stellar/verify.ts`, `/api/stellar/verify`, `app/(dashboard)/stellar`
 - Horizon health/account-sequence probe — `/api/stellar/status`
 
 **Auth & Admin**
 - Username/password login, JWT (HS256) issued via `jose`, stored as an httpOnly/secure/`SameSite=Strict` cookie, 8-hour expiry — `lib/auth/session.ts`, `/api/auth/login`
 - Route protection and admin gating in `middleware.ts` (`/admin/*` and `/api/admin/*` require `role === 'ADMIN'`)
-- Admin panels for user management, ATC codes, RDO penalty schedule, public holiday calendar, audit log, and system health — `/api/admin/*`
-- Append-only audit log for every state-changing action (election, filing, overpayment disposition, Stellar retry) — `AuditLog` model, `/api/admin/audit-log`
+- Full admin console: user list, ATC code CRUD, RDO penalty schedule, public holiday calendar, system health (Stellar + DB + storage + Prisma migration status), and filterable/exportable audit log — `/admin/*`, `/api/admin/*`
+- Append-only audit log for every state-changing action (election, filing, overpayment disposition, Stellar retry) — `AuditLog` model, `/api/admin/audit-log`, `/api/admin/audit-log/export`
+
+## Known Gaps vs `SPEC.md`
+
+A codebase audit against `SPEC.md` found the implementation **ahead of** the spec/`CLAUDE.md` in most areas (graduated-rate computation, OSD, admin tooling, and test coverage are all further along than those docs describe), but surfaced a few real gaps worth tracking:
+
+- **BR-17 not enforced at the API layer**: `SPEC.md`'s own rule that Form 1701A generation should be hard-blocked for taxpayers not on an active 8% election is documented in code comments (`lib/computation/annual-income.ts`) but not actually checked in `app/api/returns/[id]/generate/route.ts` — a graduated-rate-elected user could plausibly generate a 1701A today.
+- **Election page UI copy is stale**: `app/(dashboard)/election/page.tsx` still displays "graduated computations are not yet implemented"-style text, even though the computation layer fully supports graduated rates and OSD.
+- **No deployment-as-code**: no `Dockerfile`/`railway.json`/`railway.toml` in the repo; production deploys rely on Railway dashboard state plus runbook docs (`docs/railway-cli-runbook.md`), not committed infrastructure config.
+- **`SPEC.md` itself is stale in places**: it documents "no registration — admin account seeded only," but a working self-service registration flow now exists; OSD election and the Form 1701 PDF template aren't mentioned in the spec's schema/business-rule sections at all.
 
 ## Architecture
 
@@ -80,9 +93,10 @@ flowchart TB
         MW["middleware.ts<br/>(JWT auth + admin gating)"]
         API["API Routes<br/>app/api/*"]
         AUTH["lib/auth/session.ts<br/>(JWT via jose)"]
-        COMP["lib/computation/*<br/>(percentage tax, quarterly, annual, penalties, recascade)"]
+        COMP["lib/computation/*<br/>(flat-rate/graduated/OSD, penalties, due-dates, recascade)"]
         PDF["lib/pdf/dispatcher.tsx<br/>(@react-pdf/renderer)"]
-        JOURNAL["lib/journal/*<br/>(double-entry generator)"]
+        SAWT["lib/sawt/*<br/>(SAWT formatting/export)"]
+        JOURNAL["lib/journal/*<br/>(double-entry generator, 9A-9G)"]
         STELLAR_LIB["lib/stellar/*<br/>(anchor.ts, verify.ts, client.ts)"]
         STORAGE_LIB["lib/storage.ts"]
     end
@@ -100,6 +114,7 @@ flowchart TB
     API --> AUTH
     API --> COMP
     API --> PDF
+    API --> SAWT
     API --> JOURNAL
     API --> STELLAR_LIB
     API -->|Prisma Client| PG
@@ -132,7 +147,7 @@ sequenceDiagram
 
     U->>UI: Generate return
     UI->>API: POST /api/returns/[id]/generate
-    API->>COMP: determineReturnStatus() + compute return
+    API->>COMP: determineReturnStatus() + compute return (rate, OSD, mixed-income routing)
     API->>DB: Persist computed return (status: GENERATED)
     API-->>UI: Computed tax due, credits, net position
 
@@ -153,16 +168,23 @@ sequenceDiagram
     API-->>UI: Filing confirmation + Stellar TX ID (if anchored)
 ```
 
-### Auth flow
+### Auth flow (login and self-service registration)
 
 ```mermaid
 sequenceDiagram
     actor U as User
-    participant UI as Login Page
-    participant API as /api/auth/login
+    participant UI as Login or Register Page
+    participant API as /api/auth/login or /register
     participant AUTH as lib/auth/session.ts
     participant DB as PostgreSQL
     participant MW as middleware.ts
+
+    alt new user
+        U->>UI: Submit registration form
+        UI->>API: POST /api/auth/register
+        API->>DB: Validate + rate-limit, create User (bcrypt hash)
+        API-->>UI: Account created
+    end
 
     U->>UI: Submit username/password
     UI->>API: POST /api/auth/login
@@ -194,7 +216,7 @@ sequenceDiagram
 
     U->>UI: Click "Retry anchoring" on a FAILED receipt
     UI->>API: POST /api/stellar/receipts/[id]/retry
-    API->>DB: Load StellarReceipt + stored PDF hash
+    API->>DB: Load StellarReceipt + stored PDF hash (regenerate PDF if missing)
     API->>STELLAR: retryAnchorFilingReceipt(receipt)
     STELLAR->>HORIZON: submit manageData transaction
     alt succeeds
@@ -208,7 +230,7 @@ sequenceDiagram
 
 ## Smart Contracts
 
-No Soroban/Rust contract crates were found in this repository (no `Cargo.toml`, no `contracts/` directory). All Stellar interaction is off-chain SDK usage (`@stellar/stellar-sdk`) submitting `manageData` operations directly — there is currently no on-chain contract layer.
+No Soroban/Rust contract crates are present in this repository (no `Cargo.toml`, no `contracts/` directory). All Stellar interaction is off-chain SDK usage (`@stellar/stellar-sdk`) submitting `manageData` operations directly — there is currently no on-chain contract layer. See the ecosystem-expansion research (linked under [Further Reading](#further-reading)) for a proposed Soroban receipt-registry contract design.
 
 <!-- PLACEHOLDER: Soroban smart contracts — document each contract's purpose, public functions, parameters, and deployment/upload process here. -->
 
@@ -237,7 +259,7 @@ No Soroban/Rust contract crates were found in this repository (no `Cargo.toml`, 
 
 **CI / Tooling**
 - pnpm package manager
-- ESLint 9, Vitest 3 (`test`, `test:unit`, `test:run`, `test:ui` scripts)
+- ESLint 9, Vitest 3 (`test`, `test:unit`, `test:run`, `test:ui` scripts) — 58+ test files covering computation, journal, Stellar, and API routes
 - GitHub Actions (`.github/workflows/ci.yml`): lint → test (with a PostgreSQL service container) → build, on push/PR to `develop`/`main`
 - GitHub Actions (`.github/workflows/deploy.yml`): triggers a Railway deploy hook on push to `main` (skips gracefully if the hook secret is unset)
 
@@ -294,11 +316,11 @@ No Soroban/Rust contract crates were found in this repository (no `Cargo.toml`, 
    pnpm test        # or: pnpm test:unit / pnpm test:run / pnpm test:ui
    ```
 
-Seeded accounts (from `README.md`): admin (`admin` / `$ADMIN_PASSWORD`) and test taxpayers `maria`, `juan`, `anna` (all password `Test1234!`), fully onboarded with a 2026 tax year.
+Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and test taxpayers `maria`, `juan`, `anna` (all password `Test1234!`), fully onboarded with a 2026 tax year. New taxpayers can also self-register via `/register`.
 
 ## Deployment
 
-Per `.github/workflows/deploy.yml` and `SPEC.md`, the app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database, and file storage together. On push to `main`, CI POSTs to a Railway deploy-hook URL stored in the `RAILWAY_DEPLOY_HOOK` GitHub secret (the workflow skips deployment gracefully if the secret is unset). `docs/railway-env.md` documents Railway-specific environment setup and troubleshooting. [inferred: no live deployment URL is present in the repo]
+Per `.github/workflows/deploy.yml` and `SPEC.md`, the app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database, and file storage together. On push to `main`, CI POSTs to a Railway deploy-hook URL stored in the `RAILWAY_DEPLOY_HOOK` GitHub secret (the workflow skips deployment gracefully if the secret is unset). `docs/railway-env.md` and `docs/railway-cli-runbook.md` document Railway-specific environment setup and CLI recipes. As noted in [Known Gaps](#known-gaps-vs-specmd), there is no `Dockerfile`/`railway.json` committed to the repo — deploy configuration currently lives in the Railway dashboard rather than as code. [inferred: no live deployment URL is present in the repo]
 
 - **Production URL:** `[PLACEHOLDER: Live app URL]`
 - **Railway project dashboard:** `[PLACEHOLDER: Railway project URL]`
@@ -325,6 +347,7 @@ No `LICENSE` file is present in this repository. `[PLACEHOLDER: License name]`
 - [`SPEC.md`](./SPEC.md) — full product specification and business rules
 - [`AGENT.md`](./AGENT.md) — coding conventions for contributors/agents
 - [`BRAND.md`](./BRAND.md) — design system and brand identity
+- [`LOGO.md`](./LOGO.md) — logo generation prompts
 - [`docs/features.md`](./docs/features.md) — auto-generated feature changelog
 - [`docs/quick-start-guide.md`](./docs/quick-start-guide.md) — first-time user walkthrough
 - [`docs/test-flow-guide.md`](./docs/test-flow-guide.md) — end-to-end demo/test flow guide
@@ -333,3 +356,4 @@ No `LICENSE` file is present in this repository. `[PLACEHOLDER: License name]`
 - [`docs/migrations.md`](./docs/migrations.md) — database migration conventions
 - [`docs/railway-env.md`](./docs/railway-env.md) — Railway environment/deployment notes
 - [`docs/railway-cli-runbook.md`](./docs/railway-cli-runbook.md) — Railway CLI one-off command recipes
+- Stellar ecosystem expansion research and business-impact analysis — see the corresponding GitHub issue in this repository
