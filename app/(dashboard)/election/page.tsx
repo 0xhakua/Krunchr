@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { ElectionSkeleton } from './loading'
 
 type ElectionPath = 'ITEM_13_2551Q_Q1' | 'ITEM_16_1701Q_Q1' | 'FORM_1905'
@@ -145,7 +146,14 @@ export default function ElectionPage() {
 
   return (
     <div className="max-w-2xl mx-auto py-8 space-y-6">
-      <h1 className="text-2xl font-bold">Tax Rate Election</h1>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold">Tax Rate Election</h1>
+        <p className="text-sm text-muted-foreground">
+          Choose how your freelance income is taxed for the whole year. This election is
+          irrevocable once the first quarterly return is filed. Mixed-income earners keep
+          their compensation tax separate; this election applies only to self-employment income.
+        </p>
+      </div>
 
       {status.electionLockedAt ? (
         <Card>
@@ -230,8 +238,12 @@ export default function ElectionPage() {
                 <div className="flex items-start space-x-3 rounded-md border p-4">
                   <RadioGroupItem value="GRADUATED" id="graduated" />
                   <div className="grid gap-1">
-                    <Label htmlFor="graduated" className="font-medium">
+                    <Label htmlFor="graduated" className="font-medium flex items-center gap-1.5">
                       (A) Graduated Income Tax Rate on Net Taxable Income
+                      <InfoTooltip side="top">
+                        Uses the TRAIN Law tax table. You may claim the ₱250,000 exemption
+                        and either itemised deductions or the 40% Optional Standard Deduction (OSD).
+                      </InfoTooltip>
                     </Label>
                     <span className="text-sm text-muted-foreground">
                       Standard graduated tax table with deductions. Not yet fully implemented for
@@ -242,8 +254,12 @@ export default function ElectionPage() {
                 <div className="flex items-start space-x-3 rounded-md border p-4">
                   <RadioGroupItem value="RATE_8PCT" id="eight-pct" />
                   <div className="grid gap-1">
-                    <Label htmlFor="eight-pct" className="font-medium">
+                    <Label htmlFor="eight-pct" className="font-medium flex items-center gap-1.5">
                       (B) 8% Income Tax Rate on Gross Sales/Receipts/Others
+                      <InfoTooltip side="top">
+                        Flat 8% on gross receipts. Pure self-employment taxpayers get a ₱250,000
+                        exemption; mixed-income earners do not. No deductions are allowed.
+                      </InfoTooltip>
                     </Label>
                     <span className="text-sm text-muted-foreground">
                       Flat 8% on gross receipts less ₱250,000 exemption (no exemption for mixed-income

@@ -17,6 +17,7 @@ import {
 import { FileText, Plus, Rocket, Wallet } from 'lucide-react'
 import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
 import { EmptyState } from '@/components/ui/empty-state'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { DashboardSkeleton } from './loading'
 
 type DashboardReturn = {
@@ -157,6 +158,23 @@ export default function DashboardPage() {
   function formatDate(value: string | null) {
     if (!value) return '—'
     return new Date(value).toLocaleDateString('en-PH')
+  }
+
+  function statusTooltip(ret: DashboardReturn) {
+    switch (ret.status) {
+      case 'FILED':
+        return 'This return has been filed. Download the PDF or view the Stellar receipt below.'
+      case 'GENERATED':
+        return 'The return has been computed. Review the numbers, then click View to mark it as filed.'
+      case 'PENDING':
+        return 'Income data is available. Click View then Generate to compute this return.'
+      case 'BLOCKED':
+        return ret.blockReason
+          ? `Blocked: ${ret.blockReason}`
+          : 'This return is waiting for earlier returns in the filing sequence to be completed.'
+      default:
+        return ''
+    }
   }
 
   if (loading) return <DashboardSkeleton />
@@ -354,6 +372,7 @@ export default function DashboardPage() {
                     </CardDescription>
                   </div>
                   <Badge className={statusColor(ret.status)}>{ret.status}</Badge>
+                  <InfoTooltip side="left">{statusTooltip(ret)}</InfoTooltip>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
