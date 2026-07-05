@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth'
 import { SidebarNav } from './sidebar-nav'
 import { UserMenu } from './user-menu'
 import { SidebarHeader } from './sidebar-header'
+import { SidebarCTA } from './sidebar-cta'
 import { SidebarFooter } from './sidebar-footer'
 import { MobileSidebar } from './mobile-sidebar'
 
@@ -25,6 +26,8 @@ export async function AppShell({ children }: AppShellProps) {
       {/* Branded sidebar (BRAND.md §6) — sticky on desktop, hidden on mobile */}
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4">
         <SidebarHeader />
+
+        <SidebarCTA />
 
         <SidebarNav isAdmin={isAdmin} />
 
