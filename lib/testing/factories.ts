@@ -28,6 +28,8 @@ export async function createTaxpayerProfile(
     middleInitial: string
     fullName: string
     rdoCode: string
+    phoneNumber: string
+    email: string
     registeredAddress: string
     zipCode: string
     natureOfBusiness: string
@@ -51,6 +53,8 @@ export async function createTaxpayerProfile(
       middleInitial,
       fullName,
       rdoCode: overrides.rdoCode ?? '040',
+      phoneNumber: overrides.phoneNumber ?? '+639171234567',
+      email: overrides.email ?? 'test.taxpayer@example.com',
       registeredAddress: overrides.registeredAddress ?? '123 Test St',
       zipCode: overrides.zipCode ?? '1200',
       natureOfBusiness: overrides.natureOfBusiness ?? 'Consulting',

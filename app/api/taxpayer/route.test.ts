@@ -20,6 +20,8 @@ const basePayload = {
   lastName: 'Registrant',
   middleInitial: 'R',
   rdoCode: '040',
+  phoneNumber: '+639171234567',
+  email: 'new.registrant@example.com',
   registeredAddress: '123 Test St',
   zipCode: '1200',
   natureOfBusiness: 'Consulting',
@@ -137,6 +139,47 @@ describe('POST /api/taxpayer', () => {
 
     expect(res.status).toBe(201)
     expect(json.profile.tin).toBe('123-456-789-000')
+  })
+
+  it('persists phone number and email on onboarding (issue #152)', async () => {
+    await seedReferenceData()
+    const user = await createUser()
+    const atc = await createATCCode({ code: 'WI988', ewtRate: 0.1 })
+
+    const req = await makeRequest(user.id, {
+      ...basePayload,
+      phoneNumber: '09171234567',
+      email: 'taxpayer152@example.com',
+      atcCodes: [atc.code],
+    })
+
+    const res = await POST(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(201)
+    expect(json.profile.phoneNumber).toBe('09171234567')
+    expect(json.profile.email).toBe('taxpayer152@example.com')
+  })
+
+  it('rejects an invalid phone number or email with field errors (issue #152)', async () => {
+    await seedReferenceData()
+    const user = await createUser()
+
+    const req = await makeRequest(user.id, {
+      ...basePayload,
+      phoneNumber: '12345',
+      email: 'not-an-email',
+      atcCodes: [],
+    })
+
+    const res = await POST(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(Array.isArray(json.fieldErrors.phoneNumber)).toBe(true)
+    expect(json.fieldErrors.phoneNumber[0]).toMatch(/valid Philippine number/i)
+    expect(Array.isArray(json.fieldErrors.email)).toBe(true)
+    expect(json.fieldErrors.email[0]).toMatch(/valid email/i)
   })
 
   it('rejects an unknown Philippine ZIP code with a field error', async () => {

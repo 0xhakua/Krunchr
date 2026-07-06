@@ -15,6 +15,11 @@ import { isValidZipCode } from '@/lib/data/zip-codes'
  * be exercised in isolation from the route handler.
  */
 
+// ---- Phone regex (Philippine mobile/landline) --------------------------------
+// Accepts +63 or 0 prefix followed by 9–11 digits, covering mobile and
+// common landline formats (e.g. +639171234567, 09171234567, or 0324123456).
+export const phoneRegex = /^(?:\+63|0)\d{9,11}$/
+
 // ---- TIN regex (AGENT.md BR) -------------------------------------------------
 // Philippine TIN is 9 digits for an individual or 12 digits for a branch.
 // Both NNN-NNN-NNN and NNN-NNN-NNN-NNN are accepted; 9-digit inputs are
@@ -61,6 +66,11 @@ export const taxpayerSchema = z.object({
     .max(2, 'Middle initial must be at most 2 characters')
     .optional(),
   rdoCode: z.string().min(1),
+  phoneNumber: z
+    .string()
+    .min(1, 'Phone number is required')
+    .regex(phoneRegex, 'Phone number must be a valid Philippine number (e.g. +639171234567 or 09171234567)'),
+  email: z.string().min(1, 'Email is required').email('Email must be a valid email address'),
   registeredAddress: z.string().min(1),
   zipCode: z
     .string()
