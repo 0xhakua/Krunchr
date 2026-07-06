@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import path from 'path'
 import nextConfig from '@/next.config'
 
 describe('next.config headers (S10.4)', () => {
@@ -20,5 +21,15 @@ describe('next.config headers (S10.4)', () => {
     expect(csp).toContain("default-src 'self'")
     expect(csp).toContain("frame-ancestors 'none'")
     expect(csp).toContain('https://horizon-testnet.stellar.org')
+  })
+})
+
+describe('next.config output file tracing (#201)', () => {
+  it('includes the bundled tessdata directory in the server bundle', () => {
+    const includes = nextConfig.outputFileTracingIncludes
+    expect(includes).toBeDefined()
+    const patterns = Object.values(includes ?? {}).flat()
+    const expected = path.join('lib', 'ocr', 'tessdata', '**')
+    expect(patterns).toContain(expected)
   })
 })
