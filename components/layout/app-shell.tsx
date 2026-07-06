@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import { getSession } from '@/lib/auth'
+import { Button } from '@/components/ui/button'
 import { SidebarNav } from './sidebar-nav'
 import { UserMenu } from './user-menu'
 import { SidebarHeader } from './sidebar-header'
-import { SidebarCTA } from './sidebar-cta'
 import { SidebarFooter } from './sidebar-footer'
 import { MobileSidebar } from './mobile-sidebar'
 
@@ -27,7 +27,9 @@ export async function AppShell({ children }: AppShellProps) {
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4">
         <SidebarHeader />
 
-        <SidebarCTA />
+        <Link href="/income" className="mb-4 block">
+          <Button className="w-full">Start New Filing</Button>
+        </Link>
 
         <SidebarNav isAdmin={isAdmin} />
 
