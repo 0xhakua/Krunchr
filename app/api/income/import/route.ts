@@ -5,6 +5,8 @@ import { isRateLimited } from '@/lib/rate-limit'
 import { validateUploadFile } from '@/lib/upload/validation'
 import { extract2307Fields } from '@/lib/ocr/2307-parser'
 
+export const runtime = 'nodejs'
+
 const MAX_IMPORTS_PER_HOUR = 20
 
 export async function POST(req: NextRequest) {

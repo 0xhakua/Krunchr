@@ -20,6 +20,9 @@ function isJsonApiRoute(req: NextRequest): boolean {
   // Bulk holiday import accepts text/csv or text/plain.
   if (pathname === '/api/admin/holidays' && method === 'PUT') return false
 
+  // Income certificate import accepts multipart/form-data file uploads.
+  if (pathname === '/api/income/import' && method === 'POST') return false
+
   return true
 }
 

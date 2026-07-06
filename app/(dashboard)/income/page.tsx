@@ -1,7 +1,7 @@
 'use client'
 
 import Decimal from 'decimal.js'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { extractApiErrorMessage } from '@/lib/api-error'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,6 +38,8 @@ import {
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { UploadCloud } from 'lucide-react'
 
 type ATCCode = {
   code: string
@@ -89,6 +91,8 @@ export default function IncomePage() {
   const [form, setForm] = useState(emptyForm)
   const [importLoading, setImportLoading] = useState(false)
   const [importWarnings, setImportWarnings] = useState<string[]>([])
+  const [activeTab, setActiveTab] = useState('manual')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function loadData() {
     try {
@@ -179,6 +183,7 @@ export default function IncomePage() {
     })
     setError('')
     setFieldErrors({})
+    setActiveTab('manual')
     setOpen(true)
   }
 
@@ -188,6 +193,7 @@ export default function IncomePage() {
     setError('')
     setFieldErrors({})
     setImportWarnings([])
+    setActiveTab('manual')
     setOpen(true)
   }
 
@@ -214,21 +220,27 @@ export default function IncomePage() {
     setError('')
     setFieldErrors({})
     setImportWarnings([])
+    setActiveTab('manual')
     setOpen(true)
   }
 
-  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function processImportFile(file: File) {
     setImportLoading(true)
     setError('')
     setImportWarnings([])
+    // Defence in depth: even though the server returns within ~60s, an
+    // unexpected server stall (reverse proxy, slow OCR, etc.) would
+    // otherwise trap the spinner forever. See issue #199.
+    const IMPORT_TIMEOUT_MS = 70_000
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), IMPORT_TIMEOUT_MS)
     try {
       const formData = new FormData()
       formData.append('file', file)
       const res = await fetch('/api/income/import', {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       })
       const data = await res.json()
       if (!res.ok) {
@@ -246,7 +258,16 @@ export default function IncomePage() {
         cwtWithheld?: string
         warnings?: string[]
       }
-      const atc = atcCodes.find((a) => a.code === extracted.atcCode)
+      // OCR commonly drops a letter from a 2-letter ATC prefix
+      // (e.g. "WI071" → "W071"). Fall back to a one-character-tolerance
+      // match against the available codes so the dropdown still
+      // populates instead of forcing the user to pick manually.
+      const atc =
+        atcCodes.find((a) => a.code === extracted.atcCode) ??
+        atcCodes.find((a) =>
+          a.code.length === (extracted.atcCode?.length ?? 0) + 1 &&
+          [...a.code].some((_, i) => a.code.slice(0, i) + a.code.slice(i + 1) === extracted.atcCode)
+        )
       const month1 = extracted.month1Amount || ''
       const month2 = extracted.month2Amount || ''
       const month3 = extracted.month3Amount || ''
@@ -259,18 +280,47 @@ export default function IncomePage() {
         quarter: extracted.quarter || form.quarter,
         payorTin: extracted.payorTin || '',
         payorName: extracted.payorName || '',
-        atcCode: atc ? extracted.atcCode! : '',
+        // Use the matched `atc.code` (the canonical value from the DB),
+        // not the raw `extracted.atcCode` — the OCR commonly drops a
+        // letter (e.g. "WI071" → "W071") and the server-side
+        // `findUnique({ where: { code } })` rejects the raw form with
+        // "Invalid or inactive ATC code" (issue #199 follow-up).
+        atcCode: atc ? atc.code : '',
         month1Amount: month1,
         month2Amount: month2,
         month3Amount: month3,
         cwtWithheld,
       })
       setImportWarnings(extracted.warnings || [])
-    } catch {
-      setError('Import failed')
+      setActiveTab('manual')
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError(
+          `Import is taking too long (>${IMPORT_TIMEOUT_MS / 1000}s). The server may be unavailable — please try a smaller or PDF version of the certificate.`
+        )
+      } else {
+        setError('Import failed')
+      }
     } finally {
+      clearTimeout(timeoutId)
       setImportLoading(false)
     }
+  }
+
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) processImportFile(file)
+    if (e.target) e.target.value = ''
+  }
+
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file) processImportFile(file)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -388,13 +438,129 @@ export default function IncomePage() {
     })
   })()
 
+  const certificateForm = (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {importWarnings.length > 0 && (
+        <div className="space-y-1 rounded-md border border-amber-200 bg-amber-50 p-3">
+          {importWarnings.map((warning, idx) => (
+            <p key={idx} className="text-sm text-amber-700">
+              {warning}
+            </p>
+          ))}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="quarter">Quarter</Label>
+          <Select
+            value={String(form.quarter)}
+            onValueChange={(v) => updateForm('quarter', Number(v))}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 2, 3, 4].map((q) => (
+                <SelectItem key={q} value={String(q)}>Q{q}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldError('quarter') && (
+            <p className="text-sm text-red-600">{fieldError('quarter')}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="atcCode">ATC Code</Label>
+          <Select
+            value={form.atcCode}
+            onValueChange={(v) => v && updateForm('atcCode', v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select ATC" />
+            </SelectTrigger>
+            <SelectContent>
+              {atcCodes.map((atc) => (
+                <SelectItem key={atc.code} value={atc.code}>
+                  {atc.code} — {atc.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldError('atcCode') && (
+            <p className="text-sm text-red-600">{fieldError('atcCode')}</p>
+          )}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="payorName">Payor Name</Label>
+        <Input
+          id="payorName"
+          value={form.payorName}
+          onChange={(e) => updateForm('payorName', e.target.value)}
+          required
+        />
+        {fieldError('payorName') && (
+          <p className="text-sm text-red-600">{fieldError('payorName')}</p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="payorTin">Payor TIN</Label>
+        <Input
+          id="payorTin"
+          value={form.payorTin}
+          onChange={(e) => updateForm('payorTin', e.target.value)}
+          required
+        />
+        {fieldError('payorTin') && (
+          <p className="text-sm text-red-600">{fieldError('payorTin')}</p>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        {['month1Amount', 'month2Amount', 'month3Amount'].map((field, i) => (
+          <div key={field} className="space-y-2">
+            <Label htmlFor={field}>Month {i + 1}</Label>
+            <Input
+              id={field}
+              type="number"
+              step="0.01"
+              value={field === 'month1Amount' ? form.month1Amount : field === 'month2Amount' ? form.month2Amount : form.month3Amount}
+              onChange={(e) => updateForm(field, e.target.value)}
+              required
+            />
+            {fieldError(field) && (
+              <p className="text-sm text-red-600">{fieldError(field)}</p>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="cwtWithheld">CWT Withheld</Label>
+        <Input
+          id="cwtWithheld"
+          type="number"
+          step="0.01"
+          value={form.cwtWithheld}
+          onChange={(e) => updateForm('cwtWithheld', e.target.value)}
+          required
+        />
+        {fieldError('cwtWithheld') && (
+          <p className="text-sm text-red-600">{fieldError('cwtWithheld')}</p>
+        )}
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Saving...' : 'Save Certificate'}
+      </Button>
+    </form>
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Income (BIR Form 2307)</h1>
         <Button onClick={startAdd}>Add Certificate</Button>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>{editing ? 'Edit Certificate' : form.quarter !== emptyForm.quarter || form.payorTin ? 'Add Certificate (pre-filled)' : 'Add Certificate'}</DialogTitle>
               <DialogDescription>
@@ -403,135 +569,53 @@ export default function IncomePage() {
                   : 'Enter quarterly 2307 details, import from a file, or duplicate an existing certificate. CWT is validated against the ATC rate.'}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!editing && (
-                <div className="space-y-2 rounded-md border p-3">
-                  <Label htmlFor="importFile">Import from File (JPG, PNG, PDF, DOCX)</Label>
-                  <Input
-                    id="importFile"
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.pdf,.docx"
-                    onChange={handleImportFile}
-                    disabled={importLoading}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Upload a BIR Form 2307 image or document. Extracted values are editable before saving.
-                  </p>
-                  {importLoading && <p className="text-sm text-muted-foreground">Reading file...</p>}
-                  {importWarnings.length > 0 && (
-                    <div className="space-y-1">
-                      {importWarnings.map((warning, idx) => (
-                        <p key={idx} className="text-sm text-amber-600">
-                          {warning}
-                        </p>
-                      ))}
+            {editing ? (
+              certificateForm
+            ) : (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                  <TabsTrigger value="import">Import File</TabsTrigger>
+                </TabsList>
+                <TabsContent value="manual">{certificateForm}</TabsContent>
+                <TabsContent value="import">
+                  <div className="space-y-4 pt-2">
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Upload certificate file"
+                      className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-muted-foreground/25 p-8 transition-colors hover:border-muted-foreground/50 hover:bg-muted/50 cursor-pointer"
+                    >
+                      <UploadCloud className="h-10 w-10 text-muted-foreground" />
+                      <div className="text-center">
+                        <p className="text-sm font-medium">Drag and drop a file here</p>
+                        <p className="text-xs text-muted-foreground">JPG, PNG, PDF, or DOCX up to 10 MB</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
+                      >
+                        Browse files
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.pdf,.docx"
+                        onChange={handleImportFile}
+                        className="hidden"
+                      />
                     </div>
-                  )}
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="quarter">Quarter</Label>
-                  <Select
-                    value={String(form.quarter)}
-                    onValueChange={(v) => updateForm('quarter', Number(v))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4].map((q) => (
-                        <SelectItem key={q} value={String(q)}>Q{q}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldError('quarter') && (
-                    <p className="text-sm text-red-600">{fieldError('quarter')}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="atcCode">ATC Code</Label>
-                  <Select
-                    value={form.atcCode}
-                    onValueChange={(v) => v && updateForm('atcCode', v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select ATC" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {atcCodes.map((atc) => (
-                        <SelectItem key={atc.code} value={atc.code}>
-                          {atc.code} — {atc.description}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldError('atcCode') && (
-                    <p className="text-sm text-red-600">{fieldError('atcCode')}</p>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="payorName">Payor Name</Label>
-                <Input
-                  id="payorName"
-                  value={form.payorName}
-                  onChange={(e) => updateForm('payorName', e.target.value)}
-                  required
-                />
-                {fieldError('payorName') && (
-                  <p className="text-sm text-red-600">{fieldError('payorName')}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="payorTin">Payor TIN</Label>
-                <Input
-                  id="payorTin"
-                  value={form.payorTin}
-                  onChange={(e) => updateForm('payorTin', e.target.value)}
-                  required
-                />
-                {fieldError('payorTin') && (
-                  <p className="text-sm text-red-600">{fieldError('payorTin')}</p>
-                )}
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {['month1Amount', 'month2Amount', 'month3Amount'].map((field, i) => (
-                  <div key={field} className="space-y-2">
-                    <Label htmlFor={field}>Month {i + 1}</Label>
-                    <Input
-                      id={field}
-                      type="number"
-                      step="0.01"
-                      value={field === 'month1Amount' ? form.month1Amount : field === 'month2Amount' ? form.month2Amount : form.month3Amount}
-                      onChange={(e) => updateForm(field, e.target.value)}
-                      required
-                    />
-                    {fieldError(field) && (
-                      <p className="text-sm text-red-600">{fieldError(field)}</p>
-                    )}
+                    {importLoading && <p className="text-sm text-muted-foreground">Reading file...</p>}
+                    {error && <p className="text-sm text-red-600">{error}</p>}
                   </div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cwtWithheld">CWT Withheld</Label>
-                <Input
-                  id="cwtWithheld"
-                  type="number"
-                  step="0.01"
-                  value={form.cwtWithheld}
-                  onChange={(e) => updateForm('cwtWithheld', e.target.value)}
-                  required
-                />
-                {fieldError('cwtWithheld') && (
-                  <p className="text-sm text-red-600">{fieldError('cwtWithheld')}</p>
-                )}
-              </div>
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Certificate'}
-              </Button>
-            </form>
+                </TabsContent>
+              </Tabs>
+            )}
           </DialogContent>
         </Dialog>
       </div>

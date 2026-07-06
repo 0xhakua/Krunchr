@@ -14,6 +14,13 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // tesseract.js spawns its own `worker_threads` Worker from a path it
+  // computes via `__dirname` of its own source. When Next.js bundles
+  // tesseract.js into the app, that `__dirname` is rewritten to point
+  // inside `.next/` and the worker script can no longer be located
+  // (issue #199). Marking the package as external preserves the original
+  // file layout at runtime.
+  serverExternalPackages: ["tesseract.js"],
   async headers() {
     return [
       {

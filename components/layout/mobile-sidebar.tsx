@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,10 +42,11 @@ export function MobileSidebar({ isAdmin }: MobileSidebarProps) {
           <SidebarHeader />
         </SheetHeader>
         <div className="flex flex-1 flex-col px-4 py-2">
-          <div className="mb-6">
-            <SidebarFooter />
-          </div>
+          <Link href="/income" className="mb-4 block" onClick={() => setOpen(false)}>
+            <Button className="w-full">Start New Filing</Button>
+          </Link>
           <SidebarNav isAdmin={isAdmin} onNavigate={() => setOpen(false)} />
+          <SidebarFooter />
         </div>
       </SheetContent>
     </Sheet>
