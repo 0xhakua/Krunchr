@@ -34,6 +34,8 @@ model TaxpayerProfile {
   middleInitial     String?
   fullName          String
   rdoCode           String
+  phoneNumber       String?
+  email             String?
   registeredAddress String
   zipCode           String
   natureOfBusiness  String

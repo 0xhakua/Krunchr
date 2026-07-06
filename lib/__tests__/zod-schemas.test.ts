@@ -16,6 +16,7 @@ import {
   overpaymentDispositionSchema,
   overpaymentSettlementSchema,
   penaltiesSimulateSchema,
+  phoneRegex,
   priorYearCreditCreateSchema,
   rdoDeleteSchema,
   rdoUpdateSchema,
@@ -60,6 +61,39 @@ describe('TIN regex (S9.2 / AGENT.md BR)', () => {
   })
 })
 
+describe('Phone regex (Philippine mobile/landline)', () => {
+  it('matches a +63 mobile number', () => {
+    expect(phoneRegex.test('+639171234567')).toBe(true)
+    expect(phoneRegex.test('+639001234567')).toBe(true)
+  })
+
+  it('matches a 0-prefixed mobile number', () => {
+    expect(phoneRegex.test('09171234567')).toBe(true)
+    expect(phoneRegex.test('09001234567')).toBe(true)
+  })
+
+  it('matches a provincial landline format after the prefix', () => {
+    expect(phoneRegex.test('+63324123456')).toBe(true)
+    expect(phoneRegex.test('0324123456')).toBe(true)
+  })
+
+  it('rejects numbers with spaces, dashes, or parentheses', () => {
+    expect(phoneRegex.test('+63 917 123 4567')).toBe(false)
+    expect(phoneRegex.test('0917-123-4567')).toBe(false)
+    expect(phoneRegex.test('(0917) 123 4567')).toBe(false)
+  })
+
+  it('rejects too-short or too-long numbers', () => {
+    expect(phoneRegex.test('+63917')).toBe(false)
+    expect(phoneRegex.test('+63917123456789')).toBe(false)
+    expect(phoneRegex.test('0917123456789')).toBe(false)
+  })
+
+  it('rejects missing country prefix', () => {
+    expect(phoneRegex.test('9171234567')).toBe(false)
+  })
+})
+
 describe('loginSchema (POST /api/auth/login)', () => {
   it('accepts a username and password', () => {
     expect(loginSchema.safeParse({ username: 'maria', password: 'Test1234!' }).success).toBe(true)
@@ -89,6 +123,8 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
     lastName: 'Dela Cruz',
     middleInitial: 'S',
     rdoCode: '040',
+    phoneNumber: '+639171234567',
+    email: 'maria@example.com',
     registeredAddress: '1 Test St',
     zipCode: '1200',
     natureOfBusiness: 'Consulting',
@@ -134,6 +170,26 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
 
   it('rejects a middleInitial longer than 2 characters', () => {
     expect(taxpayerSchema.safeParse({ ...valid, middleInitial: 'ABC' }).success).toBe(false)
+  })
+
+  it('rejects an empty or invalid phone number', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, phoneNumber: '' }).success).toBe(false)
+    expect(taxpayerSchema.safeParse({ ...valid, phoneNumber: '12345' }).success).toBe(false)
+    expect(taxpayerSchema.safeParse({ ...valid, phoneNumber: '0917-123-4567' }).success).toBe(false)
+  })
+
+  it('accepts a valid Philippine phone number', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, phoneNumber: '+639171234567' }).success).toBe(true)
+    expect(taxpayerSchema.safeParse({ ...valid, phoneNumber: '09171234567' }).success).toBe(true)
+  })
+
+  it('rejects an empty or invalid email', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, email: '' }).success).toBe(false)
+    expect(taxpayerSchema.safeParse({ ...valid, email: 'not-an-email' }).success).toBe(false)
+  })
+
+  it('accepts a valid email address', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, email: 'maria@example.com' }).success).toBe(true)
   })
 
   it('rejects an empty atcCodes array with a custom message', () => {

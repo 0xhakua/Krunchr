@@ -71,6 +71,8 @@ export default function OnboardingForm() {
     lastName: '',
     middleInitial: '',
     rdoCode: '',
+    phoneNumber: '',
+    email: '',
     registeredAddress: '',
     cityMunicipality: '',
     province: '',
@@ -171,6 +173,8 @@ export default function OnboardingForm() {
           lastName: form.lastName,
           middleInitial: form.middleInitial || undefined,
           rdoCode: form.rdoCode,
+          phoneNumber: form.phoneNumber,
+          email: form.email,
           registeredAddress: form.registeredAddress,
           zipCode: form.zipCode,
           natureOfBusiness: form.natureOfBusiness,
@@ -213,210 +217,261 @@ export default function OnboardingForm() {
     switch (step) {
       case 0:
         return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={form.firstName}
-                  onChange={(e) => updateField('firstName', e.target.value)}
-                  required
-                />
-                {fieldError('firstName') && (
-                  <p className="text-sm text-red-600">{fieldError('firstName')}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={form.lastName}
-                  onChange={(e) => updateField('lastName', e.target.value)}
-                  required
-                />
-                {fieldError('lastName') && (
-                  <p className="text-sm text-red-600">{fieldError('lastName')}</p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="middleInitial">Middle Initial</Label>
-                <Input
-                  id="middleInitial"
-                  value={form.middleInitial}
-                  onChange={(e) => updateField('middleInitial', e.target.value.toUpperCase())}
-                  maxLength={2}
-                />
-                {fieldError('middleInitial') && (
-                  <p className="text-sm text-red-600">{fieldError('middleInitial')}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tin">TIN (NNN-NNN-NNN or NNN-NNN-NNN-NNN)</Label>
-                <Input
-                  id="tin"
-                  value={form.tin}
-                  onChange={(e) => updateField('tin', formatTin(e.target.value))}
-                  placeholder="000-000-000"
-                  maxLength={14}
-                  required
-                />
-                {fieldError('tin') && (
-                  <p className="text-sm text-red-600">{fieldError('tin')}</p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="rdoCode">RDO Code</Label>
-                <Input
-                  id="rdoCode"
-                  value={form.rdoCode}
-                  onChange={(e) => updateField('rdoCode', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="zipCode">ZIP Code</Label>
-                <LocationPicker
-                  id="zipCode"
-                  value={form.zipCode}
-                  onChange={selectLocation}
-                  placeholder="Search ZIP code, city, or province"
-                />
-                {fieldError('zipCode') && (
-                  <p className="text-sm text-red-600">{fieldError('zipCode')}</p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cityMunicipality">City / Municipality</Label>
-                <Input
-                  id="cityMunicipality"
-                  value={form.cityMunicipality}
-                  readOnly
-                  placeholder="Auto-filled from ZIP code"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="province">Province</Label>
-                <Input
-                  id="province"
-                  value={form.province}
-                  readOnly
-                  placeholder="Auto-filled from ZIP code"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="registeredAddress">Registered Address</Label>
-              <Input
-                id="registeredAddress"
-                value={form.registeredAddress}
-                onChange={(e) => updateField('registeredAddress', e.target.value)}
-                placeholder="Street address, barangay"
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Add your street address; city and province are filled from the ZIP code picker.
-              </p>
-              {fieldError('registeredAddress') && (
-                <p className="text-sm text-red-600">{fieldError('registeredAddress')}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="natureOfBusiness">Nature of Business / Profession</Label>
-              <Input
-                id="natureOfBusiness"
-                value={form.natureOfBusiness}
-                onChange={(e) => updateField('natureOfBusiness', e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="incomeType">Nature of Income</Label>
-              <Select
-                value={form.incomeType}
-                onValueChange={(value) => value && updateField('incomeType', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select income type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PURE_SELF_EMPLOYMENT">Pure Self-Employment</SelectItem>
-                  <SelectItem value="MIXED_INCOME">Mixed Income (Salary + Freelance)</SelectItem>
-                </SelectContent>
-              </Select>
-              {form.incomeType === 'MIXED_INCOME' && (
-                <div
-                  className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
-                  role="note"
-                  aria-label="Mixed income consequences"
-                >
-                  <p className="font-medium">Mixed-income consequences</p>
-                  <ul className="mt-1 list-disc space-y-1 pl-5">
-                    <li>
-                      The ₱250,000 statutory exemption does not apply to your
-                      freelance income — it is already consumed by your
-                      compensation side.
-                    </li>
-                    <li>
-                      Your annual return will be <strong>Form 1701</strong>,
-                      not Form 1701A.
-                    </li>
-                    <li>
-                      Graduated rate and OSD (40%) election remain available
-                      for the 1701 path.
-                    </li>
-                  </ul>
-                  <p className="mt-2 text-xs text-amber-800">
-                    Legal basis: RR No. 8-2018 Sec. 3(D); RMC No. 50-2018.
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Taxpayer identity</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={form.firstName}
+                      onChange={(e) => updateField('firstName', e.target.value)}
+                      required
+                    />
+                    {fieldError('firstName') && (
+                      <p className="text-sm text-red-600">{fieldError('firstName')}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={form.lastName}
+                      onChange={(e) => updateField('lastName', e.target.value)}
+                      required
+                    />
+                    {fieldError('lastName') && (
+                      <p className="text-sm text-red-600">{fieldError('lastName')}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="middleInitial">Middle Initial</Label>
+                    <Input
+                      id="middleInitial"
+                      value={form.middleInitial}
+                      onChange={(e) => updateField('middleInitial', e.target.value.toUpperCase())}
+                      maxLength={2}
+                    />
+                    {fieldError('middleInitial') && (
+                      <p className="text-sm text-red-600">{fieldError('middleInitial')}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tin">TIN (NNN-NNN-NNN or NNN-NNN-NNN-NNN)</Label>
+                    <Input
+                      id="tin"
+                      value={form.tin}
+                      onChange={(e) => updateField('tin', formatTin(e.target.value))}
+                      placeholder="000-000-000"
+                      maxLength={14}
+                      required
+                    />
+                    {fieldError('tin') && (
+                      <p className="text-sm text-red-600">{fieldError('tin')}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rdoCode">RDO Code</Label>
+                  <Input
+                    id="rdoCode"
+                    value={form.rdoCode}
+                    onChange={(e) => updateField('rdoCode', e.target.value)}
+                    required
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Contact information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      value={form.phoneNumber}
+                      onChange={(e) => updateField('phoneNumber', e.target.value)}
+                      placeholder="+639171234567 or 09171234567"
+                      required
+                    />
+                    {fieldError('phoneNumber') && (
+                      <p className="text-sm text-red-600">{fieldError('phoneNumber')}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => updateField('email', e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                    />
+                    {fieldError('email') && (
+                      <p className="text-sm text-red-600">{fieldError('email')}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode">ZIP Code</Label>
+                    <LocationPicker
+                      id="zipCode"
+                      value={form.zipCode}
+                      onChange={selectLocation}
+                      placeholder="Search ZIP code, city, or province"
+                    />
+                    {fieldError('zipCode') && (
+                      <p className="text-sm text-red-600">{fieldError('zipCode')}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cityMunicipality">City / Municipality</Label>
+                    <Input
+                      id="cityMunicipality"
+                      value={form.cityMunicipality}
+                      readOnly
+                      placeholder="Auto-filled from ZIP code"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="province">Province</Label>
+                  <Input
+                    id="province"
+                    value={form.province}
+                    readOnly
+                    placeholder="Auto-filled from ZIP code"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="registeredAddress">Registered Address</Label>
+                  <Input
+                    id="registeredAddress"
+                    value={form.registeredAddress}
+                    onChange={(e) => updateField('registeredAddress', e.target.value)}
+                    placeholder="Street address, barangay"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Add your street address; city and province are filled from the ZIP code picker.
+                  </p>
+                  {fieldError('registeredAddress') && (
+                    <p className="text-sm text-red-600">{fieldError('registeredAddress')}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Business / profession</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="natureOfBusiness">Nature of Business / Profession</Label>
+                  <Input
+                    id="natureOfBusiness"
+                    value={form.natureOfBusiness}
+                    onChange={(e) => updateField('natureOfBusiness', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="incomeType">Nature of Income</Label>
+                  <Select
+                    value={form.incomeType}
+                    onValueChange={(value) => value && updateField('incomeType', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select income type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PURE_SELF_EMPLOYMENT">Pure Self-Employment</SelectItem>
+                      <SelectItem value="MIXED_INCOME">Mixed Income (Salary + Freelance)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {form.incomeType === 'MIXED_INCOME' && (
+                    <div
+                      className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+                      role="note"
+                      aria-label="Mixed income consequences"
+                    >
+                      <p className="font-medium">Mixed-income consequences</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-5">
+                        <li>
+                          The ₱250,000 statutory exemption does not apply to your
+                          freelance income — it is already consumed by your
+                          compensation side.
+                        </li>
+                        <li>
+                          Your annual return will be <strong>Form 1701</strong>,
+                          not Form 1701A.
+                        </li>
+                        <li>
+                          Graduated rate and OSD (40%) election remain available
+                          for the 1701 path.
+                        </li>
+                      </ul>
+                      <p className="mt-2 text-xs text-amber-800">
+                        Legal basis: RR No. 8-2018 Sec. 3(D); RMC No. 50-2018.
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>COR includes 2551Q?</Label>
+                  <RadioGroup
+                    value={form.corIncludes2551Q}
+                    onValueChange={(value) => updateField('corIncludes2551Q', value)}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="cor-yes" />
+                      <Label htmlFor="cor-yes" className="font-normal">Yes — 8-return filing path</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="cor-no" />
+                      <Label htmlFor="cor-no" className="font-normal">No — 4-return filing path (1701Q only)</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label>Are you a new BIR registrant?</Label>
+                  <RadioGroup
+                    value={form.isNewRegistrant}
+                    onValueChange={(value) => updateField('isNewRegistrant', value)}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="new-reg-yes" />
+                      <Label htmlFor="new-reg-yes" className="font-normal">
+                        Yes — elected 8% on Form 1901 at initial registration
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="new-reg-no" />
+                      <Label htmlFor="new-reg-no" className="font-normal">
+                        No — election must be made via 2551Q/1701Q Item or Form 1905
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                  <p className="text-sm text-muted-foreground">
+                    Annual registration fee: ₱30 Documentary Stamp Tax only. The ₱500 BIR registration fee was abolished under RA 11976.
                   </p>
                 </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>COR includes 2551Q?</Label>
-              <RadioGroup
-                value={form.corIncludes2551Q}
-                onValueChange={(value) => updateField('corIncludes2551Q', value)}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="true" id="cor-yes" />
-                  <Label htmlFor="cor-yes" className="font-normal">Yes — 8-return filing path</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="false" id="cor-no" />
-                  <Label htmlFor="cor-no" className="font-normal">No — 4-return filing path (1701Q only)</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div className="space-y-2">
-              <Label>Are you a new BIR registrant?</Label>
-              <RadioGroup
-                value={form.isNewRegistrant}
-                onValueChange={(value) => updateField('isNewRegistrant', value)}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="true" id="new-reg-yes" />
-                  <Label htmlFor="new-reg-yes" className="font-normal">
-                    Yes — elected 8% on Form 1901 at initial registration
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="false" id="new-reg-no" />
-                  <Label htmlFor="new-reg-no" className="font-normal">
-                    No — election must be made via 2551Q/1701Q Item or Form 1905
-                  </Label>
-                </div>
-              </RadioGroup>
-              <p className="text-sm text-muted-foreground">
-                Annual registration fee: ₱30 Documentary Stamp Tax only. The ₱500 BIR registration fee was abolished under RA 11976.
-              </p>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         )
       case 1:
