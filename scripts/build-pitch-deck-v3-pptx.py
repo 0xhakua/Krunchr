@@ -39,6 +39,9 @@ CARD = RGBColor(255, 255, 255)
 BORDER = RGBColor(226, 232, 240)
 WHITE = RGBColor(255, 255, 255)
 INFO_BLUE = RGBColor(59, 130, 246)
+SURFACE = RGBColor(239, 244, 255)   # surface container low (#EFF4FF)
+MINT_TINT = RGBColor(223, 250, 241)  # mint verified chip fill
+MINT_DEEP = RGBColor(0, 150, 104)    # mint deep text (#009668)
 
 
 def hex_to_rgb(hex_color: str) -> RGBColor:
@@ -83,6 +86,21 @@ def set_slide_bg(slide, color: RGBColor):
     fill = background.fill
     fill.solid()
     fill.fore_color.rgb = color
+
+
+def apply_shadow(shape):
+    """Apply the BRAND.md flat `shadow-ambient` (soft slate outer shadow) to a shape."""
+    spPr = shape._element.spPr
+    ns = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
+    for el in spPr.findall(ns + "effectLst"):
+        spPr.remove(el)
+    spPr.append(parse_xml(
+        '<a:effectLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+        '<a:outerShdw blurRad="76200" dist="34925" dir="5400000" rotWithShape="0">'
+        '<a:srgbClr val="0F172A"><a:alpha val="14000"/></a:srgbClr>'
+        '</a:outerShdw></a:effectLst>'
+    ))
+    return shape
 
 
 def set_notes(slide, text: str):
@@ -139,7 +157,8 @@ def add_card(slide, left, top, width, height, title, body, number=None, title_si
     shape.fill.fore_color.rgb = CARD
     shape.line.color.rgb = BORDER
     shape.line.width = Pt(1)
-    shape.adjustments[0] = 0.08
+    shape.adjustments[0] = 0.10  # rounded-xl
+    apply_shadow(shape)
 
     if number is not None:
         num = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left + 0.25), Inches(top + 0.25), Inches(0.45), Inches(0.45))
@@ -153,13 +172,37 @@ def add_card(slide, left, top, width, height, title, body, number=None, title_si
     add_textbox(slide, left + 0.25, top + 0.75, width - 0.5, height - 1.0, body, body_size, MUTED)
 
 
-def add_pill(slide, left, top, width, height, text, bg=TEAL, fg=WHITE, size=12):
+def add_pill(slide, left, top, width, height, text, bg=TEAL, fg=WHITE, size=12, border=None):
     shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left), Inches(top), Inches(width), Inches(height))
     shape.fill.solid()
     shape.fill.fore_color.rgb = bg
-    shape.line.fill.background()
+    if border is not None:
+        shape.line.color.rgb = border
+        shape.line.width = Pt(1)
+    else:
+        shape.line.fill.background()
     shape.adjustments[0] = 0.5
     add_textbox(slide, left, top + (height - 0.28) / 2, width, 0.28, text, size, fg, True, PP_ALIGN.CENTER)
+    return shape
+
+
+def add_status_pill(slide, left, top):
+    """The signature always-visible 'Blockchain Status: Secured' motif (BRAND.md §1, §7).
+
+    Rendered as a neutral surface chip with a mint status dot and teal-ink label.
+    """
+    w, h = 2.75, 0.36
+    chip = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left), Inches(top), Inches(w), Inches(h))
+    chip.fill.solid()
+    chip.fill.fore_color.rgb = SURFACE
+    chip.line.color.rgb = BORDER
+    chip.line.width = Pt(1)
+    chip.adjustments[0] = 0.5
+    dot = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(left + 0.22), Inches(top + 0.13), Inches(0.11), Inches(0.11))
+    dot.fill.solid()
+    dot.fill.fore_color.rgb = MINT_DEEP
+    dot.line.fill.background()
+    add_textbox(slide, left + 0.42, top + 0.05, w - 0.5, 0.28, "Blockchain Status: Secured", 12, TEAL_INK, True)
 
 
 def add_footer(slide, logo_path, slide_num, total):
@@ -169,8 +212,9 @@ def add_footer(slide, logo_path, slide_num, total):
     line.line.fill.background()
 
     slide.shapes.add_picture(str(logo_path), Inches(0.6), Inches(7.05), width=Inches(0.35))
-    add_textbox(slide, 1.05, 7.05, 3.0, 0.3, "Krunchr · Pitch Deck v3", 14, INK, True)
-    add_textbox(slide, 11.6, 7.05, 1.1, 0.3, f"{slide_num} / {total}", 14, MUTED, False, PP_ALIGN.RIGHT)
+    add_textbox(slide, 1.05, 7.02, 3.2, 0.3, "Krunchr", 14, INK, True)
+    add_textbox(slide, 1.05, 7.27, 3.2, 0.22, "Compliance Engine", 9, MUTED, False)
+    add_textbox(slide, 10.4, 7.08, 2.3, 0.3, f"Pitch Deck v3   ·   {slide_num} / {total}", 12, MUTED, False, PP_ALIGN.RIGHT)
 
 
 def build():
@@ -191,12 +235,16 @@ def build():
     # ---------------------------------------------------------------
     slide = prs.slides.add_slide(blank)
     set_slide_bg(slide, CANVAS)
-    slide.shapes.add_picture(str(logo_colored), Inches(0.8), Inches(0.9), width=Inches(1.1))
-    add_textbox(slide, 0.8, 2.2, 11.5, 1.2, "Krunchr", 80, INK, True)
-    add_textbox(slide, 0.8, 3.4, 11.0, 0.6, "Compliance Engine — Philippine tax filing, anchored on Stellar.", 30, MUTED)
-    add_textbox(slide, 0.8, 4.15, 11.0, 0.5, "v3: from hackathon demo to a Stellar-native compliance business.", 24, TEAL_INK, True)
-    add_textbox(slide, 0.8, 5.8, 11.5, 0.4, "APAC Stellar Hackathon 2026 · Local Finance & Real World Access", 16, TEAL_INK, True)
-    add_textbox(slide, 0.8, 6.2, 11.5, 0.3, "Team: [PLACEHOLDER]    Contact: krunchr@artisam.xyz", 15, MUTED)
+    # Brand lockup: logo tile + "Krunchr / Compliance Engine" (BRAND.md §6)
+    slide.shapes.add_picture(str(logo_colored), Inches(0.8), Inches(0.85), width=Inches(0.95))
+    add_textbox(slide, 1.95, 0.88, 5.0, 0.45, "Krunchr", 30, INK, True)
+    add_textbox(slide, 1.98, 1.42, 5.0, 0.3, "COMPLIANCE ENGINE", 13, TEAL_INK, True)
+    add_textbox(slide, 0.8, 2.5, 11.5, 1.2, "Krunchr", 80, INK, True)
+    add_textbox(slide, 0.8, 3.7, 11.0, 0.6, "Compliance Engine — Philippine tax filing, anchored on Stellar.", 30, MUTED)
+    add_textbox(slide, 0.8, 4.45, 11.0, 0.5, "v3: from hackathon demo to a Stellar-native compliance business.", 24, TEAL_INK, True)
+    add_pill(slide, 0.8, 5.25, 3.05, 0.42, "✓  Stellar-Secured Receipts", MINT_TINT, MINT_DEEP, 13, border=MINT)
+    add_textbox(slide, 0.8, 5.95, 11.5, 0.4, "APAC Stellar Hackathon 2026 · Local Finance & Real World Access", 16, TEAL_INK, True)
+    add_textbox(slide, 0.8, 6.35, 11.5, 0.3, "Team: [PLACEHOLDER]    Contact: krunchr@artisam.xyz", 15, MUTED)
     add_footer(slide, logo_colored, 1, TOTAL)
     set_notes(slide, (
         "This is Krunchr — a compliance engine that takes one of the most anxious chores a Filipino "
@@ -281,6 +329,7 @@ def build():
         add_card(slide, x, 2.2, step_w, 2.6, title, body, i)
     demo_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(5.0), Inches(11.73), Inches(1.7))
     demo_box.fill.solid(); demo_box.fill.fore_color.rgb = CARD; demo_box.line.color.rgb = BORDER
+    apply_shadow(demo_box)
     add_textbox(slide, 0.8, 5.65, 11.73, 0.5, "[Demo screen recording placeholder — onboarding → upload 2307 → returns compute → file one → QR / verification]", 15, MUTED, False, PP_ALIGN.CENTER)
     add_footer(slide, logo_colored, 4, TOTAL)
     set_notes(slide, (
@@ -308,6 +357,7 @@ def build():
     for title, body in arch:
         card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(y), Inches(6.5), Inches(0.85))
         card.fill.solid(); card.fill.fore_color.rgb = CARD; card.line.color.rgb = BORDER
+        apply_shadow(card)
         add_textbox(slide, 1.0, y + 0.12, 6.1, 0.3, title, 17, INK, True)
         add_textbox(slide, 1.0, y + 0.42, 6.1, 0.35, body, 13, MUTED)
         if y < 5.0:
@@ -511,6 +561,8 @@ def build():
         x = 3.1 + i * 2.4
         card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(3.6), Inches(2.0), Inches(2.0))
         card.fill.solid(); card.fill.fore_color.rgb = CARD; card.line.color.rgb = BORDER
+        card.adjustments[0] = 0.10
+        apply_shadow(card)
         circle = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(x + 0.65), Inches(3.85), Inches(0.7), Inches(0.7))
         circle.fill.solid(); circle.fill.fore_color.rgb = hex_to_rgb("#E5EEFF"); circle.line.fill.background()
         add_textbox(slide, x, 4.65, 2.0, 0.3, "[Name]", 18, INK, True, PP_ALIGN.CENTER)
@@ -526,6 +578,14 @@ def build():
         "and every Filipino freelancer who told us how filing actually feels. That's Krunchr — eight "
         "returns, one upload, one Stellar-native compliance layer. We'd love your questions."
     ))
+
+    # Signature motif: place the always-visible "Blockchain Status: Secured"
+    # chip top-right on content slides. Strategy slides (9-11) already carry a
+    # branded market-level pill in that corner, and the title/closing slides
+    # carry their own brand lockup, so those are left as-is.
+    status_slide_indices = [1, 2, 3, 4, 5, 6, 7]  # slides 2-8 (0-indexed)
+    for idx in status_slide_indices:
+        add_status_pill(prs.slides[idx], 9.75, 0.55)
 
     prs.save(OUTPUT)
     print(f"Saved: {OUTPUT}")
