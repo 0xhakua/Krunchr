@@ -560,16 +560,14 @@ function extractTableRowAmounts(
   const flushPending = (atcCode: string) => {
     if (!pendingAmounts?.month1) return
     if (firstRow && firstRow.atcCode === atcCode) return
+    const m1 = pendingAmounts.month1
+    const m2 = pendingAmounts.month2 ?? m1
+    const m3 = pendingAmounts.month3 ?? m2
     const row = {
-      month1: pendingAmounts.month1,
-      month2: pendingAmounts.month2 ?? pendingAmounts.month1,
-      month3: pendingAmounts.month3 ?? pendingAmounts.month2 ?? pendingAmounts.month1,
-      cwtWithheld:
-        pendingAmounts.cwtWithheld ??
-        cwtFromLabeledAmounts(ctx) ??
-        pendingAmounts.month3 ??
-        pendingAmounts.month2 ??
-        pendingAmounts.month1,
+      month1: m1,
+      month2: m2,
+      month3: m3,
+      cwtWithheld: pendingAmounts.cwtWithheld ?? cwtFromLabeledAmounts(ctx) ?? m3,
       atcCode,
     }
     if (!firstRow) {
@@ -658,7 +656,13 @@ function extractTableRowAmounts(
     }
 
     if (!firstRow) {
-      firstRow = { month1, month2, month3, cwtWithheld: cwtWithheld ?? '', atcCode }
+      firstRow = {
+        month1: month1 ?? '',
+        month2: month2 ?? month1 ?? '',
+        month3: month3 ?? month2 ?? month1 ?? '',
+        cwtWithheld: cwtWithheld ?? month3 ?? month2 ?? month1 ?? '',
+        atcCode,
+      }
     } else if (firstRow.atcCode !== atcCode) {
       extraRows++
     }
