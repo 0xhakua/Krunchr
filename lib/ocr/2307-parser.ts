@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import PDFParser from 'pdf2json'
 import mammoth from 'mammoth'
@@ -12,6 +13,48 @@ function getOcrLangPath(): string {
   // never has to reach out to jsDelivr (which is blocked/slow on Railway
   // and was the source of the "Reading file..." hang reported in #199).
   return path.join(process.cwd(), 'lib', 'ocr', 'tessdata')
+}
+
+export interface OcrAssetCheck {
+  ok: boolean
+  langPath: string
+  engTraineddataBytes: number | null
+  message: string
+}
+
+/**
+ * Confirm that the bundled English traineddata is reachable at the
+ * langPath that tesseract.js will read from. Logs a single line on first
+ * call so Railway → Logs shows whether the file is in the deploy bundle
+ * (issue #201). Returns the resolved path and byte length so the caller
+ * can surface the same info via the public /api/health endpoint.
+ */
+export async function verifyOcrAssets(): Promise<OcrAssetCheck> {
+  const langPath = getOcrLangPath()
+  const traineddataPath = path.join(langPath, 'eng.traineddata')
+  try {
+    const stat = await fs.promises.stat(traineddataPath)
+    const result: OcrAssetCheck = {
+      ok: true,
+      langPath,
+      engTraineddataBytes: stat.size,
+      message: `eng.traineddata present at ${traineddataPath} (${stat.size} bytes)`,
+    }
+    console.log(`[ocr-assets] ${result.message}`)
+    return result
+  } catch (err) {
+    const result: OcrAssetCheck = {
+      ok: false,
+      langPath,
+      engTraineddataBytes: null,
+      message:
+        err instanceof Error
+          ? `eng.traineddata missing at ${traineddataPath}: ${err.message}`
+          : `eng.traineddata missing at ${traineddataPath}`,
+    }
+    console.warn(`[ocr-assets] ${result.message}`)
+    return result
+  }
 }
 
 export interface Extracted2307Fields {

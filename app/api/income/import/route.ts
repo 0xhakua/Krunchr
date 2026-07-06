@@ -3,11 +3,17 @@ import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { isRateLimited } from '@/lib/rate-limit'
 import { validateUploadFile } from '@/lib/upload/validation'
-import { extract2307Fields } from '@/lib/ocr/2307-parser'
+import { extract2307Fields, verifyOcrAssets } from '@/lib/ocr/2307-parser'
 
 export const runtime = 'nodejs'
 
 const MAX_IMPORTS_PER_HOUR = 20
+
+// Run once when this route module is first loaded on a worker. The
+// result is logged so Railway → Logs shows whether the bundled
+// eng.traineddata is reachable on the deployed image (issue #201: a
+// missing file made POST /api/income/import return 500 in staging).
+void verifyOcrAssets()
 
 export async function POST(req: NextRequest) {
   const session = await requireAuth(req)

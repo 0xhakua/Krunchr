@@ -128,6 +128,12 @@ describe('POST /api/income/import', () => {
           'Image OCR timed out after 60s. Try a higher-resolution scan or upload the PDF version.',
         ],
       }),
+      verifyOcrAssets: vi.fn().mockResolvedValue({
+        ok: true,
+        langPath: '/mock/lang',
+        engTraineddataBytes: 5199098,
+        message: 'eng.traineddata present (mocked)',
+      }),
     }))
 
     try {
