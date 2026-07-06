@@ -244,6 +244,63 @@ describe('parse2307Text', () => {
     expect(result.payorTin).toBe('789-456-123-000')
     expect(result.payorName).toBe('ABC Trading')
   })
+
+  it('parses a 2018 ENCS fillable PDF snippet (#202): payor TIN, quarter, monthly amounts, CWT', () => {
+    // The 2018 ENCS fillable PDF emits:
+    //   - TIN digits on multiple lines with a standalone "---" column
+    //     separator (read top-to-bottom, the 4 groups land in non-canonical
+    //     order).
+    //   - The period dates and amounts with the 2018 ENCS header labels
+    //     ("1st Month of the Quarter", etc.) that the parser didn't
+    //     recognise before.
+    //
+    // The text below is the reading-order output the new
+    // extractReadingOrderText() would produce for the affected regions, so
+    // we can exercise the pre-pass + TIN-window + MONTH_PATTERNS aliases
+    // without an actual PDF fixture.
+    const text = `
+      Part I – Payee Information
+      1  For the Period  From  01/01/2026  To  03/31/2026
+      2  Taxpayer Identification Number  (TIN)  123-456-789-000
+      3  Payee's Name  Dela Cruz, Juan Pablo
+      4  Registered Address  Cebu City, Cebu  6 0 0 0
+      Part II – Payor Information
+      6  Taxpayer Identification Number  (TIN)  789-456-123-000
+      7  Payor's Name  ABC Trading
+      8  Registered Address  Cebu City, Cebu  6 0 0 0
+      Part III – Details of Monthly Income Payments and Taxes Withheld
+      Professional Fees  WI071
+      1st Month of the  2nd Month of the  3rd Month of the  Total  Tax Withheld for the
+      50,000.00  50,000.00  50,000.00  150,000.00  15,000.00
+    `
+    const result = parse2307Text(text)
+    expect(result.payorTin).toBe('789-456-123-000')
+    expect(result.payorName).toBe('ABC Trading')
+    expect(result.atcCode).toBe('WI071')
+    expect(result.quarter).toBe(1)
+    expect(result.month1Amount).toBe('50000.00')
+    expect(result.month2Amount).toBe('50000.00')
+    expect(result.month3Amount).toBe('50000.00')
+    expect(result.cwtWithheld).toBe('15000.00')
+    expect(result.confidence).toBe('high')
+  })
+
+  it('replaces a standalone "---" column separator with a dash so the TIN pattern can match', () => {
+    // A snippet where the only thing standing between the digit groups and
+    // a valid TIN match is the standalone "---" line. After the pre-pass
+    // the separator becomes a single dash and the existing
+    // collapseDigitSpacing + TIN_PATTERN can resolve the full TIN.
+    const text = `
+      6  Taxpayer Identification Number  (TIN)
+      7 8 9
+      ---
+      4 5 6
+      1 2 3
+      0 0 0 0
+    `
+    const result = parse2307Text(text)
+    expect(result.payorTin).toBe('789-456-123-000')
+  })
 })
 
 describe('computeCwtFromAmounts', () => {

@@ -110,10 +110,94 @@ function collapseDigitSpacing(text: string): string {
   return text.replace(/(\d)[^\S\r\n,|]+(?=\d)/g, '$1')
 }
 
+/**
+ * pdf2json emits fillable-form text in the order its underlying field
+ * declarations are visited, which is rarely the visual reading order.
+ * The 2018 ENCS Form 2307's TIN row is the canonical example: the four
+ * 3-digit cells are emitted as `456 123 / 789 / 0000` instead of the
+ * visual `789 456 123 0000`, and the date row's year and MMDD end up on
+ * separate lines. Sorting by y then x restores the visual order so the
+ * downstream regexes (which were written assuming canonical order) work
+ * unchanged (#202).
+ */
+function extractReadingOrderText(pdfData: unknown): string {
+  const pages = (pdfData as { Pages?: Array<{ Texts?: Array<{ x: number; y: number; R?: Array<{ T?: string }> }> }> } | null)?.Pages
+  if (!pages || pages.length === 0) return ''
+
+  const lines: string[] = []
+  for (const page of pages) {
+    const texts = page.Texts ?? []
+    if (texts.length === 0) continue
+    const sorted = [...texts].sort((a, b) => a.y - b.y || a.x - b.x)
+    let currentY: number | null = null
+    let currentLine: string[] = []
+    const flush = () => {
+      if (currentLine.length > 0) {
+        const joined = currentLine.join(' ').replace(/\s+/g, ' ').trim()
+        if (joined) lines.push(joined)
+        currentLine = []
+      }
+    }
+    for (const run of sorted) {
+      if (currentY === null || Math.abs(run.y - currentY) <= 3) {
+        currentY = currentY ?? run.y
+      } else {
+        flush()
+        currentY = run.y
+      }
+      const raw = run.R?.[0]?.T
+      if (raw === undefined) continue
+      let decoded: string
+      try {
+        decoded = decodeURIComponent(raw)
+      } catch {
+        decoded = raw
+      }
+      currentLine.push(decoded)
+    }
+    flush()
+  }
+  return lines.join('\n')
+}
+
+/**
+ * Normalise a fillable-PDF text dump so the existing regex heuristics can
+ * match the digit-cell layout used by the 2018 ENCS Form 2307.
+ *
+ * - A standalone line of dashes (e.g. `---`, ` - - - `) is the visual
+ *   column separator in the TIN row. We remove the line entirely so the
+ *   digit cells on either side join into a single 12+ digit run that
+ *   `TIN_12_PATTERN` can match (#202).
+ * - Consecutive lines that contain only digits and whitespace are joined
+ *   into a single space-separated line. pdf2json emits each form cell on
+ *   its own line for fillable PDFs, and the existing `collapseDigitSpacing`
+ *   refuses to cross newlines (by design, see #199).
+ */
+function preprocessOcrText(text: string): string {
+  const withSeparators = text.replace(/^[ \t]*(?:-\s+){2,}[ \t]*$|^[ \t]*---[ \t]*$\n?/gm, '')
+  const digitCellRe = /^[ \t]*\d(?:\s+\d)*[ \t]*$/
+  const lines = withSeparators.split(/\r?\n/)
+  const out: string[] = []
+  let buffer = ''
+  for (const line of lines) {
+    if (digitCellRe.test(line)) {
+      buffer = buffer ? `${buffer} ${line.trim()}` : line.trim()
+    } else {
+      if (buffer) {
+        out.push(buffer)
+        buffer = ''
+      }
+      out.push(line)
+    }
+  }
+  if (buffer) out.push(buffer)
+  return out.join('\n')
+}
+
 const MONTH_PATTERNS = [
-  /(?:month\s*1|jan(?:uary)?|first\s*month|month\s*one)[^0-9]{0,20}([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})/i,
-  /(?:month\s*2|feb(?:ruary)?|second\s*month|month\s*two)[^0-9]{0,20}([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})/i,
-  /(?:month\s*3|mar(?:ch)?|third\s*month|month\s*three)[^0-9]{0,20}([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})/i,
+  /(?:month\s*1|1st\s*month(?:\s*of(?:\s*the(?:\s*quarter)?)?)?|jan(?:uary)?|first\s*month|month\s*one)[\s\S]{0,200}?([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})/i,
+  /(?:month\s*2|2nd\s*month(?:\s*of(?:\s*the(?:\s*quarter)?)?)?|feb(?:ruary)?|second\s*month|month\s*two)[\s\S]{0,200}?([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})/i,
+  /(?:month\s*3|3rd\s*month(?:\s*of(?:\s*the(?:\s*quarter)?)?)?|mar(?:ch)?|third\s*month|month\s*three)[\s\S]{0,200}?([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})/i,
 ]
 
 // The 4th group (the branch) accepts 3 OR 4 digits. tesseract.js
@@ -125,7 +209,12 @@ const MONTH_PATTERNS = [
 // the pattern to match unrelated digit runs joined by `\s*` across
 // newlines in multi-line text.
 const TIN_PATTERN = /(?<![-\d])(\d{3})\s*-\s*(\d{3})\s*-\s*(\d{3})(?:\s*-\s*(\d{3,4}))?(?![-\d])/
-const TIN_12_PATTERN = /(?<!\d)(\d{12})(?!\d)/
+// TIN_12_PATTERN matches 12 OR 13 consecutive digits: the 4th group is
+// commonly emitted as 4 digits by both tesseract.js and pdf2json for
+// fillable PDFs (#202), giving a 13-digit run after the pre-pass joins
+// the digit cells. The format step slices 0-3, 3-6, 6-9, 9-12 in both
+// cases, so a 13th digit is silently dropped.
+const TIN_12_PATTERN = /(?<!\d)(\d{12,13})(?!\d)/
 const TIN_9_PATTERN = /(?<!\d)(\d{9})(?!\d)/
 
 // tesseract.js commonly misreads the 2307 form's cell borders as
@@ -176,14 +265,14 @@ function extractTin(ctx: ParseContext): string | undefined {
 
   if (payorLabelMatch) {
     // The "TIN" label appears twice on a real 2307 form: once near the
-    // payee section, once near the payor section. The payor TIN is the
-    // one whose label sits closest to "Payor's Name" (within ~200 chars
-    // on either side). We prefer labels *before* "Payor's Name" because
-    // that's the standard form layout (Item 6 TIN, then Item 7 name),
-    // but a label *after* the name is the next best signal — the
-    // synthetic-text fixtures use that order. Do NOT exclude based on
-    // the payee label position: the pdf2json order test puts the payor
-    // TIN label *before* the payee's "Payee's Name" label.
+    // payee section, once near the payor section. Pick the closest TIN
+    // label to "Payor's Name" without a hard distance cap, because the
+    // 2018 ENCS fillable PDF (#202) scatters hundreds of whitespace
+    // characters between the payor name and the payor TIN label, and a
+    // 200-char window misses it entirely. We still prefer labels *before*
+    // "Payor's Name" (the standard form layout puts Item 6 TIN before
+    // Item 7 name) but fall back to the nearest label after the name
+    // when no earlier label exists.
     const tinLabel = /\(?\bTIN\b\)?|Taxpayer\s+Identification\s+Number/gi
     const labels: { index: number; length: number }[] = []
     let m: RegExpExecArray | null
@@ -193,20 +282,21 @@ function extractTin(ctx: ParseContext): string | undefined {
 
     const payorIndex = payorLabelMatch.index
 
-    const candidateLabels = labels
-      .filter((l) => Math.abs(l.index - payorIndex) < 200)
-      .sort((a, b) => {
-        const aBefore = a.index < payorIndex
-        const bBefore = b.index < payorIndex
-        if (aBefore && !bBefore) return -1
-        if (!aBefore && bBefore) return 1
-        return aBefore ? b.index - a.index : a.index - b.index
-      })
+    const candidateLabels = [...labels].sort((a, b) => {
+      const distA = Math.abs(a.index - payorIndex)
+      const distB = Math.abs(b.index - payorIndex)
+      if (distA !== distB) return distA - distB
+      const aBefore = a.index < payorIndex
+      const bBefore = b.index < payorIndex
+      if (aBefore && !bBefore) return -1
+      if (!aBefore && bBefore) return 1
+      return aBefore ? b.index - a.index : a.index - b.index
+    })
 
     const payorTinLabel = candidateLabels[0]
     if (payorTinLabel) {
       const start = payorTinLabel.index + payorTinLabel.length
-      const end = Math.min(text.length, start + 200)
+      const end = Math.min(text.length, start + 400)
       const snippet = text.slice(start, end)
       const tin = normalizeTin(snippet)
       console.log(
@@ -217,15 +307,15 @@ function extractTin(ctx: ParseContext): string | undefined {
       if (tin) return tin
     }
 
-    // Final fallback: a narrow 200-char window before "Payor's Name".
-    // Catches scans where the OCR drops or mangles the "TIN" label but
-    // still produces the digit run. We deliberately do NOT look after
-    // "Payor's Name" — that side contains the Part III table whose
-    // amounts (e.g. "150,000.00") can be misread by tesseract.js into
-    // a 12-digit dash-grouped run that the TIN regex would otherwise
-    // happily match (issue #199: returned "115-000-001-500" from the
-    // amounts row instead of the real payor TIN).
-    const start = Math.max(0, payorIndex - 200)
+    // Final fallback: a 400-char window before "Payor's Name". Catches
+    // scans where the OCR drops or mangles the "TIN" label but still
+    // produces the digit run. We deliberately do NOT look after "Payor's
+    // Name" in this fallback — that side contains the Part III table
+    // whose amounts (e.g. "150,000.00") can be misread by tesseract.js
+    // into a 12-digit dash-grouped run that the TIN regex would
+    // otherwise happily match (issue #199: returned "115-000-001-500"
+    // from the amounts row instead of the real payor TIN).
+    const start = Math.max(0, payorIndex - 400)
     const snippet = text.slice(start, payorIndex)
     const fallbackTin = normalizeTin(snippet)
     console.log(
@@ -377,7 +467,17 @@ function quarterFromMonth(month: number): number | undefined {
 }
 
 function extractQuarterFromPeriod(text: string): number | undefined {
-  const collapsed = collapseDigitSpacing(text)
+  // The 2018 ENCS fillable PDF (#202) places the year and MMDD on
+  // separate visual rows from the "For the Period / From / To" labels.
+  // Build a snippet that starts at the label and runs 300 chars into
+  // the text so the regex can see both the keyword and the digits.
+  const labelMatch = /(for the period|period|from|to)/i.exec(text)
+  const window = labelMatch
+    ? text.slice(labelMatch.index, Math.min(text.length, labelMatch.index + 300))
+    : text
+  // Collapse newlines into spaces so the regex can match across the
+  // label line and the digit-cell line below it.
+  const collapsed = collapseDigitSpacing(window.replace(/\r?\n/g, ' '))
   // Real 2307 scans often drop the slash separators between day/month/year
   // when each character sits in its own form box, so we accept MM/DD/YYYY,
   // MM-DD-YYYY, MM.DD.YYYY, and the no-separator MMDDYYYY form.
@@ -490,16 +590,41 @@ function extractTableRowAmounts(
     | { month1: string; month2: string; month3: string; cwtWithheld: string; atcCode: string }
     | undefined
   let extraRows = 0
-  // Most recent line that contained a single bare amount (no ATC, no other
-  // text). If the next line is a valid 4-amount row, we treat the orphan
-  // as that row's 3rd-month amount.
   let orphanAmount: string | undefined
+  let pendingAmounts: { month1?: string; month2?: string; month3?: string; cwtWithheld?: string } | undefined
+  // The most recent ATC code we saw without a same-line amount set. The
+  // 2018 ENCS fillable PDF (#202) emits the ATC on its own line and the
+  // amounts one or two lines below; we attach the amounts to the most
+  // recent pending ATC at end-of-input (and also when a *new* ATC line
+  // appears, to handle the case where the same line has both ATC and
+  // amounts and should win over the pending ATC).
+  let pendingAtc: string | undefined
+
+  const flushPending = (atcCode: string) => {
+    if (!pendingAmounts?.month1) return
+    if (firstRow && firstRow.atcCode === atcCode) return
+    const m1 = pendingAmounts.month1
+    const m2 = pendingAmounts.month2 ?? m1
+    const m3 = pendingAmounts.month3 ?? m2
+    const row = {
+      month1: m1,
+      month2: m2,
+      month3: m3,
+      cwtWithheld: pendingAmounts.cwtWithheld ?? cwtFromLabeledAmounts(ctx) ?? m3,
+      atcCode,
+    }
+    if (!firstRow) {
+      firstRow = row
+    } else if (firstRow.atcCode !== atcCode) {
+      extraRows++
+    }
+    pendingAmounts = undefined
+  }
 
   for (const rawLine of lines) {
     const line = rawLine.trim()
     if (!line) continue
 
-    // Detect a bare-amount line: just a number, nothing else.
     const standalone = line.match(/^([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})$/)
     if (standalone) {
       const parsed = parseAmount(standalone[1])
@@ -509,49 +634,93 @@ function extractTableRowAmounts(
       }
     }
 
+    const lineAmounts = (line.match(AMOUNT_PATTERN) ?? [])
+      .map((raw) => parseAmount(raw))
+      .filter((v): v is string => Boolean(v))
+
     const strictAtc = line.match(/\b([A-Za-z]{1,3}\d{3,4})\b/)
     const tolerantAtc = !strictAtc ? line.match(/\b([A-Za-z]{1,3}[0-9OIlLo]{3,5})\b/) : null
     const atcRaw = strictAtc?.[1] ?? tolerantAtc?.[1]
+
     if (!atcRaw) {
-      // Some other text in between (header, label, etc.) — drop the orphan
-      // so a stale value isn't attached to a far-away row.
+      if (lineAmounts.length >= 3) {
+        // The 2307 form's amounts row is laid out as
+        // [Month 1, Month 2, Month 3, Total, Tax Withheld]. The CWT
+        // (tax withheld for the quarter) is always the rightmost
+        // amount on the line, so take the last one (#202: the BIR
+        // template sometimes emits only 4 amounts and sometimes 5,
+        // depending on the form variant).
+        pendingAmounts = {
+          month1: lineAmounts[0],
+          month2: lineAmounts[1],
+          month3: lineAmounts[2],
+          cwtWithheld: lineAmounts[lineAmounts.length - 1],
+        }
+      } else if (lineAmounts.length === 0) {
+        pendingAmounts = undefined
+      }
       orphanAmount = undefined
       continue
     }
 
     const atcCode = strictAtc ? normalizeAtc(atcRaw) : cleanAtcCandidate(atcRaw)
     if (!atcCode) {
+      pendingAmounts = undefined
       orphanAmount = undefined
       continue
     }
 
-    const rawAmounts = line.match(AMOUNT_PATTERN)
-    const amounts = (rawAmounts ?? [])
-      .map((raw) => parseAmount(raw))
-      .filter((v): v is string => Boolean(v))
-    if (amounts.length < 4) {
+    let month1: string | undefined
+    let month2: string | undefined
+    let month3: string | undefined
+    let cwtWithheld: string | undefined
+
+    if (lineAmounts.length >= 4) {
+      month1 = lineAmounts[0]
+      month2 = lineAmounts[1]
+      month3 = lineAmounts[2]
+      cwtWithheld = lineAmounts[lineAmounts.length - 1]
+      if (lineAmounts.length === 4 && orphanAmount) {
+        month3 = orphanAmount
+      }
+      pendingAmounts = undefined
+    } else if (pendingAmounts?.month1) {
+      month1 = pendingAmounts.month1
+      month2 = pendingAmounts.month2
+      month3 = pendingAmounts.month3
+      cwtWithheld = pendingAmounts.cwtWithheld ?? cwtFromLabeledAmounts(ctx) ?? lineAmounts[lineAmounts.length - 1]
+      pendingAmounts = undefined
+    } else {
+      // ATC line with no same-line amounts and no buffered amounts yet.
+      // Stash it so a later amount-only line can attach to it.
+      pendingAtc = atcCode
       orphanAmount = undefined
       continue
-    }
-
-    const month1 = amounts[0]
-    const month2 = amounts[1]
-    let month3 = amounts[2]
-    const cwtWithheld = amounts[amounts.length - 1]
-
-    // If the row has only 4 amounts (1st, 2nd, total, cwt) and we have an
-    // orphan amount from the line above, use it as the 3rd-month amount.
-    if (amounts.length === 4 && orphanAmount) {
-      month3 = orphanAmount
     }
 
     if (!firstRow) {
-      firstRow = { month1, month2, month3, cwtWithheld, atcCode }
+      firstRow = {
+        month1: month1 ?? '',
+        month2: month2 ?? month1 ?? '',
+        month3: month3 ?? month2 ?? month1 ?? '',
+        cwtWithheld: cwtWithheld ?? month3 ?? month2 ?? month1 ?? '',
+        atcCode,
+      }
     } else if (firstRow.atcCode !== atcCode) {
       extraRows++
     }
 
+    pendingAtc = undefined
     orphanAmount = undefined
+  }
+
+  // End-of-text: if we still have a pending ATC and buffered amounts,
+  // attach them now. This handles the 2018 ENCS fillable layout where
+  // the ATC is emitted on its own line at the top of the table and the
+  // amounts are emitted on the last line, with no "next" ATC to flush
+  // them against.
+  if (pendingAtc && pendingAmounts?.month1) {
+    flushPending(pendingAtc)
   }
 
   if (!firstRow) return {}
@@ -564,6 +733,10 @@ function extractTableRowAmounts(
     atcCode: firstRow.atcCode,
     extraRows,
   }
+}
+
+function cwtFromLabeledAmounts(ctx: ParseContext): string | undefined {
+  return extractCwtWithheld(ctx)
 }
 
 function extractCwtWithheld(ctx: ParseContext): string | undefined {
@@ -586,10 +759,12 @@ function parsePdfBuffer(buffer: Buffer): Promise<string> {
       }
     })
 
-    pdfParser.on('pdfParser_dataReady', () => {
+    pdfParser.on('pdfParser_dataReady', (pdfData: unknown) => {
       if (!resolved) {
         resolved = true
-        resolve(pdfParser.getRawTextContent())
+        const readingOrder = extractReadingOrderText(pdfData)
+        const fallback = pdfParser.getRawTextContent()
+        resolve(readingOrder || fallback)
       }
     })
 
@@ -734,20 +909,21 @@ function computeConfidence(fields: Extracted2307Fields): 'high' | 'medium' | 'lo
  */
 export function parse2307Text(text: string): Extracted2307Fields {
   const warnings: string[] = []
-  const ctx: ParseContext = { text, warnings }
+  const normalised = preprocessOcrText(text)
+  const ctx: ParseContext = { text: normalised, warnings }
 
-  if (!text.trim()) {
+  if (!normalised.trim()) {
     return {
       confidence: 'low',
       warnings: ['No text could be extracted from the file.'],
     }
   }
 
-  // Diagnostic log so we can see what tesseract.js actually emitted on a
-  // real 2307 scan — the heuristics below can pick a wrong TIN if the
-  // OCR mis-reads a cell, and seeing the raw text is the only way to
-  // know whether to fix the parser or push back on the OCR quality.
-  console.log(`[ocr-parser] raw text (${text.length} chars):\n${text}`)
+  // Diagnostic log so we can see what the PDF/OCR backend actually emitted
+  // on a real 2307 scan — the heuristics below can pick a wrong TIN if
+  // a cell is mis-read, and seeing the raw text is the only way to know
+  // whether to fix the parser or push back on the input quality.
+  console.log(`[ocr-parser] raw text (${normalised.length} chars):\n${normalised}`)
 
   const monthAmounts = extractMonthAmounts(ctx)
   const tableRow = extractTableRowAmounts(ctx)
@@ -761,8 +937,14 @@ export function parse2307Text(text: string): Extracted2307Fields {
   const month2Amount = monthAmounts.month2 ?? tableRow.month2
   const month3Amount = monthAmounts.month3 ?? tableRow.month3
 
-  if (!cwtWithheld && tableRow.cwtWithheld) {
+  // Prefer the table-row CWT (the last amount on the amounts line) over
+  // the labelled CWT. The labelled lookup matches the FIRST amount after
+  // the "Tax Withheld" label, which on the 2018 ENCS fillable PDF (#202)
+  // is the first monthly amount rather than the actual CWT figure.
+  if (tableRow.cwtWithheld) {
     cwtWithheld = tableRow.cwtWithheld
+  } else {
+    cwtWithheld = extractCwtWithheld(ctx)
   }
 
   if (!atcCode && tableRow.atcCode) {
