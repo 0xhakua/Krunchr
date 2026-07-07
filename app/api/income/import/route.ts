@@ -9,11 +9,22 @@ export const runtime = 'nodejs'
 
 const MAX_IMPORTS_PER_HOUR = 20
 
-// Run once when this route module is first loaded on a worker. The
-// result is logged so Railway → Logs shows whether the bundled
-// eng.traineddata is reachable on the deployed image (issue #201: a
-// missing file made POST /api/income/import return 500 in staging).
-void verifyOcrAssets()
+// DEBUG (issue #201 triage): the module-load `void verifyOcrAssets()`
+// below was firing `fs.promises.stat` on the bundled traineddata at
+// every cold start. The 500 surfaced in staging as an undici
+// "Response body object should not be disturbed or locked" thrown
+// inside fromNodeNextRequest, before the route handler runs, so the
+// route's catch block can't help.
+//
+// Re-enable ONLY after we know whether the call is the cause. The
+// traineddata itself is still in the server bundle thanks to
+// next.config.ts `outputFileTracingIncludes` (PR #203) — we are
+// just suppressing the diagnostic log here. If the 500 disappears
+// after this change, the call is the culprit and we should move it
+// behind an env flag or inside the handler. If the 500 stays, the
+// culprit is downstream of this file (Railway proxy / Next.js 15.5.19
+// / Node version) and this call should be re-enabled.
+// void verifyOcrAssets()
 
 export async function POST(req: NextRequest) {
   const session = await requireAuth(req)
