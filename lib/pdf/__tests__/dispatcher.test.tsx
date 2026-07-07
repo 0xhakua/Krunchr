@@ -23,6 +23,7 @@ function makeData(formType: FilingPdfData['ret']['formType'], quarter: number | 
       statutoryDueDate: new Date(2027, 3, 15),
       filedDate: null,
       generatedAt: null,
+      penalties: null,
     },
     taxYear: {
       id: 'test-taxyear',
@@ -36,6 +37,9 @@ function makeData(formType: FilingPdfData['ret']['formType'], quarter: number | 
       rdoCode: '040',
       registeredAddress: '123 Test St, Makati City',
       zipCode: '1200',
+      email: null,
+      phoneNumber: null,
+      natureOfBusiness: 'Insurance Agent',
       incomeType: 'PURE_SELF_EMPLOYMENT',
       corIncludes2551Q: true,
     },
