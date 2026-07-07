@@ -7,6 +7,7 @@ import { Form1701Q } from './templates/form-1701q'
 import { Form1701A } from './templates/form-1701a'
 import { Form1701 } from './templates/form-1701'
 import { ReturnPdf } from './return-pdf'
+import { renderForm1701AOverlay } from './bir/1701A'
 
 export interface FilingPdfData {
   ret: {
@@ -21,6 +22,14 @@ export interface FilingPdfData {
     statutoryDueDate: Date
     filedDate: Date | null
     generatedAt: Date | null
+    /** Per-line penalty rows, mirrored from TaxReturn.penalties. */
+    penalties: {
+      daysLate: number
+      surcharge: Decimal
+      interest: Decimal
+      compromisePenalty: Decimal
+      totalPenalty: Decimal
+    } | null
   }
   taxYear: {
     id: string
@@ -34,6 +43,9 @@ export interface FilingPdfData {
     rdoCode: string
     registeredAddress: string
     zipCode: string
+    email: string | null
+    phoneNumber: string | null
+    natureOfBusiness: string
     incomeType: 'PURE_SELF_EMPLOYMENT' | 'MIXED_INCOME'
     corIncludes2551Q: boolean
   }
@@ -73,6 +85,9 @@ export async function loadFilingData(
           overpayment: true,
           returns: {
             orderBy: { sequenceOrder: 'asc' },
+            include: {
+              penalties: true,
+            },
           },
         },
       },
@@ -98,6 +113,15 @@ export async function loadFilingData(
       statutoryDueDate: ret.statutoryDueDate,
       filedDate: ret.filedDate,
       generatedAt: ret.generatedAt,
+      penalties: ret.penalties
+        ? {
+            daysLate: ret.penalties.daysLate,
+            surcharge: ret.penalties.surcharge,
+            interest: ret.penalties.interest,
+            compromisePenalty: ret.penalties.compromisePenalty,
+            totalPenalty: ret.penalties.totalPenalty,
+          }
+        : null,
     },
     taxYear: {
       id: taxYear.id,
@@ -111,6 +135,9 @@ export async function loadFilingData(
       rdoCode: profile.rdoCode,
       registeredAddress: profile.registeredAddress,
       zipCode: profile.zipCode,
+      email: profile.email,
+      phoneNumber: profile.phoneNumber,
+      natureOfBusiness: profile.natureOfBusiness,
       incomeType: profile.incomeType,
       corIncludes2551Q: profile.corIncludes2551Q,
     },
@@ -168,5 +195,12 @@ export function FilingPdfElement(data: FilingPdfData): React.ReactElement<Docume
 export async function renderFilingPdf(returnId: string, userId: string): Promise<Buffer | null> {
   const data = await loadFilingData(returnId, userId)
   if (!data) return null
+  // Issue #159: 1701A renders as a flat overlay on the official BIR PDF
+  // (high-fidelity facsimile). 1701Q, 2551Q, and 1701 still use the
+  // react-pdf templates until their overlays are built.
+  if (data.ret.formType === 'FORM_1701A') {
+    const result = await renderForm1701AOverlay(data)
+    return Buffer.from(result.bytes)
+  }
   return renderToBuffer(FilingPdfElement(data))
 }

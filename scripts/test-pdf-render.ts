@@ -24,6 +24,7 @@ function dataFor(formType: FilingPdfData['ret']['formType'], quarter: number | n
       statutoryDueDate: new Date(2027, 3, 15),
       filedDate: null,
       generatedAt: null,
+      penalties: null,
     },
     taxYear: {
       id: 'test',
@@ -37,6 +38,9 @@ function dataFor(formType: FilingPdfData['ret']['formType'], quarter: number | n
       rdoCode: '040',
       registeredAddress: '123 Test St',
       zipCode: '1200',
+      email: null,
+      phoneNumber: null,
+      natureOfBusiness: '',
       incomeType: 'MIXED_INCOME',
       corIncludes2551Q: true,
     },
