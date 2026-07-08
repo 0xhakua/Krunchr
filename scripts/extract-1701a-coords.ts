@@ -62,9 +62,9 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   { key: "part1_year", number: 1, expectedSubstring: "For the Year", group: "Part I", defaultX: 360, page: 1, yMin: 500 },
   { key: "part1_amended_yes", number: 2, expectedSubstring: "Amended Return?", group: "Part I", defaultX: 283, page: 1, yMin: 500 },
   { key: "part1_short_period_yes", number: 3, expectedSubstring: "Short Period Return?", group: "Part I", defaultX: 473, page: 1, yMin: 500 },
-  { key: "part1_tin", number: 4, expectedSubstring: "Taxpayer Identification Number", group: "Part I", defaultX: 200, critical: true, page: 1, yMin: 500 },
+  { key: "part1_tin", number: 4, expectedSubstring: "Taxpayer Identification Number", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 500 },
   { key: "part1_rdo_code", number: 5, expectedSubstring: "RDO Code", group: "Part I", defaultX: 340, critical: true, page: 1, yMin: 500 },
-  { key: "part1_atc", number: 7, expectedSubstring: "Alphanumeric Tax Code", group: "Part I", defaultX: 200, critical: true, page: 1, yMin: 500 },
+  { key: "part1_atc", number: 7, expectedSubstring: "Alphanumeric Tax Code", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 500 },
   // Item 6 is a conditional checkbox pair — the runtime overlay function picks
   // ONE of these two coords to mark based on TaxpayerProfile.taxpayerType:
   //   - "single_proprietor" / "single proprietor" → mark single_proprietor checkbox
@@ -75,8 +75,8 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   { key: "part1_taxpayer_type_professional", number: 6, expectedSubstring: "Taxpayer Type", group: "Part I", defaultX: 535, page: 1, yMin: 500 },
   // Use the more specific "Taxpayer's Name" (with U+0027 apostrophe) to avoid
   // matching "Taxpayer Type" which appears earlier in the form.
-  { key: "part1_taxpayer_name", number: 8, expectedSubstring: "Taxpayer's Name", group: "Part I", defaultX: 200, critical: true, page: 1, yMin: 500 },
-  { key: "part1_registered_address", number: 9, expectedSubstring: "Registered Address", group: "Part I", defaultX: 200, critical: true, page: 1, yMin: 500 },
+  { key: "part1_taxpayer_name", number: 8, expectedSubstring: "Taxpayer's Name", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 500 },
+  { key: "part1_registered_address", number: 9, expectedSubstring: "Registered Address", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 500 },
   { key: "part1_zip_code", number: 9, expectedSubstring: "ZIP Code", group: "Part I", defaultX: 555, page: 1, yMin: 500 },
   { key: "part1_date_of_birth", number: 10, expectedSubstring: "Date of Birth", group: "Part I", defaultX: 130, page: 1, yMin: 500 },
   { key: "part1_email", number: 11, expectedSubstring: "Email Address", group: "Part I", defaultX: 400, page: 1, yMin: 500 },
