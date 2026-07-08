@@ -8,11 +8,11 @@ import type { BirFormCoord } from "./types";
 export const COORDS_1701Q: Record<string, BirFormCoord> = {
   "part1_year": {
     "page": 1,
-    "x": 360,
+    "x": 80,
     "y": 831.1,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_quarter_first": {
     "page": 1,
@@ -64,11 +64,11 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
   },
   "part1_tin": {
     "page": 1,
-    "x": 285,
-    "y": 798.58,
+    "x": 205,
+    "y": 799,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_rdo_code": {
     "page": 1,
@@ -137,18 +137,18 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
   "part1_taxpayer_name": {
     "page": 1,
     "x": 285,
-    "y": 736.54,
+    "y": 748.54,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_registered_address": {
     "page": 1,
     "x": 285,
-    "y": 709.06,
+    "y": 721.06,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_zip_code": {
     "page": 1,
@@ -208,35 +208,35 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
   },
   "part1_tax_rate_8pct": {
     "page": 1,
-    "x": 30,
-    "y": 574,
+    "x": 70,
+    "y": 574.1,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_tax_rate_graduated": {
     "page": 1,
-    "x": 30,
-    "y": 599,
+    "x": 70,
+    "y": 598.5,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_tax_rate_itemized": {
     "page": 1,
     "x": 240,
-    "y": 599,
+    "y": 598.5,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_tax_rate_osd": {
     "page": 1,
     "x": 370,
-    "y": 599,
+    "y": 598.5,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part3_tax_due": {
     "page": 1,

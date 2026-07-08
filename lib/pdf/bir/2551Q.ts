@@ -34,6 +34,7 @@ import { COORDS_2551Q } from "../coords/2551Q.generated";
 import {
   loadOfficialBirPdf,
   type BirOverlayResult,
+  type BirOverlayValue,
   type BirOverlayValues,
 } from "./types";
 import type { FilingPdfData } from "../dispatcher";
@@ -275,16 +276,20 @@ export function buildForm2551QValues(data: FilingPdfData): BirOverlayValues {
   // Schedule 1 — Computation of Tax (page 2)
   // ============================================================
   // Items 1-6: Six ATC lines (PT010, PT040, PT041, PT060, PT070, PT090).
-  // Under 8% election, ALL values are 0 (BR-04). The form is still
-  // mapped for completeness; the runtime draws "0.00" so the form
-  // is unambiguous, and the Total (Item 7) is the sum = ₱0.00.
-  // For non-8% filers, a more elaborate per-ATC breakdown could be
-  // added (mapping ATC → rate × taxable), but Kuwenta's primary path
-  // is 8% where all values are 0.
+  // Under 8% election, ALL tax due values are 0 (BR-04) and the ATC column
+  // is still drawn so the form is unambiguous. For non-8% filers, the gross
+  // is reported on the first applicable line (PT010) and tax due is 3%.
+  const ptAtcs = ["PT010", "PT040", "PT041", "PT060", "PT070", "PT090"];
+  const isGraduated = electedRate === "GRADUATED";
   for (let n = 1; n <= 6; n++) {
-    out[`sched1_item${n}_atc`] = "";
-    out[`sched1_item${n}_taxable`] = "0.00";
-    out[`sched1_item${n}_tax_due`] = "0.00";
+    out[`sched1_item${n}_atc`] = ptAtcs[n - 1];
+    if (n === 1 && isGraduated) {
+      out[`sched1_item${n}_taxable`] = formatBirAmount(quarterlyGross);
+      out[`sched1_item${n}_tax_due`] = formatBirAmount(taxDue);
+    } else {
+      out[`sched1_item${n}_taxable`] = "0.00";
+      out[`sched1_item${n}_tax_due`] = "0.00";
+    }
   }
 
   // Item 7: Total Tax Due (Sum of Items 1 to 6) (To Part II, Item 14)
@@ -310,9 +315,49 @@ function formatBirAmount(value: Decimal | number | string | null | undefined): s
 }
 
 /**
+ * Spacing between TIN digit boxes for BIR Form 2551Q (measured from the
+ * official PDF: hyphen separators at 268.7 / 325.6 / 382.4 pt).
+ */
+const TIN_DIGIT_SPACING_2551Q = 19;
+
+/**
+ * Draw a TIN value character-by-character into the printed digit boxes.
+ * Strips non-digits, then draws each digit at coord.x + i * spacing.
+ * The coord.x is the left edge of the first digit box.
+ */
+function drawTin(
+  page: PDFPage,
+  font: PDFFont,
+  tin: BirOverlayValue,
+  coord: { x: number; y: number; fontSize: number },
+  spacing: number,
+  color = { r: 0, g: 0, b: 0 },
+): void {
+  if (tin == null || tin === "" || typeof tin === "boolean") return;
+  const digits = String(tin).replace(/\D/g, "").slice(0, 12);
+  if (digits.length === 0) return;
+  const size = coord.fontSize;
+  for (let i = 0; i < digits.length; i++) {
+    page.drawText(digits[i], {
+      x: coord.x + i * spacing,
+      y: coord.y,
+      size,
+      font,
+      color: rgb(color.r, color.g, color.b),
+    });
+  }
+}
+
+/**
  * Draw a single overlay value at the given coord on the given page.
  * (Identical to 1701A's drawValue — duplicated here so the BIR modules
  * stay self-contained and don't form an unintended cross-import.)
+ *
+ * Improvements for issue #213 follow-up:
+ *  - Boolean checkboxes use coord.x/y as the checkbox center.
+ *  - Right-aligned amounts keep a small padding from the field's right edge
+ *    so long values are not clipped by the page/form border.
+ *  - Left-aligned fields use coord.x as the left edge of the input box.
  */
 function drawValue(
   page: PDFPage,
@@ -344,9 +389,12 @@ function drawValue(
   const finalSize = size * Math.min(scale, 1);
   const finalWidth = font.widthOfTextAtSize(text, finalSize);
 
+  // Small right-edge padding so amounts don't touch the form border.
+  const rightPadding = coord.align === "right" ? 3 : 0;
+
   let x = coord.x;
   if (coord.align === "right") {
-    x = coord.x - finalWidth;
+    x = coord.x - finalWidth - rightPadding;
   } else if (coord.align === "center") {
     x = coord.x - finalWidth / 2;
   }
@@ -378,7 +426,11 @@ export async function renderForm2551QOverlay(data: FilingPdfData): Promise<BirOv
     if (!coord) continue;
     const page = pages[coord.page - 1];
     if (!page) continue;
-    drawValue(page, font, value, coord);
+    if (key.endsWith("_tin")) {
+      drawTin(page, font, value, coord, TIN_DIGIT_SPACING_2551Q);
+    } else {
+      drawValue(page, font, value, coord);
+    }
     drawnKeys.push(key);
   }
 

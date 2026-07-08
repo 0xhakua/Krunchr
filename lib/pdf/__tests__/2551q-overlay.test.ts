@@ -136,6 +136,16 @@ describe("2551Q overlay (issue #213)", () => {
     expect(values[COORD_GROUPS_2551Q.tax_rate.graduated]).toBe(true);
   });
 
+  it("buildForm2551QValues: populates Schedule 1 ATC column", () => {
+    const values = buildForm2551QValues(sampleData);
+    expect(values.sched1_item1_atc).toBe("PT010");
+    expect(values.sched1_item2_atc).toBe("PT040");
+    expect(values.sched1_item3_atc).toBe("PT041");
+    expect(values.sched1_item4_atc).toBe("PT060");
+    expect(values.sched1_item5_atc).toBe("PT070");
+    expect(values.sched1_item6_atc).toBe("PT090");
+  });
+
   it("buildForm2551QValues: Total Tax Due is always ₱0.00 under 8% (BR-04)", () => {
     // RATE_8PCT: tax due = 0 regardless of quarter or gross amount
     const values = buildForm2551QValues(sampleData);

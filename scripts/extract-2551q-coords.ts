@@ -39,7 +39,7 @@ type LineItem = {
   y: number;
   fontSize: number;
   maxWidth: number;
-  align: "left" | "right";
+  align: "left" | "right" | "center";
   sourceText: string;
 };
 
@@ -70,6 +70,11 @@ type LineItemDef = {
   yMin?: number;
   // Optional: explicit y position that overrides the matched label y.
   explicitY?: number;
+  // Optional: horizontal text alignment for this field (default: "right").
+  align?: "left" | "right" | "center";
+  // Optional: vertical offset (pt) added to the matched/ explicit y to land
+  // in the input line instead of on the printed label.
+  yOffset?: number;
 };
 
 const LINE_ITEM_DEFS: LineItemDef[] = [
@@ -77,13 +82,15 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   // Item 1 (For the Year, Calendar/Fiscal) — both checkboxes
   { key: "header_calendar", number: 1, expectedSubstring: "For the", group: "Header", defaultX: 130, page: 1, yMin: 780 },
   { key: "header_fiscal", number: 1, expectedSubstring: "For the", group: "Header", defaultX: 205, page: 1, yMin: 780 },
-  // Item 2: Year Ended (MM/YYYY) — value goes in the input box on the right
-  { key: "header_year_ended", number: 2, expectedSubstring: "Year Ended", group: "Header", defaultX: 360, page: 1, yMin: 780 },
-  // Item 3: Quarter (1st/2nd/3rd/4th) — 4 checkboxes
-  { key: "header_quarter_1st", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 252, page: 1, yMin: 780, critical: true },
-  { key: "header_quarter_2nd", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 293, page: 1, yMin: 780, critical: true },
-  { key: "header_quarter_3rd", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 337, page: 1, yMin: 780, critical: true },
-  { key: "header_quarter_4th", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 378, page: 1, yMin: 780, critical: true },
+  // Item 2: Year Ended (MM/YYYY) — value goes in the input box to the right
+  // of the label (x≈35.8). Left-align the value inside that box.
+  { key: "header_year_ended", number: 2, expectedSubstring: "Year Ended", group: "Header", defaultX: 125, page: 1, yMin: 780, align: "left" },
+  // Item 3: Quarter (1st/2nd/3rd/4th) — 4 checkboxes. Measured from the
+  // actual checkbox labels at y=800.7 (not the "Quarter" label at y=813.8).
+  { key: "header_quarter_1st", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 265.6, page: 1, yMin: 780, explicitY: 800.7, align: "left", critical: true },
+  { key: "header_quarter_2nd", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 307.1, page: 1, yMin: 780, explicitY: 800.7, align: "left", critical: true },
+  { key: "header_quarter_3rd", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 350.8, page: 1, yMin: 780, explicitY: 800.7, align: "left", critical: true },
+  { key: "header_quarter_4th", number: 3, expectedSubstring: "Quarter", group: "Header", defaultX: 392.2, page: 1, yMin: 780, explicitY: 800.7, align: "left", critical: true },
   // Item 4: Amended Return? — "4" at y=814 but "Yes/No" labels at y=797 (multi-line).
   // The line item number "4" shares the row with items 1-3 (y=814), but the
   // Yes/No checkboxes are on the next row (y=797). Use explicitY for both.
@@ -95,10 +102,15 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   { key: "header_sheets_attached", number: 5, expectedSubstring: "", group: "Header", defaultX: 555, page: 1, explicitY: 801 },
 
   // ---- Part I — Background Information (items 6-13) — all on page 1 ----
-  { key: "part1_tin", number: 6, expectedSubstring: "Taxpayer Identification Number", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 700 },
+  // Item 6: TIN — drawn character-by-character by the overlay renderer.
+  // x=220 is the left edge of the first digit box; yOffset pushes the value
+  // up from the label baseline into the digit boxes.
+  { key: "part1_tin", number: 6, expectedSubstring: "Taxpayer Identification Number", group: "Part I", defaultX: 220, critical: true, page: 1, yMin: 700, yOffset: 1.3, align: "left" },
   { key: "part1_rdo_code", number: 7, expectedSubstring: "RDO Code", group: "Part I", defaultX: 540, critical: true, page: 1, yMin: 700 },
-  { key: "part1_taxpayer_name", number: 8, expectedSubstring: "Taxpayer", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 700, yMax: 760 },
-  { key: "part1_registered_address", number: 9, expectedSubstring: "Registered", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 600, yMax: 740 },
+  // Item 8: Taxpayer's Name — left-align inside the input line, raised above
+  // the printed label so it does not overlap.
+  { key: "part1_taxpayer_name", number: 8, expectedSubstring: "Taxpayer", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 700, yMax: 760, yOffset: 12, align: "left" },
+  { key: "part1_registered_address", number: 9, expectedSubstring: "Registered", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 600, yMax: 740, yOffset: 12, align: "left" },
   { key: "part1_zip_code", number: 9, expectedSubstring: "ZIP Code", group: "Part I", defaultX: 555, page: 1, yMin: 600, yMax: 720 },
   // After hand-tuning (review of tmp/2551Q-coords-check-page1.png): the
   // "Contact Number" label sits at x=36-191; nudging +10pt (200 → 210)
@@ -115,10 +127,10 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   { key: "part1_treaty_specify", number: 12, expectedSubstring: "If yes, specify", group: "Part I", defaultX: 555, page: 1, yMin: 600, yMax: 660 },
   // Item 13: What income tax rates are you availing? (Q1 only — never Q2/Q3/Q4 per BR-02)
   // The two rate-choice checkboxes are on different baselines (Graduated at
-  // y=603, 8% at y=598), and the row is split across 4 baselines (613, 603, 598, 593).
-  // Use explicitY for each checkbox.
-  { key: "part1_tax_rate_8pct", number: 13, expectedSubstring: "", group: "Part I", defaultX: 355, critical: true, page: 1, explicitY: 598 },
-  { key: "part1_tax_rate_graduated", number: 13, expectedSubstring: "", group: "Part I", defaultX: 185, page: 1, explicitY: 603 },
+  // y=602.7, 8% at y=597.5). Use explicitY and align left so the X lands
+  // inside the checkbox square to the left of each label.
+  { key: "part1_tax_rate_8pct", number: 13, expectedSubstring: "", group: "Part I", defaultX: 360, critical: true, page: 1, explicitY: 597.5, align: "left" },
+  { key: "part1_tax_rate_graduated", number: 13, expectedSubstring: "", group: "Part I", defaultX: 190, page: 1, explicitY: 602.7, align: "left" },
 
   // ---- Part II — Total Tax Payable (items 14-24) — all on page 1 ----
   { key: "part2_total_tax_due", number: 14, expectedSubstring: "Total Tax Due", group: "Part II", defaultX: 540, critical: true, page: 1, yMax: 580 },
@@ -245,16 +257,17 @@ function buildCoordMap(
       .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'")
       .replace(/\s+/g, " ");
   for (const def of defs) {
+    const align = def.align ?? "right";
     if (def.explicitY !== undefined) {
       out[def.key] = {
         key: def.key,
         label: `${def.group} item ${def.number}`,
         page: def.page ?? 1,
         x: def.defaultX,
-        y: def.explicitY,
+        y: def.explicitY + (def.yOffset ?? 0),
         fontSize: 9,
         maxWidth: 100,
-        align: "right",
+        align,
         sourceText: "(no label - blank input row)",
       };
       continue;
@@ -282,10 +295,10 @@ function buildCoordMap(
       label: `${def.group} item ${def.number}`,
       page: pick.page,
       x: def.defaultX,
-      y: pick.y,
+      y: pick.y + (def.yOffset ?? 0),
       fontSize: 9,
       maxWidth: 100,
-      align: "right",
+      align,
       sourceText: pick.labelText,
     };
   }

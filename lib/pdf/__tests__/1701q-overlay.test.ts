@@ -129,6 +129,14 @@ describe("1701Q overlay (issue #212)", () => {
     expect(values.sched2_prev_quarter_taxable).toBe("39,497.80");
   });
 
+  it("buildForm1701QValues leaves Schedule I blank under 8% election", () => {
+    const values = buildForm1701QValues(sampleData);
+    expect(values.sched1_sales).toBe("");
+    expect(values.sched1_gross_income).toBe("");
+    expect(values.sched1_net_income_this_quarter).toBe("");
+    expect(values.sched1_total_taxable_to_date).toBe("");
+  });
+
   it("buildForm1701QValues applies 250K exemption in Q1 for pure self-employment", () => {
     // For Q1 (with cumulative gross 39,497.80 < 250,000):
     // - Item 52 (Less 250K) = 250,000.00
