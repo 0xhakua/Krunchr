@@ -8,7 +8,7 @@ import type { BirFormCoord } from "./types";
 export const COORDS_1701Q: Record<string, BirFormCoord> = {
   "part1_year": {
     "page": 1,
-    "x": 80,
+    "x": 120,
     "y": 831.1,
     "fontSize": 9,
     "maxWidth": 100,
@@ -137,7 +137,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
   "part1_taxpayer_name": {
     "page": 1,
     "x": 285,
-    "y": 748.54,
+    "y": 756.54,
     "fontSize": 9,
     "maxWidth": 100,
     "align": "left"
@@ -145,7 +145,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
   "part1_registered_address": {
     "page": 1,
     "x": 285,
-    "y": 721.06,
+    "y": 729.06,
     "fontSize": 9,
     "maxWidth": 100,
     "align": "left"

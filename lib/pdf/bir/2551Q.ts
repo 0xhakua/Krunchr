@@ -211,10 +211,12 @@ export function buildForm2551QValues(data: FilingPdfData): BirOverlayValues {
   // Item 13: Income tax rate — 8% election checkbox is rendered ONLY on Q1
   // (BR-02). For Q2/Q3/Q4 the 8% election was made on Q1 2551Q and we
   // do NOT re-check the box on later quarters. We explicitly set BOTH
-  // alternatives (8pct and graduated) to false so the value map is
-  // unambiguous to callers and tests.
-  const mark8pct = quarter === 1 && electedRate === "RATE_8PCT";
-  const markGraduated = quarter === 1 && electedRate === "GRADUATED";
+  // alternatives (8pct and graduated) so the value map is unambiguous to
+  // callers and tests.
+  const is8pctElection = electedRate === "RATE_8PCT";
+  const isGraduatedElection = electedRate === "GRADUATED";
+  const mark8pct = quarter === 1 && is8pctElection;
+  const markGraduated = quarter === 1 && isGraduatedElection;
   out[COORD_GROUPS_2551Q.tax_rate["8pct"]] = mark8pct;
   out[COORD_GROUPS_2551Q.tax_rate.graduated] = markGraduated;
 
@@ -275,20 +277,22 @@ export function buildForm2551QValues(data: FilingPdfData): BirOverlayValues {
   // ============================================================
   // Schedule 1 — Computation of Tax (page 2)
   // ============================================================
-  // Items 1-6: Six ATC lines (PT010, PT040, PT041, PT060, PT070, PT090).
-  // Under 8% election, ALL tax due values are 0 (BR-04) and the ATC column
-  // is still drawn so the form is unambiguous. For non-8% filers, the gross
-  // is reported on the first applicable line (PT010) and tax due is 3%.
-  const ptAtcs = ["PT010", "PT040", "PT041", "PT060", "PT070", "PT090"];
+  // Items 1-6: Six ATC lines for percentage-tax transactions. Only the
+  // first row is populated under the graduated path with the taxpayer's
+  // primary business activity (PT010). Rows 2-6 are reserved for additional
+  // income sources / lines of business; Kuwenta does not track those
+  // separately, so they are left blank. Under the 8% path the entire
+  // schedule is blank because percentage tax is eliminated (BR-04).
   const isGraduated = electedRate === "GRADUATED";
   for (let n = 1; n <= 6; n++) {
-    out[`sched1_item${n}_atc`] = ptAtcs[n - 1];
     if (n === 1 && isGraduated) {
-      out[`sched1_item${n}_taxable`] = formatBirAmount(quarterlyGross);
-      out[`sched1_item${n}_tax_due`] = formatBirAmount(taxDue);
+      out["sched1_item1_atc"] = "PT010";
+      out["sched1_item1_taxable"] = formatBirAmount(quarterlyGross);
+      out["sched1_item1_tax_due"] = formatBirAmount(taxDue);
     } else {
-      out[`sched1_item${n}_taxable`] = "0.00";
-      out[`sched1_item${n}_tax_due`] = "0.00";
+      out[`sched1_item${n}_atc`] = "";
+      out[`sched1_item${n}_taxable`] = "";
+      out[`sched1_item${n}_tax_due`] = "";
     }
   }
 

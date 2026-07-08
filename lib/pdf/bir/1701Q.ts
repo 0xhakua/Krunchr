@@ -291,16 +291,26 @@ export function buildForm1701QValues(data: FilingPdfData): BirOverlayValues {
   out["part1_claiming_foreign_yes"] = false;
   out["part1_claiming_foreign_no"] = true;
 
-  // Item 16: Tax Rate — mark the 8% checkbox for RATE_8PCT (the primary
-  // Kuwenta path), Graduated for GRADUATED. OSD/Itemized are sub-choices
-  // under the graduated path; we don't mark them unless the electedRate
-  // is set to those values (not currently exposed in the schema).
+  // Item 16: Tax Rate — mark the 8% checkbox whenever the taxpayer has
+  // actively elected RATE_8PCT. This covers both the 8-return path
+  // (election made on 2551Q Item 13, corIncludes2551Q === true) and the
+  // 4-return path (election made here on 1701Q Item 16 because the COR
+  // does not include 2551Q, corIncludes2551Q === false) per BR-02 / BR-14.
+  // Graduated, Itemized and OSD are left unmarked unless explicitly elected.
   if (electedRate === "RATE_8PCT") {
     out[COORD_GROUPS_1701Q.tax_rate["8pct"]] = true;
+    out[COORD_GROUPS_1701Q.tax_rate.graduated] = false;
+    out[COORD_GROUPS_1701Q.tax_rate.itemized] = false;
+    out[COORD_GROUPS_1701Q.tax_rate.osd] = false;
   } else if (electedRate === "GRADUATED") {
-    out[COORD_GROUPS_1701Q.tax_rate.graduated] = true;
-  } else {
     out[COORD_GROUPS_1701Q.tax_rate["8pct"]] = false;
+    out[COORD_GROUPS_1701Q.tax_rate.graduated] = true;
+    out[COORD_GROUPS_1701Q.tax_rate.itemized] = false;
+    out[COORD_GROUPS_1701Q.tax_rate.osd] = false;
+  } else {
+    // No active election: leave all tax-rate checkboxes unmarked.
+    out[COORD_GROUPS_1701Q.tax_rate["8pct"]] = false;
+    out[COORD_GROUPS_1701Q.tax_rate.graduated] = false;
   }
 
   // ============================================================
