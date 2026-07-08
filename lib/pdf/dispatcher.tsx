@@ -3,9 +3,9 @@ import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import Decimal from 'decimal.js'
 import { prisma } from '@/lib/prisma'
 import { Form2551Q } from './templates/form-2551q'
-import { Form1701Q } from './templates/form-1701q'
 import { Form1701A } from './templates/form-1701a'
 import { Form1701 } from './templates/form-1701'
+import { renderForm1701QOverlay } from './bir/1701Q'
 import { ReturnPdf } from './return-pdf'
 import { renderForm1701AOverlay } from './bir/1701A'
 
@@ -170,12 +170,15 @@ export function FilingPdfElement(data: FilingPdfData): React.ReactElement<Docume
   switch (data.ret.formType) {
     case 'FORM_2551Q':
       return <Form2551Q data={data} />
-    case 'FORM_1701Q':
-      return <Form1701Q data={data} />
     case 'FORM_1701A':
       return <Form1701A data={data} />
     case 'FORM_1701':
       return <Form1701 data={data} />
+    // FORM_1701Q is intentionally absent — it routes through
+    // renderFilingPdf → renderForm1701QOverlay (high-fidelity pdf-lib
+    // overlay on the official BIR 1701Q PDF, per issue #212). The
+    // legacy Form1701Q react-pdf template was deleted; the overlay is
+    // the only path. See lib/pdf/bir/1701Q.ts.
     default:
       return (
         <ReturnPdf
@@ -195,11 +198,16 @@ export function FilingPdfElement(data: FilingPdfData): React.ReactElement<Docume
 export async function renderFilingPdf(returnId: string, userId: string): Promise<Buffer | null> {
   const data = await loadFilingData(returnId, userId)
   if (!data) return null
-  // Issue #159: 1701A renders as a flat overlay on the official BIR PDF
-  // (high-fidelity facsimile). 1701Q, 2551Q, and 1701 still use the
-  // react-pdf templates until their overlays are built.
+  // Issue #159 (PR #210): 1701A renders as a flat overlay on the official
+  // BIR PDF (high-fidelity facsimile). Issue #212 extends the same approach
+  // to 1701Q. 2551Q and 1701 still use the react-pdf templates until their
+  // overlays are built (tracked in #213 / Phase 2).
   if (data.ret.formType === 'FORM_1701A') {
     const result = await renderForm1701AOverlay(data)
+    return Buffer.from(result.bytes)
+  }
+  if (data.ret.formType === 'FORM_1701Q') {
+    const result = await renderForm1701QOverlay(data)
     return Buffer.from(result.bytes)
   }
   return renderToBuffer(FilingPdfElement(data))

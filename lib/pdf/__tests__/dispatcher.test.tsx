@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
 import { FilingPdfElement, type FilingPdfData } from '../dispatcher'
 import { Form2551Q } from '../templates/form-2551q'
-import { Form1701Q } from '../templates/form-1701q'
 import { Form1701A } from '../templates/form-1701a'
 import { Form1701 } from '../templates/form-1701'
+import { ReturnPdf } from '../return-pdf'
 
 // Reference engagement fixture: full-year gross ₱187,009.33, CWT ₱18,700.92,
 // prior-year credit ₱54,270.00. Used by scripts/verify-computations.ts.
@@ -83,10 +83,17 @@ describe('FilingPdfElement routing', () => {
     expect((element as React.ReactElement).type).toBe(Form2551Q)
   })
 
-  it('routes FORM_1701Q to Form1701Q', () => {
+  it('FORM_1701Q is no longer in FilingPdfElement (issue #212 overlay path)', () => {
+    // Per issue #212, FORM_1701Q no longer routes through FilingPdfElement.
+    // It now goes through renderFilingPdf → renderForm1701QOverlay (the
+    // pdf-lib overlay on the official BIR 1701Q PDF). The legacy Form1701Q
+    // react-pdf template was deleted.
+    // FilingPdfElement for FORM_1701Q therefore falls through to the
+    // default case and returns the generic <ReturnPdf />. The full overlay
+    // path is covered by lib/pdf/__tests__/1701q-overlay.test.ts.
     const element = FilingPdfElement(makeData('FORM_1701Q', 1))
     expect(React.isValidElement(element)).toBe(true)
-    expect((element as React.ReactElement).type).toBe(Form1701Q)
+    expect((element as React.ReactElement).type).toBe(ReturnPdf)
   })
 
   it('routes FORM_1701A to Form1701A', () => {
