@@ -39,7 +39,7 @@ type LineItem = {
   y: number;
   fontSize: number;
   maxWidth: number;
-  align: "left" | "right";
+  align: "left" | "right" | "center";
   sourceText: string;
 };
 

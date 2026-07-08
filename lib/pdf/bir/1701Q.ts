@@ -33,6 +33,7 @@ import { COORDS_1701Q } from "../coords/1701Q.generated";
 import {
   loadOfficialBirPdf,
   type BirOverlayResult,
+  type BirOverlayValue,
   type BirOverlayValues,
 } from "./types";
 import type { FilingPdfData } from "../dispatcher";
@@ -502,12 +503,12 @@ const TIN_DIGIT_SPACING_1701Q = 18;
 function drawTin(
   page: PDFPage,
   font: PDFFont,
-  tin: string | number | null | undefined,
+  tin: BirOverlayValue,
   coord: { x: number; y: number; fontSize: number },
   spacing: number,
   color = { r: 0, g: 0, b: 0 },
 ): void {
-  if (tin == null || tin === "") return;
+  if (tin == null || tin === "" || typeof tin === "boolean") return;
   const digits = String(tin).replace(/\D/g, "").slice(0, 12);
   if (digits.length === 0) return;
   const size = coord.fontSize;
