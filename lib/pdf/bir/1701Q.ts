@@ -344,23 +344,37 @@ export function buildForm1701QValues(data: FilingPdfData): BirOverlayValues {
   out["part4_others"] = "";
 
   // ============================================================
-  // Part V / Schedule I — Graduated IT Rate (mapped for completeness;
-  // Kuwenta primary path is Schedule II 8% below)
+  // Part V / Schedule I — Graduated IT Rate
   // ============================================================
-  out["sched1_sales"] = formatBirAmount(cumulativeGross);
-  out["sched1_cost_of_sales"] = "0.00";
-  out["sched1_gross_income"] = formatBirAmount(cumulativeGross);
-  out["sched1_itemized_deductions"] = "0.00";
-  out["sched1_osd"] = "0.00";
-  out["sched1_net_income_this_quarter"] = formatBirAmount(cumulativeGross);
-  out["sched1_prev_quarter_taxable"] = formatBirAmount(priorPayments);
-  out["sched1_non_operating_income"] = "0.00";
-  out["sched1_gpp_income"] = "0.00";
-  out["sched1_total_taxable_to_date"] = formatBirAmount(cumulativeGross);
-  // Schedule I Item 46 tax due is bracket-based; we don't compute that
-  // here. Leave blank — the dispatcher renders the 8% path values
-  // (Items 47-54) below.
-  out["sched1_tax_due"] = "";
+  // Schedule I is the graduated path and must be LEFT BLANK when the taxpayer
+  // elected the 8% flat rate (BR-02 / BR-14). Only Schedule II is populated
+  // under the 8% path.
+  const isGraduated = electedRate === "GRADUATED";
+  if (isGraduated) {
+    out["sched1_sales"] = formatBirAmount(cumulativeGross);
+    out["sched1_cost_of_sales"] = "0.00";
+    out["sched1_gross_income"] = formatBirAmount(cumulativeGross);
+    out["sched1_itemized_deductions"] = "0.00";
+    out["sched1_osd"] = "0.00";
+    out["sched1_net_income_this_quarter"] = formatBirAmount(cumulativeGross);
+    out["sched1_prev_quarter_taxable"] = formatBirAmount(priorPayments);
+    out["sched1_non_operating_income"] = "0.00";
+    out["sched1_gpp_income"] = "0.00";
+    out["sched1_total_taxable_to_date"] = formatBirAmount(cumulativeGross);
+    out["sched1_tax_due"] = "";
+  } else {
+    out["sched1_sales"] = "";
+    out["sched1_cost_of_sales"] = "";
+    out["sched1_gross_income"] = "";
+    out["sched1_itemized_deductions"] = "";
+    out["sched1_osd"] = "";
+    out["sched1_net_income_this_quarter"] = "";
+    out["sched1_prev_quarter_taxable"] = "";
+    out["sched1_non_operating_income"] = "";
+    out["sched1_gpp_income"] = "";
+    out["sched1_total_taxable_to_date"] = "";
+    out["sched1_tax_due"] = "";
+  }
 
   // ============================================================
   // Part V / Schedule II — 8% IT Rate (PRIMARY Kuwenta path)
@@ -475,9 +489,49 @@ function formatBirAmount(value: Decimal | number | string | null | undefined): s
 }
 
 /**
+ * Spacing between TIN digit boxes for BIR Form 1701Q (measured from the
+ * official PDF: hyphen separators at 247.3 / 305.1 / 362.9 pt).
+ */
+const TIN_DIGIT_SPACING_1701Q = 18;
+
+/**
+ * Draw a TIN value character-by-character into the printed digit boxes.
+ * Strips non-digits, then draws each digit at coord.x + i * spacing.
+ * The coord.x is the left edge of the first digit box.
+ */
+function drawTin(
+  page: PDFPage,
+  font: PDFFont,
+  tin: string | number | null | undefined,
+  coord: { x: number; y: number; fontSize: number },
+  spacing: number,
+  color = { r: 0, g: 0, b: 0 },
+): void {
+  if (tin == null || tin === "") return;
+  const digits = String(tin).replace(/\D/g, "").slice(0, 12);
+  if (digits.length === 0) return;
+  const size = coord.fontSize;
+  for (let i = 0; i < digits.length; i++) {
+    page.drawText(digits[i], {
+      x: coord.x + i * spacing,
+      y: coord.y,
+      size,
+      font,
+      color: rgb(color.r, color.g, color.b),
+    });
+  }
+}
+
+/**
  * Draw a single overlay value at the given coord on the given page.
  * (Identical to 1701A's drawValue — duplicated here so the BIR modules
  * stay self-contained and don't form an unintended cross-import.)
+ *
+ * Improvements for issue #212 follow-up:
+ *  - Boolean checkboxes use coord.x/y as the checkbox center.
+ *  - Right-aligned amounts keep a small padding from the field's right edge
+ *    so long values are not clipped by the page/form border.
+ *  - Left-aligned fields use coord.x as the left edge of the input box.
  */
 function drawValue(
   page: PDFPage,
@@ -509,9 +563,12 @@ function drawValue(
   const finalSize = size * Math.min(scale, 1);
   const finalWidth = font.widthOfTextAtSize(text, finalSize);
 
+  // Small right-edge padding so amounts don't touch the form border.
+  const rightPadding = coord.align === "right" ? 3 : 0;
+
   let x = coord.x;
   if (coord.align === "right") {
-    x = coord.x - finalWidth;
+    x = coord.x - finalWidth - rightPadding;
   } else if (coord.align === "center") {
     x = coord.x - finalWidth / 2;
   }
@@ -543,7 +600,11 @@ export async function renderForm1701QOverlay(data: FilingPdfData): Promise<BirOv
     if (!coord) continue;
     const page = pages[coord.page - 1];
     if (!page) continue;
-    drawValue(page, font, value, coord);
+    if (key.endsWith("_tin")) {
+      drawTin(page, font, value, coord, TIN_DIGIT_SPACING_1701Q);
+    } else {
+      drawValue(page, font, value, coord);
+    }
     drawnKeys.push(key);
   }
 

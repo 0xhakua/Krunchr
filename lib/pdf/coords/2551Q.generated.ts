@@ -24,43 +24,43 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   },
   "header_year_ended": {
     "page": 1,
-    "x": 360,
+    "x": 125,
     "y": 797.38,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "header_quarter_1st": {
     "page": 1,
-    "x": 252,
-    "y": 813.82,
+    "x": 265.6,
+    "y": 800.7,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "header_quarter_2nd": {
     "page": 1,
-    "x": 293,
-    "y": 813.82,
+    "x": 307.1,
+    "y": 800.7,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "header_quarter_3rd": {
     "page": 1,
-    "x": 337,
-    "y": 813.82,
+    "x": 350.8,
+    "y": 800.7,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "header_quarter_4th": {
     "page": 1,
-    "x": 378,
-    "y": 813.82,
+    "x": 392.2,
+    "y": 800.7,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "header_amended_yes": {
     "page": 1,
@@ -88,11 +88,11 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   },
   "part1_tin": {
     "page": 1,
-    "x": 285,
-    "y": 763.66,
+    "x": 220,
+    "y": 765,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_rdo_code": {
     "page": 1,
@@ -105,18 +105,18 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   "part1_taxpayer_name": {
     "page": 1,
     "x": 285,
-    "y": 748.9,
+    "y": 760.9,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_registered_address": {
     "page": 1,
     "x": 285,
-    "y": 719.74,
+    "y": 731.74,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_zip_code": {
     "page": 1,
@@ -168,19 +168,19 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   },
   "part1_tax_rate_8pct": {
     "page": 1,
-    "x": 355,
-    "y": 598,
+    "x": 360,
+    "y": 597.5,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part1_tax_rate_graduated": {
     "page": 1,
-    "x": 185,
-    "y": 603,
+    "x": 190,
+    "y": 602.7,
     "fontSize": 9,
     "maxWidth": 100,
-    "align": "right"
+    "align": "left"
   },
   "part2_total_tax_due": {
     "page": 1,

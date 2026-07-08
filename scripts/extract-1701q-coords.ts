@@ -79,12 +79,17 @@ type LineItemDef = {
   yMin?: number;
   // Optional: explicit y position that overrides the matched label y.
   explicitY?: number;
+  // Optional: horizontal text alignment for this field (default: "right").
+  align?: "left" | "right" | "center";
+  // Optional: vertical offset (pt) added to the matched/ explicit y to land
+  // in the input line instead of on the printed label.
+  yOffset?: number;
 };
 
 const LINE_ITEM_DEFS: LineItemDef[] = [
   // ---- Part I: Background Information on Taxpayer/Filer (items 1-16) ----
   // All on page 1, y > 600.
-  { key: "part1_year", number: 1, expectedSubstring: "For the Year", group: "Part I", defaultX: 360, page: 1, yMin: 600 },
+  { key: "part1_year", number: 1, expectedSubstring: "For the Year", group: "Part I", defaultX: 80, page: 1, yMin: 600, align: "left" },
   { key: "part1_quarter_first", number: 2, expectedSubstring: "Quarter", group: "Part I", defaultX: 185, page: 1, yMin: 600, critical: true },
   { key: "part1_quarter_second", number: 2, expectedSubstring: "Quarter", group: "Part I", defaultX: 232, page: 1, yMin: 600, critical: true },
   { key: "part1_quarter_third", number: 2, expectedSubstring: "Quarter", group: "Part I", defaultX: 285, page: 1, yMin: 600, critical: true },
@@ -97,7 +102,7 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   // across y=836 and y=827. Label-driven matching can't see "Sheet" on the
   // item-number's baseline, so we use explicitY for the value row.
   { key: "part1_sheets_attached", number: 4, expectedSubstring: "", group: "Part I", defaultX: 555, page: 1, explicitY: 836 },
-  { key: "part1_tin", number: 5, expectedSubstring: "Taxpayer Identification Number", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 700 },
+  { key: "part1_tin", number: 5, expectedSubstring: "Taxpayer Identification Number", group: "Part I", defaultX: 205, critical: true, page: 1, yMin: 700, yOffset: 0.4, align: "left" },
   { key: "part1_rdo_code", number: 6, expectedSubstring: "RDO Code", group: "Part I", defaultX: 340, critical: true, page: 1, yMin: 700 },
   // Item 7 = Taxpayer/Filer Type — mutually exclusive checkboxes. The label
   // "Taxpayer/Filer Type" sits at y=782 (below the TIN row at y=798). After
@@ -117,8 +122,10 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   // avoid matching "Taxpayer" alone (which would also match the Type row).
   // yMax: 750 excludes the "Taxpayer/Filer Type" row (y=782) and pins the
   // match to the "Taxpayer/Filer's Name" row (y=737).
-  { key: "part1_taxpayer_name", number: 9, expectedSubstring: "Taxpayer/Filer", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 700, yMax: 750 },
-  { key: "part1_registered_address", number: 10, expectedSubstring: "Registered Address", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 600 },
+  // Item 9: Taxpayer/Filer's Name — left-align inside the input line, raised
+  // above the printed label so it does not overlap.
+  { key: "part1_taxpayer_name", number: 9, expectedSubstring: "Taxpayer/Filer", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 700, yMax: 750, yOffset: 12, align: "left" },
+  { key: "part1_registered_address", number: 10, expectedSubstring: "Registered Address", group: "Part I", defaultX: 285, critical: true, page: 1, yMin: 600, yOffset: 12, align: "left" },
   { key: "part1_zip_code", number: 10, expectedSubstring: "ZIP Code", group: "Part I", defaultX: 555, page: 1, yMin: 600 },
   { key: "part1_date_of_birth", number: 11, expectedSubstring: "Date of Birth", group: "Part I", defaultX: 130, page: 1, yMin: 600 },
   { key: "part1_email", number: 12, expectedSubstring: "Email Address", group: "Part I", defaultX: 400, page: 1, yMin: 600 },
@@ -130,16 +137,13 @@ const LINE_ITEM_DEFS: LineItemDef[] = [
   // (the "Yes" label sits at x=524).
   { key: "part1_claiming_foreign_yes", number: 15, expectedSubstring: "Claiming Foreign Tax Credits?", group: "Part I", defaultX: 534, page: 1, yMin: 600 },
   { key: "part1_claiming_foreign_no", number: 15, expectedSubstring: "Claiming Foreign Tax Credits?", group: "Part I", defaultX: 570, page: 1, yMin: 600 },
-  // Item 16 = Tax Rate. 8% on gross sales/receipts (in lieu of Graduated Rates
-  // under Sec. 24(A)(2)(a) & Percentage Tax under Sec. 116 of the NIRC). This
-  // is the 8% election checkbox for taxpayers whose COR does not include 2551Q.
-  // The number "16" sits at y=609 but the four rate-choice checkboxes are on
-  // different baselines (8% at y=574, Graduated/Itemized/OSD at y=599), so we
-  // use explicitY for each checkbox rather than label-driven matching.
-  { key: "part1_tax_rate_8pct", number: 16, expectedSubstring: "", group: "Part I", defaultX: 30, critical: true, page: 1, explicitY: 574 },
-  { key: "part1_tax_rate_graduated", number: 16, expectedSubstring: "", group: "Part I", defaultX: 30, page: 1, explicitY: 599 },
-  { key: "part1_tax_rate_itemized", number: 16, expectedSubstring: "", group: "Part I", defaultX: 240, page: 1, explicitY: 599 },
-  { key: "part1_tax_rate_osd", number: 16, expectedSubstring: "", group: "Part I", defaultX: 370, page: 1, explicitY: 599 },
+  // Item 16 = Tax Rate. The checkbox squares are to the left of the labels;
+  // measured label positions: 8% x=78.6/y=574.1, Graduated x=79.1/y=598.5,
+  // Itemized x=247.3/y=598.5, OSD x=377.5/y=598.5.
+  { key: "part1_tax_rate_8pct", number: 16, expectedSubstring: "", group: "Part I", defaultX: 70, critical: true, page: 1, explicitY: 574.1, align: "left" },
+  { key: "part1_tax_rate_graduated", number: 16, expectedSubstring: "", group: "Part I", defaultX: 70, page: 1, explicitY: 598.5, align: "left" },
+  { key: "part1_tax_rate_itemized", number: 16, expectedSubstring: "", group: "Part I", defaultX: 240, page: 1, explicitY: 598.5, align: "left" },
+  { key: "part1_tax_rate_osd", number: 16, expectedSubstring: "", group: "Part I", defaultX: 370, page: 1, explicitY: 598.5, align: "left" },
 
   // ---- Part II: Spouse — out of scope (single-filer). Items 17-25 skipped. ----
 
@@ -297,16 +301,17 @@ function buildCoordMap(
       .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'")
       .replace(/\s+/g, " ");
   for (const def of defs) {
+    const align = def.align ?? "right";
     if (def.explicitY !== undefined) {
       out[def.key] = {
         key: def.key,
         label: `${def.group} item ${def.number}`,
         page: def.page ?? 1,
         x: def.defaultX,
-        y: def.explicitY,
+        y: def.explicitY + (def.yOffset ?? 0),
         fontSize: 9,
         maxWidth: 100,
-        align: "right",
+        align,
         sourceText: "(no label - blank input row)",
       };
       continue;
@@ -334,10 +339,10 @@ function buildCoordMap(
       label: `${def.group} item ${def.number}`,
       page: pick.page,
       x: def.defaultX,
-      y: pick.y,
+      y: pick.y + (def.yOffset ?? 0),
       fontSize: 9,
       maxWidth: 100,
-      align: "right",
+      align,
       sourceText: pick.labelText,
     };
   }
