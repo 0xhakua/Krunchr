@@ -32,7 +32,7 @@ export const COORDS_1701A: Record<string, BirFormCoord> = {
   },
   "part1_tin": {
     "page": 1,
-    "x": 200,
+    "x": 285,
     "y": 785.62,
     "fontSize": 9,
     "maxWidth": 100,
@@ -48,7 +48,7 @@ export const COORDS_1701A: Record<string, BirFormCoord> = {
   },
   "part1_atc": {
     "page": 1,
-    "x": 200,
+    "x": 285,
     "y": 752.86,
     "fontSize": 9,
     "maxWidth": 100,
@@ -72,7 +72,7 @@ export const COORDS_1701A: Record<string, BirFormCoord> = {
   },
   "part1_taxpayer_name": {
     "page": 1,
-    "x": 200,
+    "x": 285,
     "y": 723.34,
     "fontSize": 9,
     "maxWidth": 100,
@@ -80,7 +80,7 @@ export const COORDS_1701A: Record<string, BirFormCoord> = {
   },
   "part1_registered_address": {
     "page": 1,
-    "x": 200,
+    "x": 285,
     "y": 694.78,
     "fontSize": 9,
     "maxWidth": 100,

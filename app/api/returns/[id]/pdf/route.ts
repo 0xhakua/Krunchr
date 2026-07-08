@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { renderToBuffer } from '@react-pdf/renderer'
 import { requireAuth } from '@/lib/auth/session'
-import { loadFilingData, FilingPdfElement } from '@/lib/pdf/dispatcher'
+import { loadFilingData, renderFilingPdf } from '@/lib/pdf/dispatcher'
 
 export async function GET(
   req: Request,
@@ -22,7 +21,10 @@ export async function GET(
       return NextResponse.json({ error: 'Return not found' }, { status: 404 })
     }
 
-    const pdfBuffer = await renderToBuffer(FilingPdfElement(data))
+    const pdfBuffer = await renderFilingPdf(id, session.sub)
+    if (!pdfBuffer) {
+      return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 })
+    }
     const form = data.ret.formType.replace('FORM_', '')
     const quarter = data.ret.quarter ? `Q${data.ret.quarter}` : 'Annual'
     const filename = `${form}-${quarter}-${data.taxYear.year}.pdf`
