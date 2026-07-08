@@ -2,7 +2,6 @@ import React from 'react'
 import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
 import { FilingPdfElement, type FilingPdfData } from '../dispatcher'
-import { Form2551Q } from '../templates/form-2551q'
 import { Form1701A } from '../templates/form-1701a'
 import { Form1701 } from '../templates/form-1701'
 import { ReturnPdf } from '../return-pdf'
@@ -77,10 +76,17 @@ function makeData(formType: FilingPdfData['ret']['formType'], quarter: number | 
 }
 
 describe('FilingPdfElement routing', () => {
-  it('routes FORM_2551Q to Form2551Q', () => {
+  it('FORM_2551Q is no longer in FilingPdfElement (issue #213 overlay path)', () => {
+    // Per issue #213, FORM_2551Q no longer routes through FilingPdfElement.
+    // It now goes through renderFilingPdf → renderForm2551QOverlay (the
+    // pdf-lib overlay on the official BIR 2551Q PDF). The legacy Form2551Q
+    // react-pdf template was deleted.
+    // FilingPdfElement for FORM_2551Q therefore falls through to the
+    // default case and returns the generic <ReturnPdf />. The full overlay
+    // path is covered by lib/pdf/__tests__/2551q-overlay.test.ts.
     const element = FilingPdfElement(makeData('FORM_2551Q', 1))
     expect(React.isValidElement(element)).toBe(true)
-    expect((element as React.ReactElement).type).toBe(Form2551Q)
+    expect((element as React.ReactElement).type).toBe(ReturnPdf)
   })
 
   it('FORM_1701Q is no longer in FilingPdfElement (issue #212 overlay path)', () => {
