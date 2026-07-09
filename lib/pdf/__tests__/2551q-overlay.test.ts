@@ -136,14 +136,15 @@ describe("2551Q overlay (issue #213)", () => {
     expect(values[COORD_GROUPS_2551Q.tax_rate.graduated]).toBe(true);
   });
 
-  it("buildForm2551QValues: populates Schedule 1 ATC column", () => {
+  it("buildForm2551QValues: leaves Schedule 1 blank under 8% (BR-04)", () => {
     const values = buildForm2551QValues(sampleData);
-    expect(values.sched1_item1_atc).toBe("PT010");
-    expect(values.sched1_item2_atc).toBe("PT040");
-    expect(values.sched1_item3_atc).toBe("PT041");
-    expect(values.sched1_item4_atc).toBe("PT060");
-    expect(values.sched1_item5_atc).toBe("PT070");
-    expect(values.sched1_item6_atc).toBe("PT090");
+    expect(values.sched1_item1_atc).toBe("");
+    expect(values.sched1_item2_atc).toBe("");
+    expect(values.sched1_item3_atc).toBe("");
+    expect(values.sched1_item4_atc).toBe("");
+    expect(values.sched1_item5_atc).toBe("");
+    expect(values.sched1_item6_atc).toBe("");
+    expect(values.sched1_total_tax_due).toBe("0.00");
   });
 
   it("buildForm2551QValues: Total Tax Due is always ₱0.00 under 8% (BR-04)", () => {
@@ -151,23 +152,27 @@ describe("2551Q overlay (issue #213)", () => {
     const values = buildForm2551QValues(sampleData);
     expect(values.part2_total_tax_due).toBe("0.00");
     expect(values.sched1_total_tax_due).toBe("0.00");
-    expect(values.sched1_item1_tax_due).toBe("0.00");
-    expect(values.sched1_item2_tax_due).toBe("0.00");
-    expect(values.sched1_item3_tax_due).toBe("0.00");
-    expect(values.sched1_item4_tax_due).toBe("0.00");
-    expect(values.sched1_item5_tax_due).toBe("0.00");
-    expect(values.sched1_item6_tax_due).toBe("0.00");
   });
 
-  it("buildForm2551QValues: Total Tax Due is 3% × gross under GRADUATED", () => {
+  it("buildForm2551QValues: populates only Schedule 1 row 1 under GRADUATED", () => {
     const gradData: FilingPdfData = {
       ...sampleData,
       taxYear: { ...sampleData.taxYear, electedRate: "GRADUATED" },
-      ret: { ...sampleData.ret, computedTaxDue: new Decimal("1184.93") }, // 3% × 39497.80
+      ret: { ...sampleData.ret, computedTaxDue: new Decimal("1184.93") },
     };
     const values = buildForm2551QValues(gradData);
     // 39,497.80 × 3% = 1,184.93
     expect(values.part2_total_tax_due).toBe("1,184.93");
+    expect(values.sched1_item1_atc).toBe("PT010");
+    expect(values.sched1_item1_taxable).toBe("39,497.80");
+    expect(values.sched1_item1_tax_due).toBe("1,184.93");
+    expect(values.sched1_item2_atc).toBe("");
+    expect(values.sched1_item2_taxable).toBe("");
+    expect(values.sched1_item2_tax_due).toBe("");
+    expect(values.sched1_item3_atc).toBe("");
+    expect(values.sched1_item4_atc).toBe("");
+    expect(values.sched1_item5_atc).toBe("");
+    expect(values.sched1_item6_atc).toBe("");
   });
 
   it("buildForm2551QValues: CWT is sum of current-quarter CWT only (Item 15)", () => {

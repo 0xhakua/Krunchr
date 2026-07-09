@@ -111,6 +111,16 @@ describe("1701Q overlay (issue #212)", () => {
     expect(values[COORD_GROUPS_1701Q.tax_rate["8pct"]]).toBe(true);
   });
 
+  it("buildForm1701QValues: marks 8% checkbox on the 4-return path (corIncludes2551Q=false)", () => {
+    const no2551qPath: FilingPdfData = {
+      ...sampleData,
+      taxpayer: { ...sampleData.taxpayer, corIncludes2551Q: false },
+    };
+    const values = buildForm1701QValues(no2551qPath);
+    expect(values[COORD_GROUPS_1701Q.tax_rate["8pct"]]).toBe(true);
+    expect(values[COORD_GROUPS_1701Q.tax_rate.graduated]).toBe(false);
+  });
+
   it("buildForm1701QValues computes Schedule II 8% path (Items 47-54) correctly", () => {
     // Cumulative gross through Q2 = ₱39,497.80 + ₱60,291.42 = ₱99,789.22
     // For Q2, the 250K exemption was already consumed in Q1's

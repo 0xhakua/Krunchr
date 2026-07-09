@@ -24,7 +24,7 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   },
   "header_year_ended": {
     "page": 1,
-    "x": 125,
+    "x": 165,
     "y": 797.38,
     "fontSize": 9,
     "maxWidth": 100,
@@ -105,7 +105,7 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   "part1_taxpayer_name": {
     "page": 1,
     "x": 285,
-    "y": 760.9,
+    "y": 768.9,
     "fontSize": 9,
     "maxWidth": 100,
     "align": "left"
@@ -113,7 +113,7 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   "part1_registered_address": {
     "page": 1,
     "x": 285,
-    "y": 731.74,
+    "y": 739.74,
     "fontSize": 9,
     "maxWidth": 100,
     "align": "left"
@@ -129,7 +129,7 @@ export const COORDS_2551Q: Record<string, BirFormCoord> = {
   "part1_contact_number": {
     "page": 1,
     "x": 210,
-    "y": 672.22,
+    "y": 680.22,
     "fontSize": 9,
     "maxWidth": 100,
     "align": "right"
