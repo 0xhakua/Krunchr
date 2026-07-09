@@ -27,6 +27,7 @@ import {
   type BirOverlayValues,
 } from "./types";
 import type { FilingPdfData } from "../dispatcher";
+import { drawCharacterBoxes } from "../helpers/character-boxes";
 
 /**
  * Groups of alternative coords — exactly one entry per group is rendered.
@@ -78,6 +79,41 @@ export function formatBirAmount(value: Decimal | number | string | null | undefi
     maximumFractionDigits: 2,
   });
 }
+
+/**
+ * Convert the stored 12-digit TIN (NNN-NNN-NNN-NNN) into the character-box
+ * layout used by BIR Form 1701A. Page 1 prints the dashes, so the returned
+ * string includes them; Page 2 uses a continuous row of boxes, so dashes are
+ * omitted.
+ */
+export function formatTinFor1701ACharacterBoxes(
+  tin: string | null | undefined,
+  options: { includeDashes?: boolean } = { includeDashes: true }
+): string {
+  if (!tin) return "";
+  const digits = tin.replace(/\D/g, "").slice(0, 12);
+  if (digits.length < 9) return "";
+  const base = digits.slice(0, 9);
+  const branch = digits.slice(9).padStart(4, "0");
+  if (options.includeDashes === false) {
+    return `${base}${branch}`;
+  }
+  return `${base.slice(0, 3)}-${base.slice(3, 6)}-${base.slice(6, 9)}-${branch}`;
+}
+
+/**
+ * Geometry for the BIR Form 1701A character-box fields.
+ * These are calibrated against the official January 2018 ENCS PDF so each
+ * digit lands centered in its printed box.
+ */
+const CHARACTER_BOX_CONFIGS: Record<
+  string,
+  { page: number; startX: number; startY: number; boxWidth: number }
+> = {
+  part1_tin: { page: 1, startX: 25.0, startY: 769.0, boxWidth: 14.4 },
+  part1_rdo_code: { page: 1, startX: 305.0, startY: 769.0, boxWidth: 14.4 },
+  page2_tin: { page: 2, startX: 14.8, startY: 831.7, boxWidth: 13.86 },
+};
 
 /**
  * Compute the Q1–Q3 CWT (sum of CWT on Q1–Q3 certificates).
@@ -184,6 +220,9 @@ export function buildForm1701AValues(data: FilingPdfData): BirOverlayValues {
 
   // Item 5: RDO Code
   out["part1_rdo_code"] = data.taxpayer.rdoCode;
+
+  // Page 2 header repeats the TIN in the same character-box format.
+  out["page2_tin"] = data.taxpayer.tin;
 
   // Item 6: Taxpayer Type — alternative group; runtime picks one
   // based on the taxpayer's natureOfBusiness.
@@ -425,10 +464,30 @@ export async function renderForm1701AOverlay(data: FilingPdfData): Promise<BirOv
 
   for (const [key, value] of Object.entries(values)) {
     const coord = COORDS_1701A[key];
-    if (!coord) continue;
-    const page = pages[coord.page - 1];
+    const boxConfig = CHARACTER_BOX_CONFIGS[key];
+    if (!coord && !boxConfig) continue;
+
+    if (boxConfig) {
+      const page = pages[boxConfig.page - 1];
+      if (!page) continue;
+      const text = key.includes("tin")
+        ? formatTinFor1701ACharacterBoxes(value as string, { includeDashes: key !== "page2_tin" })
+        : String(value ?? "");
+      drawCharacterBoxes({
+        page,
+        value: text,
+        startX: boxConfig.startX,
+        startY: boxConfig.startY,
+        boxWidth: boxConfig.boxWidth,
+        font,
+      });
+      drawnKeys.push(key);
+      continue;
+    }
+
+    const page = pages[coord!.page - 1];
     if (!page) continue;
-    drawValue(page, font, value, coord);
+    drawValue(page, font, value, coord!);
     drawnKeys.push(key);
   }
 

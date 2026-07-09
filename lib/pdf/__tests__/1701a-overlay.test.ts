@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { renderForm1701AOverlay, buildForm1701AValues, COORD_GROUPS_1701A, inferTaxpayerType } from '../bir/1701A'
+import { renderForm1701AOverlay, buildForm1701AValues, COORD_GROUPS_1701A, inferTaxpayerType, formatTinFor1701ACharacterBoxes } from '../bir/1701A'
 import type { FilingPdfData } from '../dispatcher'
 
 const OFFICIAL_PDF = join(process.cwd(), 'public', 'bir-forms', '1701A.pdf')
@@ -86,6 +86,30 @@ describe('1701A overlay (issue #159)', () => {
     expect(inferTaxpayerType('Architect')).toBe('professional')
     expect(inferTaxpayerType('')).toBe('single_proprietor')
     expect(inferTaxpayerType(null)).toBe('single_proprietor')
+  })
+
+  it('formatTinFor1701ACharacterBoxes pads the 12-digit stored TIN to the 13-character BIR layout', () => {
+    expect(formatTinFor1701ACharacterBoxes('123-456-789-001')).toBe('123-456-789-0001')
+    expect(formatTinFor1701ACharacterBoxes('123456789001')).toBe('123-456-789-0001')
+    expect(formatTinFor1701ACharacterBoxes('000-000-000-000')).toBe('000-000-000-0000')
+    expect(formatTinFor1701ACharacterBoxes('')).toBe('')
+    expect(formatTinFor1701ACharacterBoxes(null)).toBe('')
+  })
+
+  it('formatTinFor1701ACharacterBoxes can omit dashes for continuous-box rows', () => {
+    expect(formatTinFor1701ACharacterBoxes('123-456-789-001', { includeDashes: false })).toBe(
+      '1234567890001',
+    )
+  })
+
+  it('buildForm1701AValues repeats the TIN on the Page 2 header row', () => {
+    const values = buildForm1701AValues(sampleData)
+    expect(values.page2_tin).toBe('123-456-789-001')
+  })
+
+  it('renderForm1701AOverlay draws Page 2 TIN header as a character-box field', async () => {
+    const result = await renderForm1701AOverlay(sampleData)
+    expect(result.drawnKeys).toContain('page2_tin')
   })
 
   it('buildForm1701AValues populates all coord keys with sensible values', () => {
