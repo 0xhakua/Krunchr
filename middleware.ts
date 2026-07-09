@@ -8,7 +8,14 @@ import { unsupportedMediaType } from './lib/api-error'
 // on Railway because Prisma is unavailable and env access is inconsistent.
 export const runtime = 'nodejs'
 
-const PUBLIC_PATHS = ['/login', '/register', '/api/auth/login', '/api/auth/register']
+const PUBLIC_PATHS = [
+  '/login',
+  '/register',
+  '/api/auth/login',
+  '/api/auth/register',
+  '/bir-forms',
+  ...(process.env.NODE_ENV === 'development' ? ['/dev'] : []),
+]
 
 function isJsonApiRoute(req: NextRequest): boolean {
   const { pathname } = req.nextUrl
