@@ -232,8 +232,6 @@ sequenceDiagram
 
 No Soroban/Rust contract crates are present in this repository (no `Cargo.toml`, no `contracts/` directory). All Stellar interaction is off-chain SDK usage (`@stellar/stellar-sdk`) submitting `manageData` operations directly — there is currently no on-chain contract layer. See the ecosystem-expansion research (linked under [Further Reading](#further-reading)) for a proposed Soroban receipt-registry contract design.
 
-<!-- PLACEHOLDER: Soroban smart contracts — document each contract's purpose, public functions, parameters, and deployment/upload process here. -->
-
 ## Tech Stack
 
 **Frontend**
@@ -322,25 +320,11 @@ Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and test taxpayers `maria`,
 
 Per `.github/workflows/deploy.yml` and `SPEC.md`, the app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database, and file storage together. On push to `main`, CI POSTs to a Railway deploy-hook URL stored in the `RAILWAY_DEPLOY_HOOK` GitHub secret (the workflow skips deployment gracefully if the secret is unset). `docs/railway-env.md` and `docs/railway-cli-runbook.md` document Railway-specific environment setup and CLI recipes. As noted in [Known Gaps](#known-gaps-vs-specmd), there is no `Dockerfile`/`railway.json` committed to the repo — deploy configuration currently lives in the Railway dashboard rather than as code. [inferred: no live deployment URL is present in the repo]
 
-- **Production URL:** `[PLACEHOLDER: Live app URL]`
-- **Railway project dashboard:** `[PLACEHOLDER: Railway project URL]`
-
-## Demo
-
-- **Live app:** `[PLACEHOLDER: Live app URL]`
-- **Demo video:** `[PLACEHOLDER: Demo video URL]`
-- **Screenshot:** `[PLACEHOLDER: screenshot]`
-
 ## Team
-
-| Name | Role | Contact |
-|---|---|---|
-| `[PLACEHOLDER: Name]` | `[PLACEHOLDER: Role]` | `[PLACEHOLDER: Contact]` |
-| `[PLACEHOLDER: Name]` | `[PLACEHOLDER: Role]` | `[PLACEHOLDER: Contact]` |
 
 ## License
 
-No `LICENSE` file is present in this repository. `[PLACEHOLDER: License name]`
+No `LICENSE` file is present in this repository.
 
 ## Further Reading
 
