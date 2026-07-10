@@ -321,23 +321,8 @@ Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and test taxpayers `maria`,
 Per `.github/workflows/deploy.yml` and `SPEC.md`, the app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database, and file storage together. On push to `main`, CI POSTs to a Railway deploy-hook URL stored in the `RAILWAY_DEPLOY_HOOK` GitHub secret (the workflow skips deployment gracefully if the secret is unset). `docs/railway-env.md` and `docs/railway-cli-runbook.md` document Railway-specific environment setup and CLI recipes. As noted in [Known Gaps](#known-gaps-vs-specmd), there is no `Dockerfile`/`railway.json` committed to the repo — deploy configuration currently lives in the Railway dashboard rather than as code. [inferred: no live deployment URL is present in the repo]
 
 ## Team
+Artisam Labs (hello@artisam.xyz)
 
 ## License
 
-No `LICENSE` file is present in this repository.
-
-## Further Reading
-
-- [`SPEC.md`](./SPEC.md) — full product specification and business rules
-- [`AGENT.md`](./AGENT.md) — coding conventions for contributors/agents
-- [`BRAND.md`](./BRAND.md) — design system and brand identity
-- [`LOGO.md`](./LOGO.md) — logo generation prompts
-- [`docs/features.md`](./docs/features.md) — auto-generated feature changelog
-- [`docs/quick-start-guide.md`](./docs/quick-start-guide.md) — first-time user walkthrough
-- [`docs/test-flow-guide.md`](./docs/test-flow-guide.md) — end-to-end demo/test flow guide
-- [`docs/client-update.md`](./docs/client-update.md) — current project status in plain language
-- [`docs/client-guides/INDEX.md`](./docs/client-guides/INDEX.md) — client-provided BIR form guides and study materials
-- [`docs/migrations.md`](./docs/migrations.md) — database migration conventions
-- [`docs/railway-env.md`](./docs/railway-env.md) — Railway environment/deployment notes
-- [`docs/railway-cli-runbook.md`](./docs/railway-cli-runbook.md) — Railway CLI one-off command recipes
-- Stellar ecosystem expansion research and business-impact analysis — see the corresponding GitHub issue in this repository
+Released under the MIT License. Copyright © 2026 Artisam Labs.
