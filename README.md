@@ -35,7 +35,6 @@ Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Acces
 ## Features
 
 **Auth & Onboarding**
-- Self-service registration with rate limiting and Zod validation, alongside seeded accounts — `app/register`, `/api/auth/register` *(note: this postdates `SPEC.md`, which still describes admin-seeded-only accounts — see [Known Gaps](#known-gaps-vs-specmd))*
 - 4-step taxpayer onboarding (personal info, eligibility, ATC setup, tax-year init) with TIN normalization and ZIP lookup — `app/(dashboard)/onboarding`
 - 5-point eligibility validation (individual taxpayer, self-employment income, non-VAT, gross receipts < ₱3,000,000, no prior graduated-rate Q1 filing) — `/api/taxpayer/eligibility`, `lib/computation/eligibility.ts`
 - ATC code setup with a lookup table and admin-configurable EWT rates — `/api/atc`
@@ -79,7 +78,6 @@ A codebase audit against `SPEC.md` found the implementation **ahead of** the spe
 - **BR-17 not enforced at the API layer**: `SPEC.md`'s own rule that Form 1701A generation should be hard-blocked for taxpayers not on an active 8% election is documented in code comments (`lib/computation/annual-income.ts`) but not actually checked in `app/api/returns/[id]/generate/route.ts` — a graduated-rate-elected user could plausibly generate a 1701A today.
 - **Election page UI copy is stale**: `app/(dashboard)/election/page.tsx` still displays "graduated computations are not yet implemented"-style text, even though the computation layer fully supports graduated rates and OSD.
 - **No deployment-as-code**: no `Dockerfile`/`railway.json`/`railway.toml` in the repo; production deploys rely on Railway dashboard state plus runbook docs (`docs/railway-cli-runbook.md`), not committed infrastructure config.
-- **`SPEC.md` itself is stale in places**: it documents "no registration — admin account seeded only," but a working self-service registration flow now exists; OSD election and the Form 1701 PDF template aren't mentioned in the spec's schema/business-rule sections at all.
 
 ## Architecture
 
@@ -279,7 +277,7 @@ No Soroban/Rust contract crates are present in this repository (no `Cargo.toml`,
    | Variable | Required? | Notes |
    |---|---|---|
    | `JWT_SECRET` | Required | HS256 signing key for session JWTs |
-   | `ADMIN_PASSWORD` | Required | Bootstraps the seeded admin account |
+   | `ADMIN_PASSWORD` | Required | Bootstraps the account |
    | `DATABASE_URL` | Required | PostgreSQL connection string |
    | `NODE_ENV` | Required | `development` / `test` / `production` |
    | `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | Optional [inferred] | Present in `.env.example` but auth is JWT/cookie-based via `lib/auth/session.ts`, not NextAuth |
