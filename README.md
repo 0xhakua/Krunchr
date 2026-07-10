@@ -4,17 +4,16 @@
 
 Krunchr is a web application that automates Philippine BIR tax compliance for self-employed freelancers and mixed-income earners on the 8% flat income-tax rate, and cryptographically anchors proof of every filed return on the Stellar network. A user uploads their BIR Form 2307 withholding certificates; Krunchr computes their full tax position, walks them through all eight legally-mandated returns (2551Q ×4, 1701Q ×3, 1701A/1701) in the correct statutory order, generates ready-to-file BIR PDFs and a SAWT summary, and — on filing — SHA-256-hashes the signed return and writes that hash to the Stellar ledger as a `manageData` entry. The result is a compliance record that isn't just "saved to a database," but independently, publicly verifiable by anyone who queries the chain: a bank underwriting a loan, an embassy processing a visa, or a BIR auditor, in seconds, without trusting Krunchr's servers.
 
-For the Stellar ecosystem, Krunchr is a live, non-speculative "Real World Access" use case in a market where Stellar already has payment-rail traction (Coins.ph, MoneyGram's PHP/USDC corridor) but — as far as this project's research could establish — no shipped tax-compliance or government-RegTech product: it demonstrates Stellar's low-cost `manageData`/anchoring primitives solving an actual, everyday compliance problem for millions of Philippine freelancers, and (per the roadmap in [issue-tracked research](#further-reading)) opens a path toward deeper ecosystem integration — Soroban-based attestation registries, SEP-12/24 anchor payouts for freelancers paid in USDC, and portable verifiable-compliance credentials — that go well beyond the current hash-anchoring implementation.
+For the Stellar ecosystem, Krunchr is a live, non-speculative "Real World Access" use case in a market where Stellar already has payment-rail traction (Coins.ph, MoneyGram's PHP/USDC corridor) but — as far as this project's research could establish — no shipped tax-compliance or government-RegTech product: it demonstrates Stellar's low-cost `manageData`/anchoring primitives solving an actual, everyday compliance problem for millions of Philippine freelancers, and  opens a path toward deeper ecosystem integration — Soroban-based attestation registries, SEP-12/24 anchor payouts for freelancers paid in USDC, and portable verifiable-compliance credentials — that go well beyond the current hash-anchoring implementation.
 
 ## Status
 
 | | |
 |---|---|
-| **Version** | `0.1.0` (from `package.json`; no git tags/releases published) [inferred: pre-release/hackathon build] |
+| **Version** | `0.1.0` 
 | **Branch** | `develop` (default), CI runs on `develop` and `main`; CI currently green |
-| **License** | Not specified — no `LICENSE` file in the repo |
-| **Track** | APAC Stellar Hackathon 2026 — Local Finance & Real World Access (per `SPEC.md`) |
-| **Maturity** | Actively developed (100+ commits in the days prior to this update) — computation engine, admin tooling, and Stellar anchoring are substantially ahead of what `SPEC.md`/`CLAUDE.md` describe; see [Known Gaps](#known-gaps-vs-specmd) below |
+| **License** | Released under the MIT License. Copyright © 2026 Artisam Labs. |
+| **Track** | APAC Stellar Hackathon 2026 — Local Finance & Real World Access  |
 
 ## Problem
 
@@ -22,7 +21,7 @@ Filipino self-employed professionals and freelancers must file up to **8 sequent
 
 ## Vision / Purpose
 
-Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Access** track, Krunchr's stated goal (per `SPEC.md`) is a single demo moment: a freelancer uploads their 2307 certificates, the system computes their full tax position, generates all sequenced returns, and each filed return is permanently anchored on Stellar — producing a compliance trail that banks and embassies can verify in seconds. That demo moment is implemented and working end-to-end today. Beyond the hackathon deliverable, the codebase has grown into a fuller compliance product — self-service registration, graduated-rate and OSD computation, SAWT generation, prior-year-credit lineage tracking, and a nearly-complete admin console — positioning it as a real product rather than a single demo path. [inferred: hackathon-originated project maturing toward a real compliance product]
+Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Access** track, Krunchr's stated goal is a single demo moment: a freelancer uploads their 2307 certificates, the system computes their full tax position, generates all sequenced returns, and each filed return is permanently anchored on Stellar — producing a compliance trail that banks and embassies can verify in seconds. That demo moment is implemented and working end-to-end today. Beyond the hackathon deliverable, the codebase has grown into a fuller compliance product — self-service registration, graduated-rate and OSD computation, SAWT generation, prior-year-credit lineage tracking, and a nearly-complete admin console — positioning it as a real product rather than a single demo path.
 
 ## Target Users
 
@@ -226,10 +225,6 @@ sequenceDiagram
     API-->>UI: Updated receipt status
 ```
 
-## Smart Contracts
-
-No Soroban/Rust contract crates are present in this repository (no `Cargo.toml`, no `contracts/` directory). All Stellar interaction is off-chain SDK usage (`@stellar/stellar-sdk`) submitting `manageData` operations directly — there is currently no on-chain contract layer. See the ecosystem-expansion research (linked under [Further Reading](#further-reading)) for a proposed Soroban receipt-registry contract design.
-
 ## Tech Stack
 
 **Frontend**
@@ -237,17 +232,17 @@ No Soroban/Rust contract crates are present in this repository (no `Cargo.toml`,
 - Tailwind CSS 4.3.1, shadcn 4.12.0, `class-variance-authority` 0.7.1, `lucide-react` 1.21.0
 
 **Backend / API**
-- Next.js API routes (Node.js 20+, per `SPEC.md`/CI)
+- Next.js API routes (Node.js 20+)
 - Prisma 5 ORM over PostgreSQL
 - `jose` 5 (JWT signing/verification), `bcrypt` 5 (password hashing)
-- `decimal.js` 10 (monetary arithmetic — never native JS numbers per `CLAUDE.md`), `zod` 3 (validation)
+- `decimal.js` 10, `zod` 3 (validation)
 
 **Blockchain**
-- `@stellar/stellar-sdk` ^12 — Horizon client, `manageData` anchoring, keypair management (testnet, per `.env.example`)
+- `@stellar/stellar-sdk` ^12 — Horizon client, `manageData` anchoring, keypair management 
 
 **Documents**
 - `@react-pdf/renderer` 4.5.1 (server-side PDF generation)
-- `exceljs` 4.4.0, `xlsx` 0.18.5 (spreadsheet export), `jszip` 3.10.1 (filing-package ZIP), `react-qr-code` 2.2.0
+- `exceljs` 4.4.0, `xlsx` 0.18.5 (spreadsheet export), `jszip` 3.10.1, `react-qr-code` 2.2.0
 
 **Infra / Storage**
 - PostgreSQL 16 (Docker: `postgres:16-alpine`; production: Railway Postgres)
@@ -316,11 +311,10 @@ Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and test taxpayers `maria`,
 
 ## Deployment
 
-Per `.github/workflows/deploy.yml` and `SPEC.md`, the app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database, and file storage together. On push to `main`, CI POSTs to a Railway deploy-hook URL stored in the `RAILWAY_DEPLOY_HOOK` GitHub secret (the workflow skips deployment gracefully if the secret is unset). `docs/railway-env.md` and `docs/railway-cli-runbook.md` document Railway-specific environment setup and CLI recipes. As noted in [Known Gaps](#known-gaps-vs-specmd), there is no `Dockerfile`/`railway.json` committed to the repo — deploy configuration currently lives in the Railway dashboard rather than as code. [inferred: no live deployment URL is present in the repo]
+The app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database, and file storage together. On push to `main`, CI POSTs to a Railway deploy-hook URL stored in the `RAILWAY_DEPLOY_HOOK` GitHub secret (the workflow skips deployment gracefully if the secret is unset). `docs/railway-env.md` and `docs/railway-cli-runbook.md` document Railway-specific environment setup and CLI recipes. As noted , there is no `Dockerfile`/`railway.json` committed to the repo — deploy configuration currently lives in the Railway dashboard rather than as code.
 
 ## Team
 Artisam Labs (hello@artisam.xyz)
 
 ## License
-
 Released under the MIT License. Copyright © 2026 Artisam Labs.
