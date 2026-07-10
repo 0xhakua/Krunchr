@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { registerSchema } from '@/lib/validation/schemas'
+import { registerBaseSchema } from '@/lib/validation/schemas'
 
 type FieldErrors = {
   username?: string
@@ -39,11 +39,11 @@ export default function RegisterPage() {
   const validateField = useCallback(
     (name: keyof FieldErrors, value: string): string | undefined => {
       if (name === 'username') {
-        const result = registerSchema.shape.username.safeParse(value)
+        const result = registerBaseSchema.shape.username.safeParse(value)
         return result.success ? undefined : result.error.errors[0].message
       }
       if (name === 'password') {
-        const result = registerSchema.shape.password.safeParse(value)
+        const result = registerBaseSchema.shape.password.safeParse(value)
         return result.success ? undefined : result.error.errors[0].message
       }
       if (name === 'confirmPassword') {
