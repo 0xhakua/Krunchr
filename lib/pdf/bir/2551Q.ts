@@ -322,7 +322,7 @@ function formatBirAmount(value: Decimal | number | string | null | undefined): s
  * Spacing between TIN digit boxes for BIR Form 2551Q (measured from the
  * official PDF: hyphen separators at 268.7 / 325.6 / 382.4 pt).
  */
-const TIN_DIGIT_SPACING_2551Q = 19;
+const TIN_DIGIT_SPACING_2551Q = 14;
 
 /**
  * Draw a TIN value character-by-character into the printed digit boxes.

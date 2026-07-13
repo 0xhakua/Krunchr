@@ -6,8 +6,8 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
   "part1_year": {
     "page": 1,
     "x": 95,
-    "y": 834.5,
-    "fontSize": 9,
+    "y": 830,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -15,7 +15,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 195.5,
     "y": 835.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -23,7 +23,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 239.5,
     "y": 836,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -31,7 +31,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 297.5,
     "y": 836,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -39,7 +39,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 428.5,
     "y": 835,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -47,31 +47,31 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 470.5,
     "y": 833.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
   "part1_sheets_attached": {
     "page": 1,
     "x": 574,
-    "y": 834,
-    "fontSize": 9,
+    "y": 830,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
   "part1_tin": {
     "page": 1,
-    "x": 205.5,
-    "y": 802,
-    "fontSize": 9,
+    "x": 203,
+    "y": 798,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
   "part1_rdo_code": {
     "page": 1,
     "x": 540.5,
-    "y": 802.5,
-    "fontSize": 9,
+    "y": 798,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -79,7 +79,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 120,
     "y": 785.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -87,7 +87,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 227,
     "y": 785.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -95,7 +95,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 329.5,
     "y": 785,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -103,7 +103,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 414,
     "y": 785,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -111,7 +111,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 163.5,
     "y": 753.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -119,7 +119,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 309.5,
     "y": 755,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -127,7 +127,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 471,
     "y": 754,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -135,7 +135,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 22.5,
     "y": 726.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -143,7 +143,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 22.5,
     "y": 699,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -151,7 +151,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 541,
     "y": 681,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -159,7 +159,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 22.5,
     "y": 654,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -167,7 +167,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 133.5,
     "y": 654,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -175,7 +175,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 22,
     "y": 626,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -183,7 +183,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 249.5,
     "y": 626.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -191,7 +191,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 510,
     "y": 626,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -199,7 +199,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 557,
     "y": 626,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -207,7 +207,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 67,
     "y": 578.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -215,7 +215,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 66,
     "y": 599,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -223,7 +223,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 234,
     "y": 600.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -231,7 +231,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 364,
     "y": 600,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -239,7 +239,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 369.5,
     "y": 340.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -247,7 +247,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 368.5,
     "y": 325.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -255,7 +255,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 369,
     "y": 309.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -263,7 +263,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 369,
     "y": 293.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -271,7 +271,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 369.5,
     "y": 278,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -279,7 +279,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 428,
     "y": 261.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -287,7 +287,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 124,
     "y": 155,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -295,7 +295,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 124,
     "y": 139,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -303,7 +303,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 211,
     "y": 124.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -311,7 +311,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 1,
     "x": 23.5,
     "y": 97,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -319,7 +319,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363.5,
     "y": 766.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -327,7 +327,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 20.5,
     "y": 829.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -335,7 +335,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 213.5,
     "y": 830,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -343,7 +343,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362,
     "y": 750.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -351,7 +351,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363.5,
     "y": 736,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -359,7 +359,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 708,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -367,7 +367,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 680,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -375,7 +375,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 664.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -383,7 +383,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 648.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -391,7 +391,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 631.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -399,7 +399,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362,
     "y": 616.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -407,7 +407,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362,
     "y": 599.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -415,7 +415,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 584,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -423,7 +423,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 553.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -431,7 +431,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363.5,
     "y": 536,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -439,7 +439,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 520.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -447,7 +447,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 503.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -455,7 +455,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362,
     "y": 488,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -463,7 +463,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 471,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -471,7 +471,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363.5,
     "y": 454.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -479,7 +479,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 437.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -487,7 +487,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363.5,
     "y": 407.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -495,7 +495,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 390.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -503,7 +503,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 374.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -511,7 +511,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 358.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -519,7 +519,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 344,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -527,7 +527,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 327.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -535,7 +535,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 310,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -543,7 +543,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362,
     "y": 295.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -551,7 +551,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 275.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -559,7 +559,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 245,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -567,7 +567,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362.5,
     "y": 227,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -575,7 +575,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 363,
     "y": 213,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -583,7 +583,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 364,
     "y": 198,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   },
@@ -591,7 +591,7 @@ export const COORDS_1701Q: Record<string, BirFormCoord> = {
     "page": 2,
     "x": 362,
     "y": 176.5,
-    "fontSize": 9,
+    "fontSize": 10,
     "maxWidth": 100,
     "align": "left"
   }
