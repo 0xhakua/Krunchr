@@ -326,11 +326,11 @@ The app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database
 
 - **Production URL:** `https://app.krunchr.xyz/`
 
-## Demo
+## 🎥 Demo
 
-- **Live app:** `https://krunchr.xyz/`
-- **Demo video:** `https://drive.google.com/drive/folders/11WN3vL8cmt9BONtL-ZYhmI9h4okpqK7b`
-- **Pitch deck:** `https://docs.google.com/presentation/d/1XH8VVeQiOx_EedatgHA3xo1HOmKepcue/edit?usp=sharing&ouid=107646735560696939398&rtpof=true&sd=true`
+- **🔗 Live app:** https://krunchr.xyz/
+- **🎬 Demo video:** https://drive.google.com/drive/folders/17Xs1sLuX_jf_swINoBStGZniXu02DKeH
+- **🖼️ Pitch deck:** https://drive.google.com/drive/folders/1Xe_AXHO618326qsyQpHO99a37O-SVv-4
 
 ## Team
 
