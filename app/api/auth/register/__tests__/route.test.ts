@@ -103,7 +103,7 @@ describe('POST /api/auth/register', () => {
 
     expect(res.status).toBe(409)
     expect(body).toMatchObject({
-      error: 'Username already taken',
+      error: 'That username is already taken — please choose another one.',
       code: 'USERNAME_TAKEN',
     })
     expect(mocks.create).not.toHaveBeenCalled()
@@ -120,9 +120,9 @@ describe('POST /api/auth/register', () => {
     const body = await res.json()
 
     expect(res.status).toBe(400)
-    expect(body.error).toBe('Invalid input')
+    expect(body.error).toBe('Some fields need a quick fix — please check the highlighted fields and try again.')
     expect(body.details).toHaveProperty('confirmPassword')
-    expect(body.details.confirmPassword).toContain('Passwords do not match')
+    expect(body.details.confirmPassword).toContain("Passwords don't match — please re-enter them")
     expect(mocks.findUnique).not.toHaveBeenCalled()
   })
 
@@ -137,7 +137,7 @@ describe('POST /api/auth/register', () => {
     const body = await res.json()
 
     expect(res.status).toBe(400)
-    expect(body.error).toBe('Invalid input')
+    expect(body.error).toBe('Some fields need a quick fix — please check the highlighted fields and try again.')
     expect(body.details).toHaveProperty('password')
     expect(mocks.findUnique).not.toHaveBeenCalled()
   })
@@ -147,7 +147,7 @@ describe('POST /api/auth/register', () => {
     const body = await res.json()
 
     expect(res.status).toBe(400)
-    expect(body.error).toBe('Invalid input')
+    expect(body.error).toBe('Some fields need a quick fix — please check the highlighted fields and try again.')
     expect(body.details).toHaveProperty('username')
     expect(body.details).toHaveProperty('password')
     expect(body.details).toHaveProperty('confirmPassword')
@@ -187,7 +187,7 @@ describe('POST /api/auth/register', () => {
 
     expect(res.status).toBe(503)
     expect(body).toMatchObject({
-      error: 'Registration temporarily unavailable',
+      error: 'Registration is temporarily unavailable. Please try again in a few minutes.',
       code: 'DB_UNAVAILABLE',
     })
   })

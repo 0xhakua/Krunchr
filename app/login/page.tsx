@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import {
   Card,
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -44,9 +46,16 @@ export default function LoginPage() {
     (field: keyof FieldErrors) => {
       setTouched((prev) => ({ ...prev, [field]: true }))
       const value = field === 'username' ? username : password
+      // Don't scold the user for an empty field just because they clicked
+      // into it and moved on — required-field errors only appear after a
+      // submit attempt. Non-empty values are still validated right away.
+      if (!value && !submitted) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }))
+        return
+      }
       runFieldValidation(field, value)
     },
-    [username, password, runFieldValidation]
+    [username, password, submitted, runFieldValidation]
   )
 
   const handleChange = useCallback(
@@ -70,6 +79,7 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setSubmitted(true)
     setTouched({ username: true, password: true })
     setError('')
 
@@ -91,13 +101,13 @@ export default function LoginPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error || 'Login failed')
+        setError(data.error || 'We could not sign you in. Please try again.')
         return
       }
 
       router.push('/dashboard')
     } catch {
-      setError('An unexpected error occurred')
+      setError('Could not reach the server. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
@@ -130,9 +140,8 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => handleChange('password', e.target.value)}
                 onBlur={() => handleBlur('password')}

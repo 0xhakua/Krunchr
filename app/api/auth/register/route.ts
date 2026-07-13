@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     if (!result.success) {
       return NextResponse.json(
         {
-          error: 'Invalid input',
+          error: 'Some fields need a quick fix — please check the highlighted fields and try again.',
           details: result.error.flatten().fieldErrors,
         },
         { status: 400 }
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       })
       return NextResponse.json(
         {
-          error: 'Registration temporarily unavailable',
+          error: 'Registration is temporarily unavailable. Please try again in a few minutes.',
           code: 'DB_UNAVAILABLE',
         },
         { status: 503 }
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       return NextResponse.json(
-        { error: 'Username already taken', code: 'USERNAME_TAKEN' },
+        { error: 'That username is already taken — please choose another one.', code: 'USERNAME_TAKEN' },
         { status: 409 }
       )
     }
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
         errorMessage: hashErr instanceof Error ? hashErr.message : String(hashErr),
       })
       return NextResponse.json(
-        { error: 'Registration temporarily unavailable' },
+        { error: 'Registration is temporarily unavailable. Please try again in a few minutes.' },
         { status: 500 }
       )
     }
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
       })
       return NextResponse.json(
         {
-          error: 'Registration temporarily unavailable',
+          error: 'Registration is temporarily unavailable. Please try again in a few minutes.',
           code: 'DB_UNAVAILABLE',
         },
         { status: 503 }
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       })
       return NextResponse.json(
         {
-          error: 'Registration temporarily unavailable',
+          error: 'Registration is temporarily unavailable. Please try again in a few minutes.',
           code: 'AUTH_CONFIG_MISSING',
         },
         { status: 503 }
@@ -153,6 +153,9 @@ export async function POST(req: NextRequest) {
       errorName: err instanceof Error ? err.name : typeof err,
       errorMessage: err instanceof Error ? err.message : String(err),
     })
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Something went wrong on our end. Please try again.' },
+      { status: 500 }
+    )
   }
 }
