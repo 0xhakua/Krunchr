@@ -57,6 +57,100 @@ function formatTin(value: string): string {
   return parts.join('-')
 }
 
+// Client-side rules mirror taxpayerSchema in lib/validation/schemas.ts so the
+// user sees errors immediately instead of only on final submit.
+const tinPattern = /^\d{3}-\d{3}-\d{3}(-\d{3})?$/
+const phonePattern = /^(?:\+63|0)\d{9,11}$/
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+type FormValues = {
+  tin: string
+  firstName: string
+  lastName: string
+  middleInitial: string
+  rdoCode: string
+  phoneNumber: string
+  email: string
+  registeredAddress: string
+  cityMunicipality: string
+  province: string
+  zipCode: string
+  natureOfBusiness: string
+  incomeType: string
+  corIncludes2551Q: string
+  isNewRegistrant: string
+  selectedAtcCodes: string[]
+  taxYear: number
+}
+
+function validateField(name: string, form: FormValues): string | null {
+  switch (name) {
+    case 'firstName':
+      return form.firstName.trim() ? null : 'First name is required'
+    case 'lastName':
+      return form.lastName.trim() ? null : 'Last name is required'
+    case 'middleInitial':
+      return form.middleInitial.length <= 2
+        ? null
+        : 'Middle initial must be at most 2 characters'
+    case 'tin': {
+      const tin = form.tin.trim()
+      if (!tin) return 'TIN is required'
+      return tinPattern.test(tin)
+        ? null
+        : 'TIN must be in format NNN-NNN-NNN or NNN-NNN-NNN-NNN'
+    }
+    case 'rdoCode':
+      return form.rdoCode.trim() ? null : 'RDO code is required'
+    case 'phoneNumber': {
+      const phone = form.phoneNumber.trim()
+      if (!phone) return 'Phone number is required'
+      return phonePattern.test(phone)
+        ? null
+        : 'Phone number must be a valid Philippine number (e.g. +639171234567 or 09171234567)'
+    }
+    case 'email': {
+      const email = form.email.trim()
+      if (!email) return 'Email is required'
+      return emailPattern.test(email) ? null : 'Email must be a valid email address'
+    }
+    case 'zipCode': {
+      const zip = form.zipCode.trim()
+      if (!zip) return 'ZIP code is required'
+      return /^\d{4}$/.test(zip) ? null : 'ZIP code must be a 4-digit Philippine ZIP code'
+    }
+    case 'registeredAddress':
+      return form.registeredAddress.trim() ? null : 'Registered address is required'
+    case 'natureOfBusiness':
+      return form.natureOfBusiness.trim() ? null : 'Nature of business is required'
+    case 'atcCodes':
+      return form.selectedAtcCodes.length > 0 ? null : 'Select at least one ATC code'
+    case 'taxYear':
+      return Number.isInteger(form.taxYear) && form.taxYear >= 2000 && form.taxYear <= 2100
+        ? null
+        : 'Tax year must be between 2000 and 2100'
+    default:
+      return null
+  }
+}
+
+const stepFields: Record<number, string[]> = {
+  0: [
+    'firstName',
+    'lastName',
+    'middleInitial',
+    'tin',
+    'rdoCode',
+    'phoneNumber',
+    'email',
+    'zipCode',
+    'registeredAddress',
+    'natureOfBusiness',
+  ],
+  2: ['atcCodes'],
+  3: ['taxYear'],
+}
+
 export default function OnboardingForm() {
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -65,7 +159,7 @@ export default function OnboardingForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [atcCodes, setAtcCodes] = useState<ATCCode[]>([])
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormValues>({
     tin: '',
     firstName: '',
     lastName: '',
@@ -86,6 +180,7 @@ export default function OnboardingForm() {
   })
 
   const [eligibility, setEligibility] = useState<EligibilityCheck | null>(null)
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     fetch('/api/atc')
@@ -96,9 +191,43 @@ export default function OnboardingForm() {
 
   function updateField(field: string, value: string | number | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }))
+    // Editing a field clears any server-side error for it; the live client
+    // rule (shown once the field is touched) takes over from here.
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
+  function markTouched(field: string) {
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }))
+  }
+
+  // Validates every field in the given step, marks them touched so errors
+  // render, and reports whether the user may advance.
+  function validateStep(s: number): boolean {
+    const fields = stepFields[s] ?? []
+    const valid = fields.every((field) => validateField(field, form) === null)
+    if (!valid) {
+      setTouched((prev) => {
+        const next = { ...prev }
+        for (const field of fields) next[field] = true
+        return next
+      })
+    }
+    return valid
   }
 
   function selectLocation(entry: ZipCodeEntry | null) {
+    markTouched('zipCode')
+    setFieldErrors((prev) => {
+      if (!prev.zipCode) return prev
+      const next = { ...prev }
+      delete next.zipCode
+      return next
+    })
     if (!entry) {
       setForm((prev) => ({
         ...prev,
@@ -120,6 +249,13 @@ export default function OnboardingForm() {
   }
 
   function toggleAtc(code: string) {
+    markTouched('atcCodes')
+    setFieldErrors((prev) => {
+      if (!prev.atcCodes) return prev
+      const next = { ...prev }
+      delete next.atcCodes
+      return next
+    })
     setForm((prev) => ({
       ...prev,
       selectedAtcCodes: prev.selectedAtcCodes.includes(code)
@@ -156,6 +292,18 @@ export default function OnboardingForm() {
   }
 
   async function submit() {
+    // Final safety net — re-run every step's client rules before posting,
+    // and jump back to the earliest step that has a problem.
+    if (!validateStep(0)) {
+      setStep(0)
+      return
+    }
+    if (!validateStep(2)) {
+      setStep(2)
+      return
+    }
+    if (!validateStep(3)) return
+
     setLoading(true)
     setError('')
     setFieldErrors({})
@@ -209,6 +357,12 @@ export default function OnboardingForm() {
   }
 
   function fieldError(name: string): string | null {
+    // A touched field shows its live client-side error first; otherwise fall
+    // back to whatever the server returned on the last submit.
+    if (touched[name]) {
+      const clientError = validateField(name, form)
+      if (clientError) return clientError
+    }
     const arr = fieldErrors[name]
     return Array.isArray(arr) && arr.length > 0 ? arr[0] : null
   }
@@ -230,6 +384,7 @@ export default function OnboardingForm() {
                       id="firstName"
                       value={form.firstName}
                       onChange={(e) => updateField('firstName', e.target.value)}
+                      onBlur={() => markTouched('firstName')}
                       required
                     />
                     {fieldError('firstName') && (
@@ -242,6 +397,7 @@ export default function OnboardingForm() {
                       id="lastName"
                       value={form.lastName}
                       onChange={(e) => updateField('lastName', e.target.value)}
+                      onBlur={() => markTouched('lastName')}
                       required
                     />
                     {fieldError('lastName') && (
@@ -256,6 +412,7 @@ export default function OnboardingForm() {
                       id="middleInitial"
                       value={form.middleInitial}
                       onChange={(e) => updateField('middleInitial', e.target.value.toUpperCase())}
+                      onBlur={() => markTouched('middleInitial')}
                       maxLength={2}
                     />
                     {fieldError('middleInitial') && (
@@ -268,6 +425,7 @@ export default function OnboardingForm() {
                       id="tin"
                       value={form.tin}
                       onChange={(e) => updateField('tin', formatTin(e.target.value))}
+                      onBlur={() => markTouched('tin')}
                       placeholder="000-000-000"
                       maxLength={14}
                       required
@@ -283,6 +441,7 @@ export default function OnboardingForm() {
                     id="rdoCode"
                     value={form.rdoCode}
                     onChange={(e) => updateField('rdoCode', e.target.value)}
+                    onBlur={() => markTouched('rdoCode')}
                     required
                   />
                 </div>
@@ -302,6 +461,7 @@ export default function OnboardingForm() {
                       type="tel"
                       value={form.phoneNumber}
                       onChange={(e) => updateField('phoneNumber', e.target.value)}
+                      onBlur={() => markTouched('phoneNumber')}
                       placeholder="+639171234567 or 09171234567"
                       required
                     />
@@ -316,6 +476,7 @@ export default function OnboardingForm() {
                       type="email"
                       value={form.email}
                       onChange={(e) => updateField('email', e.target.value)}
+                      onBlur={() => markTouched('email')}
                       placeholder="you@example.com"
                       required
                     />
@@ -362,6 +523,7 @@ export default function OnboardingForm() {
                     id="registeredAddress"
                     value={form.registeredAddress}
                     onChange={(e) => updateField('registeredAddress', e.target.value)}
+                    onBlur={() => markTouched('registeredAddress')}
                     placeholder="Street address, barangay"
                     required
                   />
@@ -386,6 +548,7 @@ export default function OnboardingForm() {
                     id="natureOfBusiness"
                     value={form.natureOfBusiness}
                     onChange={(e) => updateField('natureOfBusiness', e.target.value)}
+                    onBlur={() => markTouched('natureOfBusiness')}
                     required
                   />
                 </div>
@@ -540,6 +703,7 @@ export default function OnboardingForm() {
                 type="number"
                 value={form.taxYear}
                 onChange={(e) => updateField('taxYear', Number(e.target.value))}
+                onBlur={() => markTouched('taxYear')}
                 required
               />
               {fieldError('taxYear') && (
@@ -580,6 +744,7 @@ export default function OnboardingForm() {
             {step < steps.length - 1 ? (
               <Button
                 onClick={() => {
+                  if (!validateStep(step)) return
                   if (step === 0) {
                     checkEligibility()
                   } else {
