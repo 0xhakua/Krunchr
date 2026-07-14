@@ -58,7 +58,7 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(503)
     expect(body).toMatchObject({
-      error: 'Login temporarily unavailable',
+      error: 'Sign-in is temporarily unavailable. Please try again in a few minutes.',
       code: 'DB_UNAVAILABLE',
     })
   })
@@ -89,17 +89,19 @@ describe('POST /api/auth/login', () => {
     errorSpy.mockRestore()
   })
 
-  it('returns 401 with Invalid credentials when the user does not exist', async () => {
+  it('returns 401 with a friendly message when the user does not exist', async () => {
     mocks.findUnique.mockResolvedValueOnce(null)
 
     const res = await POST(jsonRequest({ username: 'no-such-user', password: 'whatever' }))
     const body = await res.json()
 
     expect(res.status).toBe(401)
-    expect(body).toEqual({ error: 'Invalid credentials' })
+    expect(body).toEqual({
+      error: "Hmm, we couldn't find an account with those details. Please check your username and password and try again.",
+    })
   })
 
-  it('returns 401 with Invalid credentials for a wrong password', async () => {
+  it('returns 401 with the same friendly message for a wrong password', async () => {
     const user = await createUser({ username: 'wrong-pwd-test', password: 'right-pwd' })
     mocks.findUnique.mockResolvedValueOnce(user)
 
@@ -107,7 +109,9 @@ describe('POST /api/auth/login', () => {
     const body = await res.json()
 
     expect(res.status).toBe(401)
-    expect(body).toEqual({ error: 'Invalid credentials' })
+    expect(body).toEqual({
+      error: "Hmm, we couldn't find an account with those details. Please check your username and password and try again.",
+    })
   })
 
   it('returns 200 with the user payload on a valid login', async () => {

@@ -8,7 +8,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const result = loginSchema.safeParse(body)
     if (!result.success) {
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Please enter your username and password.' },
+        { status: 400 }
+      )
     }
 
     const { username, password } = result.data
@@ -27,7 +30,7 @@ export async function POST(req: NextRequest) {
       })
       return NextResponse.json(
         {
-          error: 'Login temporarily unavailable',
+          error: 'Sign-in is temporarily unavailable. Please try again in a few minutes.',
           code: 'DB_UNAVAILABLE',
         },
         { status: 503 }
@@ -35,19 +38,29 @@ export async function POST(req: NextRequest) {
     }
 
     if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json(
+        {
+          error: "Hmm, we couldn't find an account with those details. Please check your username and password and try again.",
+        },
+        { status: 401 }
+      )
     }
 
     if (!user.isActive) {
       return NextResponse.json(
-        { error: 'Account deactivated. Contact an administrator.', code: 'ACCOUNT_DEACTIVATED' },
+        { error: 'This account has been deactivated. Please contact support for help.', code: 'ACCOUNT_DEACTIVATED' },
         { status: 403 }
       )
     }
 
     const valid = await verifyPassword(password, user.passwordHash)
     if (!valid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json(
+        {
+          error: "Hmm, we couldn't find an account with those details. Please check your username and password and try again.",
+        },
+        { status: 401 }
+      )
     }
 
     let token
@@ -66,7 +79,7 @@ export async function POST(req: NextRequest) {
       })
       return NextResponse.json(
         {
-          error: 'Login temporarily unavailable',
+          error: 'Sign-in is temporarily unavailable. Please try again in a few minutes.',
           code: 'AUTH_CONFIG_MISSING',
         },
         { status: 503 }
@@ -87,6 +100,9 @@ export async function POST(req: NextRequest) {
       errorName: err instanceof Error ? err.name : typeof err,
       errorMessage: err instanceof Error ? err.message : String(err),
     })
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Something went wrong on our end. Please try again.' },
+      { status: 500 }
+    )
   }
 }

@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Check, Circle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import {
   Card,
@@ -21,18 +23,33 @@ type FieldErrors = {
   confirmPassword?: string
 }
 
+// Mirrors the password rules in registerBaseSchema (lib/validation/schemas.ts).
+// Keep these in sync — the checklist is the user-facing version of the schema.
+const PASSWORD_REQUIREMENTS = [
+  { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
+  { label: 'At least one uppercase letter', test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'At least one lowercase letter', test: (p: string) => /[a-z]/.test(p) },
+  { label: 'At least one number', test: (p: string) => /\d/.test(p) },
+  {
+    label: 'At least one special character',
+    test: (p: string) => /[^A-Za-z0-9]/.test(p),
+  },
+] as const
+
 export default function RegisterPage() {
   const router = useRouter()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [serverErrors, setServerErrors] = useState<Record<string, string[]>>({})
   const [topLevelError, setTopLevelError] = useState('')
   const [loading, setLoading] = useState(false)
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
   const [checkingUsername, setCheckingUsername] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
 
   const usernameDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -47,8 +64,8 @@ export default function RegisterPage() {
         return result.success ? undefined : result.error.errors[0].message
       }
       if (name === 'confirmPassword') {
-        if (!value) return 'Confirm password is required'
-        if (value !== password) return 'Passwords do not match'
+        if (!value) return 'Please confirm your password'
+        if (value !== password) return "Passwords don't match — please re-enter them"
         return undefined
       }
     },
@@ -117,9 +134,16 @@ export default function RegisterPage() {
           : field === 'password'
             ? password
             : confirmPassword
+      // Don't scold the user for an empty field just because they clicked
+      // into it and moved on — required-field errors only appear after a
+      // submit attempt. Non-empty values are still validated right away.
+      if (!value && !submitted) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }))
+        return
+      }
       runFieldValidation(field, value)
     },
-    [username, password, confirmPassword, runFieldValidation]
+    [username, password, confirmPassword, submitted, runFieldValidation]
   )
 
   const handleChange = useCallback(
@@ -132,14 +156,23 @@ export default function RegisterPage() {
       if (field === 'confirmPassword') setConfirmPassword(value)
 
       if (touched[field]) {
-        runFieldValidation(field, value)
+        if (field === 'confirmPassword') {
+          // Don't nag about a mismatch while the user is still typing —
+          // clear the error the instant the passwords match, and otherwise
+          // wait for blur (or submit) to report a mismatch.
+          if (value === password) {
+            setErrors((prev) => ({ ...prev, confirmPassword: undefined }))
+          }
+        } else {
+          runFieldValidation(field, value)
+        }
       }
 
       if (field === 'password' && touched.confirmPassword) {
         runFieldValidation('confirmPassword', confirmPassword)
       }
     },
-    [touched, confirmPassword, scheduleUsernameCheck, runFieldValidation]
+    [touched, password, confirmPassword, scheduleUsernameCheck, runFieldValidation]
   )
 
   const isFormValid = useMemo(() => {
@@ -156,6 +189,7 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setSubmitted(true)
     setTouched({ username: true, password: true, confirmPassword: true })
     setServerErrors({})
     setTopLevelError('')
@@ -183,13 +217,13 @@ export default function RegisterPage() {
         if (data.details) {
           setServerErrors(data.details)
         }
-        setTopLevelError(data.error || 'Registration failed')
+        setTopLevelError(data.error || 'We could not create your account. Please try again.')
         return
       }
 
       router.push('/onboarding')
     } catch {
-      setTopLevelError('An unexpected error occurred')
+      setTopLevelError('Could not reach the server. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
@@ -197,6 +231,15 @@ export default function RegisterPage() {
 
   const showUsernameStatus =
     touched.username && !errors.username && username.length > 0
+
+  const allPasswordRequirementsMet = PASSWORD_REQUIREMENTS.every((req) =>
+    req.test(password)
+  )
+  // The checklist stays out of the way until the password field is focused,
+  // and remains visible afterwards only while there is still an unmet rule —
+  // so a valid password never leaves clutter on the form.
+  const showPasswordRequirements =
+    passwordFocused || (password.length > 0 && !allPasswordRequirementsMet)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
@@ -236,7 +279,9 @@ export default function RegisterPage() {
                     <p className="text-sm text-green-600">Username available</p>
                   )}
                   {!checkingUsername && usernameAvailable === false && (
-                    <p className="text-sm text-red-600">Username already taken</p>
+                    <p className="text-sm text-red-600">
+                      That username is already taken — please choose another one
+                    </p>
                   )}
                 </>
               )}
@@ -246,18 +291,47 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => handleChange('password', e.target.value)}
-                onBlur={() => handleBlur('password')}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => {
+                  setPasswordFocused(false)
+                  handleBlur('password')
+                }}
                 required
                 autoComplete="new-password"
                 aria-invalid={touched.password && !!errors.password}
+                aria-describedby={
+                  showPasswordRequirements ? 'password-requirements' : undefined
+                }
               />
-              {touched.password && errors.password && (
-                <p className="text-sm text-red-600">{errors.password}</p>
+              {showPasswordRequirements && (
+                <ul
+                  id="password-requirements"
+                  className="space-y-1 pt-1"
+                  aria-label="Password requirements"
+                >
+                  {PASSWORD_REQUIREMENTS.map((req) => {
+                    const met = req.test(password)
+                    return (
+                      <li
+                        key={req.label}
+                        className={`flex items-center gap-1.5 text-sm ${
+                          met ? 'text-green-600' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {met ? (
+                          <Check className="size-3.5 shrink-0" aria-hidden="true" />
+                        ) : (
+                          <Circle className="size-3.5 shrink-0" aria-hidden="true" />
+                        )}
+                        <span>{req.label}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
               )}
               {serverErrors.password && (
                 <p className="text-sm text-red-600">{serverErrors.password[0]}</p>
@@ -265,9 +339,8 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 value={confirmPassword}
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}
                 onBlur={() => handleBlur('confirmPassword')}

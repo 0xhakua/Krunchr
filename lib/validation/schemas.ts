@@ -32,27 +32,30 @@ function normalizeTin(tin: string): string {
 
 // ---- POST /api/auth/login ---------------------------------------------------
 export const loginSchema = z.object({
-  username: z.string().min(1),
-  password: z.string().min(1),
+  username: z.string().min(1, 'Please enter your username'),
+  password: z.string().min(1, 'Please enter your password'),
 })
 
 // ---- POST /api/auth/register ------------------------------------------------
 export const registerBaseSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters').max(30),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be 30 characters or fewer'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/\d/, 'Password must contain at least one digit')
+    .regex(/\d/, 'Password must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-  confirmPassword: z.string().min(1, 'Confirm password is required'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
 })
 
 export const registerSchema = registerBaseSchema.refine(
   (data) => data.password === data.confirmPassword,
   {
-    message: 'Passwords do not match',
+    message: "Passwords don't match — please re-enter them",
     path: ['confirmPassword'],
   }
 )
