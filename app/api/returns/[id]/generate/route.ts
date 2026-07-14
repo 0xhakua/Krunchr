@@ -47,7 +47,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            'VAT threshold breached. Kuwenta only supports non-VAT taxpayers. Register for VAT with the BIR and file Form 1701A outside the system.',
+            'VAT threshold breached. Krunchr only supports non-VAT taxpayers. Register for VAT with the BIR and file Form 1701A outside the system.',
           code: 'VAT_BREACH_1701A_BLOCKED',
         },
         { status: 422 }

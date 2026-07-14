@@ -138,7 +138,7 @@ export default function ReturnsPage() {
       {returns.length === 0 ? (
         <EmptyState
           title="No returns found"
-          description="Complete onboarding so Kuwenta can initialize your filing sequence for the active tax year."
+          description="Complete onboarding so Krunchr can initialize your filing sequence for the active tax year."
           actions={
             <Link href="/onboarding">
               <Button variant="outline">Complete Onboarding</Button>
