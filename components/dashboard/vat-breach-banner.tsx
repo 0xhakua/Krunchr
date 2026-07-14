@@ -9,7 +9,7 @@ export function VatBreachBanner({ className }: { className?: string }) {
         <div className="text-sm text-red-900">
           <p className="font-semibold">VAT threshold breached</p>
           <p>
-            Kuwenta only supports non-VAT taxpayers. Register for VAT with the BIR
+            Krunchr only supports non-VAT taxpayers. Register for VAT with the BIR
             to continue. Form 1701A generation is blocked until VAT registration is
             resolved.
           </p>

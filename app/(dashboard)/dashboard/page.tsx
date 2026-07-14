@@ -183,7 +183,7 @@ export default function DashboardPage() {
     return (
       <div className="py-6">
         <EmptyState
-          title="Welcome to Kuwenta"
+          title="Welcome to Krunchr"
           description="Complete onboarding to see your compliance dashboard and filing roadmap."
           actions={
             <Link href="/onboarding">
@@ -315,7 +315,7 @@ export default function DashboardPage() {
           />
           {ytd.vatBreached ? (
             <p className="text-sm font-medium text-red-700">
-              VAT threshold breached on {formatDate(ytd.vatBreachDate)}. Kuwenta only supports non-VAT taxpayers.
+              VAT threshold breached on {formatDate(ytd.vatBreachDate)}. Krunchr only supports non-VAT taxpayers.
             </p>
           ) : ytd.vatThresholdPercent >= 80 ? (
             <p className="text-sm text-amber-700">
