@@ -196,10 +196,8 @@ export default function StellarPage() {
                     </Button>
                     {receipt.explorerUrl && (
                       <Dialog>
-                        <DialogTrigger>
-                          <Button variant="outline" size="sm">
-                            <QrCode className="mr-1 h-4 w-4" /> QR
-                          </Button>
+                        <DialogTrigger render={<Button variant="outline" size="sm" />}>
+                          <QrCode className="mr-1 h-4 w-4" /> QR
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                           <DialogHeader>
