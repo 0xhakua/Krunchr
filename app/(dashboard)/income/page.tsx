@@ -621,7 +621,7 @@ export default function IncomePage() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Upload your BIR Form 2307 certificates (per payor, per quarter). Kuwenta uses these
+        Upload your BIR Form 2307 certificates (per payor, per quarter). Krunchr uses these
         to compute tax due, apply CWT credits, and update your filing sequence automatically.
       </p>
 
@@ -647,7 +647,7 @@ export default function IncomePage() {
             <CardTitle className="text-sm font-medium flex items-center gap-1.5">
               VAT Threshold
               <InfoTooltip side="top">
-                Kuwenta supports non-VAT taxpayers. If your annual gross exceeds ₱3,000,000,
+                Krunchr supports non-VAT taxpayers. If your annual gross exceeds ₱3,000,000,
                 you must register for VAT and the 8% option is no longer available.
               </InfoTooltip>
             </CardTitle>
