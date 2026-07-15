@@ -46,6 +46,10 @@ export interface FilingPdfData {
     email: string | null
     phoneNumber: string | null
     natureOfBusiness: string
+    citizenship: string | null
+    civilStatus: string | null
+    claimingForeignTaxCredits: boolean
+    foreignTaxNumber: string | null
     incomeType: 'PURE_SELF_EMPLOYMENT' | 'MIXED_INCOME'
     corIncludes2551Q: boolean
   }
@@ -138,6 +142,10 @@ export async function loadFilingData(
       email: profile.email,
       phoneNumber: profile.phoneNumber,
       natureOfBusiness: profile.natureOfBusiness,
+      citizenship: profile.citizenship,
+      civilStatus: profile.civilStatus,
+      claimingForeignTaxCredits: profile.claimingForeignTaxCredits,
+      foreignTaxNumber: profile.foreignTaxNumber,
       incomeType: profile.incomeType,
       corIncludes2551Q: profile.corIncludes2551Q,
     },

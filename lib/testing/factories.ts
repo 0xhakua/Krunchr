@@ -33,6 +33,10 @@ export async function createTaxpayerProfile(
     registeredAddress: string
     zipCode: string
     natureOfBusiness: string
+    citizenship: string | null
+    civilStatus: string | null
+    claimingForeignTaxCredits: boolean
+    foreignTaxNumber: string | null
     incomeType: 'PURE_SELF_EMPLOYMENT' | 'MIXED_INCOME'
     corIncludes2551Q: boolean
     isNewRegistrant: boolean
@@ -58,6 +62,10 @@ export async function createTaxpayerProfile(
       registeredAddress: overrides.registeredAddress ?? '123 Test St',
       zipCode: overrides.zipCode ?? '1200',
       natureOfBusiness: overrides.natureOfBusiness ?? 'Consulting',
+      citizenship: overrides.citizenship ?? 'Filipino',
+      civilStatus: overrides.civilStatus ?? 'Single',
+      claimingForeignTaxCredits: overrides.claimingForeignTaxCredits ?? false,
+      foreignTaxNumber: overrides.foreignTaxNumber ?? null,
       incomeType: overrides.incomeType ?? 'PURE_SELF_EMPLOYMENT',
       corIncludes2551Q: overrides.corIncludes2551Q ?? true,
       isNewRegistrant: overrides.isNewRegistrant ?? false,

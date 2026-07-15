@@ -281,15 +281,15 @@ export function buildForm1701QValues(data: FilingPdfData): BirOverlayValues {
   // Item 12: Email Address
   out["part1_email"] = data.taxpayer.email ?? "";
 
-  // Item 13: Citizenship (not in Kuwenta schema)
-  out["part1_citizenship"] = "";
+  // Item 13: Citizenship
+  out["part1_citizenship"] = data.taxpayer.citizenship ?? "";
 
-  // Item 14: Foreign Tax Number (not in Kuwenta schema)
-  out["part1_foreign_tax_number"] = "";
+  // Item 14: Foreign Tax Number (only meaningful when claiming credits)
+  out["part1_foreign_tax_number"] = data.taxpayer.foreignTaxNumber ?? "";
 
-  // Item 15: Claiming Foreign Tax Credits? (default No)
-  out["part1_claiming_foreign_yes"] = false;
-  out["part1_claiming_foreign_no"] = true;
+  // Item 15: Claiming Foreign Tax Credits?
+  out["part1_claiming_foreign_yes"] = data.taxpayer.claimingForeignTaxCredits;
+  out["part1_claiming_foreign_no"] = !data.taxpayer.claimingForeignTaxCredits;
 
   // Item 16: Tax Rate — mark the 8% checkbox whenever the taxpayer has
   // actively elected RATE_8PCT. This covers both the 8-return path

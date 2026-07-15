@@ -61,7 +61,20 @@ export const registerSchema = registerBaseSchema.refine(
 )
 
 // ---- POST /api/taxpayer (and PUT) -------------------------------------------
-export const taxpayerSchema = z.object({
+// The four civil-status choices BIR Form 1701A Item 16 offers. Stored as the
+// display string so the PDF renders it verbatim; kept here (not just in the
+// UI) so the API rejects anything else.
+export const CIVIL_STATUS_OPTIONS = [
+  'Single',
+  'Married',
+  'Widowed',
+  'Legally Separated',
+] as const
+
+// Base object without cross-field refinements. Kept separate so the PUT
+// handler can derive a `.partial()` update schema (ZodEffects — the wrapper
+// produced by `.superRefine()` — has no `.partial()`).
+export const taxpayerBaseSchema = z.object({
   tin: z.string()
     .regex(tinRegex, 'TIN must be in format NNN-NNN-NNN or NNN-NNN-NNN-NNN')
     .transform(normalizeTin),
@@ -83,11 +96,29 @@ export const taxpayerSchema = z.object({
     .regex(/^\d{4}$/, 'ZIP code must be a 4-digit Philippine ZIP code')
     .refine((v) => isValidZipCode(v), 'ZIP code is not a known Philippine ZIP code'),
   natureOfBusiness: z.string().min(1),
+  citizenship: z.string().min(1, 'Citizenship is required'),
+  civilStatus: z.enum(CIVIL_STATUS_OPTIONS, {
+    errorMap: () => ({ message: 'Select a civil status' }),
+  }),
+  claimingForeignTaxCredits: z.boolean().default(false),
+  foreignTaxNumber: z.string().optional(),
   incomeType: z.enum(['PURE_SELF_EMPLOYMENT', 'MIXED_INCOME']),
   corIncludes2551Q: z.boolean(),
   isNewRegistrant: z.boolean().default(false),
   atcCodes: z.array(z.string()).min(1, 'Select at least one ATC code'),
   taxYear: z.number().int().min(2000).max(2100),
+})
+
+export const taxpayerSchema = taxpayerBaseSchema.superRefine((data, ctx) => {
+  // BIR labels the foreign tax number "if applicable" — it only applies when
+  // the filer claims foreign tax credits, so require it in exactly that case.
+  if (data.claimingForeignTaxCredits && !data.foreignTaxNumber?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Foreign tax number is required when claiming foreign tax credits',
+      path: ['foreignTaxNumber'],
+    })
+  }
 })
 
 // ---- POST /api/income (Form 2307) -------------------------------------------

@@ -25,6 +25,7 @@ import {
 import { VatBreachBanner } from '@/components/dashboard/vat-breach-banner'
 import { LocationPicker } from '@/components/location-picker'
 import { type ZipCodeEntry } from '@/lib/data/zip-codes'
+import { CIVIL_STATUS_OPTIONS } from '@/lib/validation/schemas'
 
 type ATCCode = {
   code: string
@@ -76,6 +77,10 @@ type FormValues = {
   province: string
   zipCode: string
   natureOfBusiness: string
+  citizenship: string
+  civilStatus: string
+  claimingForeignTaxCredits: string
+  foreignTaxNumber: string
   incomeType: string
   corIncludes2551Q: string
   isNewRegistrant: string
@@ -123,6 +128,18 @@ function validateField(name: string, form: FormValues): string | null {
       return form.registeredAddress.trim() ? null : 'Registered address is required'
     case 'natureOfBusiness':
       return form.natureOfBusiness.trim() ? null : 'Nature of business is required'
+    case 'citizenship':
+      return form.citizenship.trim() ? null : 'Citizenship is required'
+    case 'civilStatus':
+      return CIVIL_STATUS_OPTIONS.includes(form.civilStatus as (typeof CIVIL_STATUS_OPTIONS)[number])
+        ? null
+        : 'Select a civil status'
+    case 'foreignTaxNumber':
+      // Only required when the filer claims foreign tax credits ("if applicable").
+      if (form.claimingForeignTaxCredits !== 'true') return null
+      return form.foreignTaxNumber.trim()
+        ? null
+        : 'Foreign tax number is required when claiming foreign tax credits'
     case 'atcCodes':
       return form.selectedAtcCodes.length > 0 ? null : 'Select at least one ATC code'
     case 'taxYear':
@@ -146,6 +163,9 @@ const stepFields: Record<number, string[]> = {
     'zipCode',
     'registeredAddress',
     'natureOfBusiness',
+    'citizenship',
+    'civilStatus',
+    'foreignTaxNumber',
   ],
   2: ['atcCodes'],
   3: ['taxYear'],
@@ -172,6 +192,10 @@ export default function OnboardingForm() {
     province: '',
     zipCode: '',
     natureOfBusiness: '',
+    citizenship: 'Filipino',
+    civilStatus: '',
+    claimingForeignTaxCredits: 'false',
+    foreignTaxNumber: '',
     incomeType: 'PURE_SELF_EMPLOYMENT',
     corIncludes2551Q: 'true',
     isNewRegistrant: 'false',
@@ -326,6 +350,13 @@ export default function OnboardingForm() {
           registeredAddress: form.registeredAddress,
           zipCode: form.zipCode,
           natureOfBusiness: form.natureOfBusiness,
+          citizenship: form.citizenship,
+          civilStatus: form.civilStatus,
+          claimingForeignTaxCredits: form.claimingForeignTaxCredits === 'true',
+          foreignTaxNumber:
+            form.claimingForeignTaxCredits === 'true'
+              ? form.foreignTaxNumber || undefined
+              : undefined,
           incomeType: form.incomeType,
           corIncludes2551Q: form.corIncludes2551Q === 'true',
           isNewRegistrant: form.isNewRegistrant === 'true',
@@ -445,6 +476,85 @@ export default function OnboardingForm() {
                     required
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="citizenship">Citizenship</Label>
+                    <Input
+                      id="citizenship"
+                      value={form.citizenship}
+                      onChange={(e) => updateField('citizenship', e.target.value)}
+                      onBlur={() => markTouched('citizenship')}
+                      placeholder="Filipino"
+                      required
+                    />
+                    {fieldError('citizenship') && (
+                      <p className="text-sm text-red-600">{fieldError('citizenship')}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="civilStatus">Civil Status</Label>
+                    <Select
+                      value={form.civilStatus}
+                      onValueChange={(value) => {
+                        if (value) updateField('civilStatus', value)
+                        markTouched('civilStatus')
+                      }}
+                    >
+                      <SelectTrigger id="civilStatus">
+                        <SelectValue placeholder="Select civil status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CIVIL_STATUS_OPTIONS.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldError('civilStatus') && (
+                      <p className="text-sm text-red-600">{fieldError('civilStatus')}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Claiming foreign tax credits?</Label>
+                  <RadioGroup
+                    value={form.claimingForeignTaxCredits}
+                    onValueChange={(value) => {
+                      updateField('claimingForeignTaxCredits', value)
+                      // Switching to "No" clears any stale foreign-tax-number
+                      // error and value — the field no longer applies.
+                      if (value !== 'true') {
+                        updateField('foreignTaxNumber', '')
+                      }
+                    }}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="ftc-no" />
+                      <Label htmlFor="ftc-no" className="font-normal">No</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="ftc-yes" />
+                      <Label htmlFor="ftc-yes" className="font-normal">Yes</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {form.claimingForeignTaxCredits === 'true' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="foreignTaxNumber">Foreign Tax Number</Label>
+                    <Input
+                      id="foreignTaxNumber"
+                      value={form.foreignTaxNumber}
+                      onChange={(e) => updateField('foreignTaxNumber', e.target.value)}
+                      onBlur={() => markTouched('foreignTaxNumber')}
+                      placeholder="Tax identification number in the foreign country"
+                      required
+                    />
+                    {fieldError('foreignTaxNumber') && (
+                      <p className="text-sm text-red-600">{fieldError('foreignTaxNumber')}</p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

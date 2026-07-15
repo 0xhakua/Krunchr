@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { initializeTaxYear } from '@/lib/tax-year'
-import { taxpayerSchema } from '@/lib/validation/schemas'
+import { taxpayerBaseSchema, taxpayerSchema } from '@/lib/validation/schemas'
 
 function composeFullName(
   firstName: string,
@@ -111,6 +111,15 @@ export async function POST(req: NextRequest) {
           registeredAddress: data.registeredAddress,
           zipCode: data.zipCode,
           natureOfBusiness: data.natureOfBusiness,
+          citizenship: data.citizenship,
+          civilStatus: data.civilStatus,
+          claimingForeignTaxCredits: data.claimingForeignTaxCredits,
+          // Only persist a foreign tax number when the filer actually claims
+          // foreign tax credits; otherwise store null so the PDF field stays
+          // blank rather than echoing a stale/irrelevant value.
+          foreignTaxNumber: data.claimingForeignTaxCredits
+            ? (data.foreignTaxNumber ?? null)
+            : null,
           incomeType: data.incomeType,
           corIncludes2551Q: data.corIncludes2551Q,
           isNewRegistrant: data.isNewRegistrant,
@@ -168,7 +177,7 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const result = taxpayerSchema.partial().safeParse(body)
+    const result = taxpayerBaseSchema.partial().safeParse(body)
     if (!result.success) {
       const flat = result.error.flatten()
       return NextResponse.json(
