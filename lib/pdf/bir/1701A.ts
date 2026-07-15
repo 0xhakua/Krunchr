@@ -246,20 +246,21 @@ export function buildForm1701AValues(data: FilingPdfData): BirOverlayValues {
   // Item 11: Email Address
   out["part1_email"] = data.taxpayer.email ?? "";
 
-  // Item 12: Citizenship (not in schema)
-  out["part1_citizenship"] = "";
+  // Item 12: Citizenship
+  out["part1_citizenship"] = data.taxpayer.citizenship ?? "";
 
-  // Item 13: Claiming Foreign Tax Credits? (default No)
-  out["part1_claiming_foreign_yes"] = false;
+  // Item 13: Claiming Foreign Tax Credits? The 1701A coordinate set only maps
+  // the "Yes" box, so "No" is represented by leaving it unchecked.
+  out["part1_claiming_foreign_yes"] = data.taxpayer.claimingForeignTaxCredits;
 
-  // Item 14: Foreign Tax Number
-  out["part1_foreign_tax_number"] = "";
+  // Item 14: Foreign Tax Number (only meaningful when claiming credits)
+  out["part1_foreign_tax_number"] = data.taxpayer.foreignTaxNumber ?? "";
 
   // Item 15: Contact Number
   out["part1_contact_number"] = data.taxpayer.phoneNumber ?? "";
 
-  // Item 16: Civil Status (not in schema)
-  out["part1_civil_status"] = "";
+  // Item 16: Civil Status
+  out["part1_civil_status"] = data.taxpayer.civilStatus ?? "";
 
   // Item 18: Filing Status (not in schema)
   out["part1_filing_status"] = "";

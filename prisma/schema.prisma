@@ -39,6 +39,13 @@ model TaxpayerProfile {
   registeredAddress String
   zipCode           String
   natureOfBusiness  String
+  // BIR Form Part I personal fields (1701A/1701Q). Nullable so existing rows
+  // migrate cleanly; citizenship/civilStatus are enforced as required at the
+  // validation layer for new onboarding submissions.
+  citizenship               String?
+  civilStatus               String?
+  claimingForeignTaxCredits Boolean   @default(false)
+  foreignTaxNumber          String?
   incomeType        IncomeType @default(PURE_SELF_EMPLOYMENT)
   corIncludes2551Q  Boolean    @default(true)
   isNewRegistrant   Boolean    @default(false)  // elected 8% on Form 1901 at initial BIR registration

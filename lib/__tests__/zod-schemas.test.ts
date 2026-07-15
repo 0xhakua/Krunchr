@@ -22,6 +22,7 @@ import {
   rdoUpdateSchema,
   rdoUpsertSchema,
   taxpayerSchema,
+  CIVIL_STATUS_OPTIONS,
   tinRegex,
 } from '@/lib/validation/schemas'
 
@@ -128,6 +129,9 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
     registeredAddress: '1 Test St',
     zipCode: '1200',
     natureOfBusiness: 'Consulting',
+    citizenship: 'Filipino',
+    civilStatus: 'Single',
+    claimingForeignTaxCredits: false,
     incomeType: 'PURE_SELF_EMPLOYMENT' as const,
     corIncludes2551Q: true,
     isNewRegistrant: false,
@@ -143,6 +147,35 @@ describe('taxpayerSchema (POST/PUT /api/taxpayer) — S9.2', () => {
     const { middleInitial: _middleInitial, ...rest } = valid
     void _middleInitial
     expect(taxpayerSchema.safeParse(rest).success).toBe(true)
+  })
+
+  it('rejects an empty citizenship', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, citizenship: '' }).success).toBe(false)
+  })
+
+  it('rejects a civil status outside the BIR options', () => {
+    expect(taxpayerSchema.safeParse({ ...valid, civilStatus: 'Complicated' }).success).toBe(false)
+  })
+
+  it('accepts every BIR civil-status option', () => {
+    for (const civilStatus of CIVIL_STATUS_OPTIONS) {
+      expect(taxpayerSchema.safeParse({ ...valid, civilStatus }).success).toBe(true)
+    }
+  })
+
+  it('requires a foreign tax number only when claiming foreign tax credits', () => {
+    const claimingWithoutNumber = taxpayerSchema.safeParse({
+      ...valid,
+      claimingForeignTaxCredits: true,
+    })
+    expect(claimingWithoutNumber.success).toBe(false)
+
+    const claimingWithNumber = taxpayerSchema.safeParse({
+      ...valid,
+      claimingForeignTaxCredits: true,
+      foreignTaxNumber: 'US-987654321',
+    })
+    expect(claimingWithNumber.success).toBe(true)
   })
 
   it('rejects an invalid TIN with the documented format error', () => {
