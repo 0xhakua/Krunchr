@@ -121,6 +121,14 @@ export const taxpayerSchema = taxpayerBaseSchema.superRefine((data, ctx) => {
   }
 })
 
+// ---- PUT /api/taxpayer (profile update for onboarded users, #241) ---------
+// Partial update: every field optional, but `taxYear` is excluded entirely —
+// the active tax year is created once at onboarding and is not editable
+// through the profile endpoint. The cross-field foreign-tax-number rule is
+// enforced in the route handler against the merged (existing + patch) values,
+// because a partial payload may carry only one side of the pair.
+export const taxpayerUpdateSchema = taxpayerBaseSchema.omit({ taxYear: true }).partial()
+
 // ---- POST /api/income (Form 2307) -------------------------------------------
 export const certificateSchema = z.object({
   quarter: z.number().int().min(1).max(4),
