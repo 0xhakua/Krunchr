@@ -320,7 +320,33 @@ See the [ecosystem-expansion research](https://github.com/webnxt-2030/krunchr/is
 
 Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and demo taxpayers `demo1`, `demo2`, `demo3` (all password `Test1234!`), fully onboarded with a 2026 tax year. New taxpayers can also self-register via `/register`.
 
-If you need to create the demo accounts on an existing deployment without re-running the full seed, use `pnpm tsx scripts/create-demo-accounts.ts` (or `railway run -- pnpm tsx scripts/create-demo-accounts.ts` on Railway). The original `maria`/`juan`/`anna` seeded accounts from earlier iterations are replaced by these fresh demo accounts (#245).
+## Demo Accounts
+
+Krunchr ships with three pre-configured demo taxpayers for hackathon judging and local testing. All use the password `Test1234!`.
+
+| Username | TIN | Income type | COR includes 2551Q | Use case |
+|---|---|---|---|---|
+| `demo1` | `123-456-789-011` | Pure Self-Employment | Yes | 8-return path (2551Q × 4 + 1701Q × 3 + 1701A) |
+| `demo2` | `123-456-789-012` | Mixed Income | Yes | 8-return path, routes to Form 1701 |
+| `demo3` | `123-456-789-013` | Pure Self-Employment | No | 4-return path (1701Q × 3 + 1701A) |
+
+### Fresh clones
+
+`pnpm prisma db seed` creates the demo accounts automatically.
+
+### Existing deployments
+
+If you are fixing a deployed environment where the original `maria`/`juan`/`anna` seeded accounts were left in a partial-seed state (#243), create the new demo accounts without re-running the full seed:
+
+```bash
+# Local
+pnpm tsx scripts/create-demo-accounts.ts
+
+# Railway
+railway run -- pnpm tsx scripts/create-demo-accounts.ts
+```
+
+When `railway run` asks you to select a service, pick your **Krunchr / Next.js app service** (not Postgres) so the script receives `DATABASE_URL` and the other app variables.
 
 ## 🌐 Deployment
 
