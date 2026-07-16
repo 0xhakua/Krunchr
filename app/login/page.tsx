@@ -27,13 +27,13 @@ type DemoAccount = {
   label: string
 }
 
-// Seeded by prisma/seed.ts — safe to show in any environment. These are
-// throwaway accounts for demo viewers; the admin account is intentionally
-// omitted because its password is deploy-specific ($ADMIN_PASSWORD).
+// Seeded by prisma/seed.ts as demo1/2/3 — safe to show in any environment.
+// These are throwaway accounts for demo viewers; the admin account is
+// intentionally omitted because its password is deploy-specific ($ADMIN_PASSWORD).
 const DEMO_ACCOUNTS: DemoAccount[] = [
-  { username: 'maria', password: 'Test1234!', label: 'Maria — taxpayer' },
-  { username: 'juan', password: 'Test1234!', label: 'Juan — taxpayer' },
-  { username: 'anna', password: 'Test1234!', label: 'Anna — taxpayer' },
+  { username: 'demo1', password: 'Test1234!', label: 'Demo 1 — pure SE, 8-return' },
+  { username: 'demo2', password: 'Test1234!', label: 'Demo 2 — mixed income' },
+  { username: 'demo3', password: 'Test1234!', label: 'Demo 3 — pure SE, 4-return' },
 ]
 
 function validateField(name: keyof FieldErrors, value: string): string | undefined {
