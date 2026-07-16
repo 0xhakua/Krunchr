@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import { prisma } from '../lib/prisma'
-import { ensureSeedTaxpayer, type SeedTaxpayer } from '../lib/seed-taxpayer'
+import { DEMO_ACCOUNTS, ensureSeedTaxpayer } from '../lib/seed-taxpayer'
 
 async function main() {
   // Admin user
@@ -50,86 +50,11 @@ async function main() {
     })
   }
 
-  // Test taxpayers
-  const testUsers: SeedTaxpayer[] = [
-    {
-      username: 'maria',
-      password: 'Test1234!',
-      profile: {
-        tin: '123-456-789-001',
-        firstName: 'Maria',
-        lastName: 'Dela Cruz',
-        middleInitial: 'S',
-        fullName: 'Dela Cruz, Maria S.',
-        rdoCode: '040',
-        phoneNumber: '+639171234567',
-        email: 'maria.delacruz@example.com',
-        registeredAddress: '123 Mabini St, Makati City',
-        zipCode: '1200',
-        natureOfBusiness: 'Insurance Agent / Freelance Broker',
-        citizenship: 'Filipino',
-        civilStatus: 'Single',
-        claimingForeignTaxCredits: false,
-        foreignTaxNumber: null,
-        incomeType: 'PURE_SELF_EMPLOYMENT' as const,
-        corIncludes2551Q: true,
-        atcCodes: ['WI071', 'WI140'],
-        taxYear: 2026,
-      },
-    },
-    {
-      username: 'juan',
-      password: 'Test1234!',
-      profile: {
-        tin: '123-456-789-002',
-        firstName: 'Juan',
-        lastName: 'Santos',
-        middleInitial: '',
-        fullName: 'Santos, Juan',
-        rdoCode: '044',
-        phoneNumber: '+639181234567',
-        email: 'juan.santos@example.com',
-        registeredAddress: '456 Rizal Ave, Quezon City',
-        zipCode: '1100',
-        natureOfBusiness: 'Software Consultant',
-        citizenship: 'Filipino',
-        civilStatus: 'Married',
-        claimingForeignTaxCredits: false,
-        foreignTaxNumber: null,
-        incomeType: 'MIXED_INCOME' as const,
-        corIncludes2551Q: true,
-        atcCodes: ['WI100'],
-        taxYear: 2026,
-      },
-    },
-    {
-      username: 'anna',
-      password: 'Test1234!',
-      profile: {
-        tin: '123-456-789-003',
-        firstName: 'Anna',
-        lastName: 'Reyes',
-        middleInitial: 'M',
-        fullName: 'Reyes, Anna M.',
-        rdoCode: '050',
-        phoneNumber: '+639191234567',
-        email: 'anna.reyes@example.com',
-        registeredAddress: '789 Bonifacio St, Pasig City',
-        zipCode: '1600',
-        natureOfBusiness: 'Virtual Assistant',
-        citizenship: 'Filipino',
-        civilStatus: 'Single',
-        claimingForeignTaxCredits: false,
-        foreignTaxNumber: null,
-        incomeType: 'PURE_SELF_EMPLOYMENT' as const,
-        corIncludes2551Q: false,
-        atcCodes: ['WI100'],
-        taxYear: 2026,
-      },
-    },
-  ]
-
-  for (const user of testUsers) {
+  // Demo taxpayers. #245: usernames are now demo1/2/3 instead of the older
+  // maria/juan/anna accounts that were left in a partial-seed state on some
+  // deployed environments. ensureSeedTaxpayer is idempotent, so reseeding
+  // backfills any missing TaxYear rows instead of skipping the account.
+  for (const user of DEMO_ACCOUNTS) {
     await ensureSeedTaxpayer(user)
   }
 
