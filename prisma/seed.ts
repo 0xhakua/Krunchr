@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import { prisma } from '../lib/prisma'
-import { initializeTaxYear } from '../lib/tax-year'
+import { ensureSeedTaxpayer, type SeedTaxpayer } from '../lib/seed-taxpayer'
 
 async function main() {
   // Admin user
@@ -51,7 +51,7 @@ async function main() {
   }
 
   // Test taxpayers
-  const testUsers = [
+  const testUsers: SeedTaxpayer[] = [
     {
       username: 'maria',
       password: 'Test1234!',
@@ -130,51 +130,7 @@ async function main() {
   ]
 
   for (const user of testUsers) {
-    const hashed = await bcrypt.hash(user.password, 12)
-    const createdUser = await prisma.user.upsert({
-      where: { username: user.username },
-      update: {},
-      create: {
-        username: user.username,
-        passwordHash: hashed,
-        role: 'TAXPAYER',
-      },
-    })
-
-    const existingProfile = await prisma.taxpayerProfile.findUnique({
-      where: { userId: createdUser.id },
-    })
-
-    if (!existingProfile) {
-      const { atcCodes: profileAtcCodes, taxYear, ...profileData } = user.profile
-      const profile = await prisma.taxpayerProfile.create({
-        data: {
-          userId: createdUser.id,
-          ...profileData,
-        },
-      })
-
-      await prisma.taxpayerATC.createMany({
-        data: profileAtcCodes.map((code) => ({
-          taxpayerId: profile.id,
-          atcCode: code,
-        })),
-      })
-
-      const holidays = await prisma.publicHoliday.findMany({
-        where: { year: taxYear },
-      })
-
-      await initializeTaxYear(
-        profile.id,
-        taxYear,
-        profileData.corIncludes2551Q,
-        holidays.map((h) => h.date),
-        prisma,
-        false,
-        profileData.incomeType
-      )
-    }
+    await ensureSeedTaxpayer(user)
   }
 
   console.log('Seed complete.')

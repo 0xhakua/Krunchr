@@ -58,6 +58,12 @@ export async function GET(request: Request) {
       return NextResponse.json({
         taxpayer: null,
         taxYear: null,
+        // #243: distinguish "no profile yet" (genuinely needs onboarding)
+        // from "profile exists but has no tax year" (interrupted setup or a
+        // partial seed). The onboarding page redirects any user with a
+        // profile back here, and POST /api/taxpayer 409s on them — sending
+        // the second group to "Start Onboarding" traps them in a loop.
+        onboardingState: !profile ? 'NEEDS_ONBOARDING' : 'MISSING_TAX_YEAR',
         returns: [],
         ytd: {
           totalGross: '₱0.00',
@@ -169,6 +175,7 @@ export async function GET(request: Request) {
         rdoCode: profile.rdoCode,
         incomeType: profile.incomeType,
       },
+      onboardingState: 'READY',
       taxYear: {
         id: taxYear.id,
         year: taxYear.year,
