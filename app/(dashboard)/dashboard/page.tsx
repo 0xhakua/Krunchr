@@ -49,6 +49,10 @@ type DashboardData = {
     rdoCode: string
     incomeType: string
   } | null
+  // #243: why the dashboard is empty. NEEDS_ONBOARDING = no taxpayer
+  // profile (show the onboarding CTA); MISSING_TAX_YEAR = profile exists
+  // but setup was interrupted (onboarding would just loop back here).
+  onboardingState: 'NEEDS_ONBOARDING' | 'MISSING_TAX_YEAR' | 'READY'
   taxYear: {
     id: string
     year: number
@@ -180,6 +184,20 @@ export default function DashboardPage() {
   if (loading) return <DashboardSkeleton />
   if (error) return <p className="p-6 text-red-600">{error}</p>
   if (!data?.taxpayer) {
+    // #243: a profile without a tax year means setup was interrupted (or an
+    // old partial seed). Onboarding can't fix it — the page redirects users
+    // with a profile back here and the API 409s — so show a recovery hint
+    // instead of the onboarding CTA.
+    if (data?.onboardingState === 'MISSING_TAX_YEAR') {
+      return (
+        <div className="py-6">
+          <EmptyState
+            title="Account setup incomplete"
+            description="Your taxpayer profile exists, but no tax year was set up for it — account setup was likely interrupted. Ask an administrator to re-run the database seed (demo accounts) or contact support."
+          />
+        </div>
+      )
+    }
     return (
       <div className="py-6">
         <EmptyState
