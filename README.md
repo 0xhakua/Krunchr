@@ -35,7 +35,7 @@ Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Acces
 ## ✨ Features
 
 **Auth & Onboarding**
-- Self-service registration with rate limiting and Zod validation, alongside seeded accounts — `app/register`, `/api/auth/register`
+- Self-service registration with rate limiting and Zod validation, alongside seeded demo accounts (`demo1`, `demo2`, `demo3`) — `app/register`, `/api/auth/register`
 - 4-step taxpayer onboarding (personal info, eligibility, ATC setup, tax-year init) with TIN normalization and ZIP lookup — `app/(dashboard)/onboarding`
 - 5-point eligibility validation (individual taxpayer, self-employment income, non-VAT, gross receipts < ₱3,000,000, no prior graduated-rate Q1 filing) — `/api/taxpayer/eligibility`, `lib/computation/eligibility.ts`
 - ATC code setup with a lookup table and admin-configurable EWT rates — `/api/atc`
@@ -318,7 +318,9 @@ See the [ecosystem-expansion research](https://github.com/webnxt-2030/krunchr/is
    pnpm test        # or: pnpm test:unit / pnpm test:run / pnpm test:ui
    ```
 
-Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and test taxpayers `maria`, `juan`, `anna` (all password `Test1234!`), fully onboarded with a 2026 tax year. New taxpayers can also self-register via `/register`.
+Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and demo taxpayers `demo1`, `demo2`, `demo3` (all password `Test1234!`), fully onboarded with a 2026 tax year. New taxpayers can also self-register via `/register`.
+
+If you need to create the demo accounts on an existing deployment without re-running the full seed, use `pnpm tsx scripts/create-demo-accounts.ts` (or `railway run -- pnpm tsx scripts/create-demo-accounts.ts` on Railway). The original `maria`/`juan`/`anna` seeded accounts from earlier iterations are replaced by these fresh demo accounts (#245).
 
 ## 🌐 Deployment
 

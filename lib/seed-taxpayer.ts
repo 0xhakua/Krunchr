@@ -34,6 +34,91 @@ export type SeedTaxpayer = {
 }
 
 /**
+ * Fresh demo accounts for hackathon demos and fresh clones.
+ *
+ * #245: these replace the original `maria`/`juan`/`anna` seeded accounts on
+ * environments where those profiles were left in a partial-seed state. Use
+ * them via `prisma/seed.ts` or run `scripts/create-demo-accounts.ts` directly.
+ */
+export const DEMO_ACCOUNTS: SeedTaxpayer[] = [
+  {
+    username: 'demo1',
+    password: 'Test1234!',
+    profile: {
+      tin: '123-456-789-011',
+      firstName: 'Demo',
+      lastName: 'One',
+      middleInitial: '',
+      fullName: 'One, Demo',
+      rdoCode: '040',
+      phoneNumber: '+639171234567',
+      email: 'demo1@example.com',
+      registeredAddress: '123 Mabini St, Makati City',
+      zipCode: '1200',
+      natureOfBusiness: 'Insurance Agent / Freelance Broker',
+      citizenship: 'Filipino',
+      civilStatus: 'Single',
+      claimingForeignTaxCredits: false,
+      foreignTaxNumber: null,
+      incomeType: 'PURE_SELF_EMPLOYMENT',
+      corIncludes2551Q: true,
+      atcCodes: ['WI071', 'WI140'],
+      taxYear: 2026,
+    },
+  },
+  {
+    username: 'demo2',
+    password: 'Test1234!',
+    profile: {
+      tin: '123-456-789-012',
+      firstName: 'Demo',
+      lastName: 'Two',
+      middleInitial: '',
+      fullName: 'Two, Demo',
+      rdoCode: '044',
+      phoneNumber: '+639181234567',
+      email: 'demo2@example.com',
+      registeredAddress: '456 Rizal Ave, Quezon City',
+      zipCode: '1100',
+      natureOfBusiness: 'Software Consultant',
+      citizenship: 'Filipino',
+      civilStatus: 'Married',
+      claimingForeignTaxCredits: false,
+      foreignTaxNumber: null,
+      incomeType: 'MIXED_INCOME',
+      corIncludes2551Q: true,
+      atcCodes: ['WI100'],
+      taxYear: 2026,
+    },
+  },
+  {
+    username: 'demo3',
+    password: 'Test1234!',
+    profile: {
+      tin: '123-456-789-013',
+      firstName: 'Demo',
+      lastName: 'Three',
+      middleInitial: '',
+      fullName: 'Three, Demo',
+      rdoCode: '050',
+      phoneNumber: '+639191234567',
+      email: 'demo3@example.com',
+      registeredAddress: '789 Bonifacio St, Pasig City',
+      zipCode: '1600',
+      natureOfBusiness: 'Virtual Assistant',
+      citizenship: 'Filipino',
+      civilStatus: 'Single',
+      claimingForeignTaxCredits: false,
+      foreignTaxNumber: null,
+      incomeType: 'PURE_SELF_EMPLOYMENT',
+      corIncludes2551Q: false,
+      atcCodes: ['WI100'],
+      taxYear: 2026,
+    },
+  },
+]
+
+/**
  * Idempotently seed one taxpayer: user, profile, ATC links, and tax year.
  *
  * #243: an earlier seed run could leave a TaxpayerProfile behind with no
