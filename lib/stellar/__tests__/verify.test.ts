@@ -180,15 +180,68 @@ describe('verifyReceiptOnChain', () => {
     expect(result.reason).toMatch(/No matching/)
   })
 
-  it('returns reason when transaction lookup fails', async () => {
+  it('returns valid=true when Horizon returns base64-encoded manageData values', async () => {
+    const hash = 'deadbeef'.repeat(8)
+    const timestamp = '2026-06-29T00:00:00Z'
     mocks.transactionCall.mockReturnValue({
-      call: () => Promise.reject(new Error('Network down')),
+      call: () =>
+        Promise.resolve({
+          hash: 'abc',
+          source_account: 'GSRC',
+          created_at: '2026-06-29T00:00:00Z',
+        }),
+    })
+    mocks.operationsCall.mockResolvedValue({
+      records: [
+        {
+          type: 'manageData',
+          name: 'kuwenta:ph:RET1',
+          value: Buffer.from(hash, 'utf8').toString('base64'),
+          source_account: 'GSRC',
+        },
+        {
+          type: 'manageData',
+          name: 'kuwenta:ts:RET1',
+          value: Buffer.from(timestamp, 'utf8').toString('base64'),
+          source_account: 'GSRC',
+        },
+      ],
     })
 
     const { verifyReceiptOnChain } = await import('../verify')
-    const result = await verifyReceiptOnChain('abc', 'RET1', 'deadbeef')
-    expect(result.valid).toBe(false)
-    expect(result.reason).toBe('Network down')
+    const result = await verifyReceiptOnChain('abc', 'RET1', hash)
+    expect(result.valid).toBe(true)
+    expect(result.onChainHash).toBe(hash)
+    expect(result.onChainTimestamp).toBe(timestamp)
+  })
+
+  it('returns valid=true for legacy single-entry format with base64-encoded value', async () => {
+    const hash = 'deadbeef'.repeat(8)
+    const timestamp = '2026-06-29T00:00:00Z'
+    mocks.transactionCall.mockReturnValue({
+      call: () =>
+        Promise.resolve({
+          hash: 'abc',
+          source_account: 'GSRC',
+          created_at: '2026-06-29T00:00:00Z',
+        }),
+    })
+    mocks.operationsCall.mockResolvedValue({
+      records: [
+        {
+          type: 'manageData',
+          name: 'kuwenta:ph:RET1',
+          value: Buffer.from(`${hash}:${timestamp}`, 'utf8').toString('base64'),
+          source_account: 'GSRC',
+        },
+      ],
+    })
+
+    const { verifyReceiptOnChain } = await import('../verify')
+    const result = await verifyReceiptOnChain('abc', 'RET1', hash)
+    expect(result.valid).toBe(true)
+    expect(result.onChainHash).toBe(hash)
+    expect(result.onChainTimestamp).toBe(timestamp)
   })
 
   it('handles a value that is already a string', async () => {

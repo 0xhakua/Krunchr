@@ -195,6 +195,122 @@ describe('GET /api/returns/[id]/pdf', () => {
     expect(renderFilingPdf).not.toHaveBeenCalled()
   })
 
+  it('regenerates a preview when preview=1 and the stored filing PDF is missing', async () => {
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+    const ret = await prisma.taxReturn.findFirstOrThrow({
+      where: { taxYearId: taxYear.id, sequenceOrder: 1 },
+    })
+    const pdfPath = `returns/${taxYear.id}/${ret.id}/generated.pdf`
+
+    vi.mocked(loadFilingData).mockResolvedValue({
+      ret: {
+        id: ret.id,
+        formType: 'FORM_2551Q',
+        quarter: 1,
+        status: 'FILED',
+        pdfPath,
+      },
+      taxYear: { year: 2026 },
+    } as Awaited<ReturnType<typeof loadFilingData>>)
+
+    vi.mocked(readFile).mockRejectedValue(
+      Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
+    )
+    vi.mocked(renderFilingPdf).mockResolvedValue(regeneratedPdf)
+
+    mockSession.current = { sub: user.id, username: user.username, role: 'TAXPAYER' }
+
+    const res = await GET(
+      new Request(`http://localhost/api/returns/${ret.id}/pdf?preview=1`),
+      { params: Promise.resolve({ id: ret.id }) }
+    )
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('X-Kuwenta-Preview')).toBe('regenerated')
+    const body = Buffer.from(await res.arrayBuffer())
+    expect(body.toString()).toBe(regeneratedPdf.toString())
+    expect(readFile).toHaveBeenCalledWith(pdfPath)
+    expect(renderFilingPdf).toHaveBeenCalledWith(ret.id, user.id)
+  })
+
+  it('regenerates a preview when preview=1 and the FILED return has no stored pdfPath', async () => {
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+    const ret = await prisma.taxReturn.findFirstOrThrow({
+      where: { taxYearId: taxYear.id, sequenceOrder: 1 },
+    })
+
+    vi.mocked(loadFilingData).mockResolvedValue({
+      ret: {
+        id: ret.id,
+        formType: 'FORM_2551Q',
+        quarter: 1,
+        status: 'FILED',
+        pdfPath: null,
+      },
+      taxYear: { year: 2026 },
+    } as Awaited<ReturnType<typeof loadFilingData>>)
+
+    vi.mocked(renderFilingPdf).mockResolvedValue(regeneratedPdf)
+
+    mockSession.current = { sub: user.id, username: user.username, role: 'TAXPAYER' }
+
+    const res = await GET(
+      new Request(`http://localhost/api/returns/${ret.id}/pdf?preview=1`),
+      { params: Promise.resolve({ id: ret.id }) }
+    )
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('X-Kuwenta-Preview')).toBe('regenerated')
+    const body = Buffer.from(await res.arrayBuffer())
+    expect(body.toString()).toBe(regeneratedPdf.toString())
+    expect(readFile).not.toHaveBeenCalled()
+    expect(renderFilingPdf).toHaveBeenCalledWith(ret.id, user.id)
+  })
+
+  it('serves the stored filing PDF with preview=1 when it exists', async () => {
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+    const ret = await prisma.taxReturn.findFirstOrThrow({
+      where: { taxYearId: taxYear.id, sequenceOrder: 1 },
+    })
+    const pdfPath = `returns/${taxYear.id}/${ret.id}/generated.pdf`
+
+    vi.mocked(loadFilingData).mockResolvedValue({
+      ret: {
+        id: ret.id,
+        formType: 'FORM_2551Q',
+        quarter: 1,
+        status: 'FILED',
+        pdfPath,
+      },
+      taxYear: { year: 2026 },
+    } as Awaited<ReturnType<typeof loadFilingData>>)
+
+    vi.mocked(readFile).mockResolvedValue(storedPdf)
+
+    mockSession.current = { sub: user.id, username: user.username, role: 'TAXPAYER' }
+
+    const res = await GET(
+      new Request(`http://localhost/api/returns/${ret.id}/pdf?preview=1`),
+      { params: Promise.resolve({ id: ret.id }) }
+    )
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('X-Kuwenta-Preview')).toBe('stored')
+    const body = Buffer.from(await res.arrayBuffer())
+    expect(body.toString()).toBe(storedPdf.toString())
+    expect(readFile).toHaveBeenCalledWith(pdfPath)
+    expect(renderFilingPdf).not.toHaveBeenCalled()
+  })
+
   it('returns 401 when unauthenticated', async () => {
     mockSession.current = null
 
