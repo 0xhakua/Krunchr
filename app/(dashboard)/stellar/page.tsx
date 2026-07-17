@@ -22,7 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/ui/empty-state'
-import { QrCode, ShieldCheck } from 'lucide-react'
+import { QrCode, ShieldCheck, Copy, Check } from 'lucide-react'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 interface StellarReceipt {
@@ -86,13 +86,13 @@ export default function StellarPage() {
     }
   }
 
-  async function copyTxId(txId: string, id: string) {
+  async function copyText(text: string, id: string) {
     try {
-      await navigator.clipboard.writeText(txId)
+      await navigator.clipboard.writeText(text)
       setCopiedId(id)
       setTimeout(() => setCopiedId(null), 1500)
     } catch {
-      setError('Failed to copy TX ID')
+      setError('Failed to copy')
     }
   }
 
@@ -190,7 +190,7 @@ export default function StellarPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => copyTxId(receipt.stellarTxId, receipt.id)}
+                      onClick={() => copyText(receipt.stellarTxId, receipt.id)}
                     >
                       {copiedId === receipt.id ? 'Copied' : 'Copy'}
                     </Button>
@@ -207,14 +207,47 @@ export default function StellarPage() {
                               filing without signing in.
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="flex flex-col items-center gap-4 py-4">
+                          <div className="flex flex-col items-center gap-5 py-5">
                             <QRCode
                               value={`${typeof window !== 'undefined' ? window.location.origin : ''}/verify/${receipt.stellarTxId}`}
                               size={192}
                             />
-                            <p className="text-center text-xs text-muted-foreground break-all px-4">
-                              {typeof window !== 'undefined' ? window.location.origin : ''}/verify/{receipt.stellarTxId}
-                            </p>
+                            <div className="w-full rounded-lg border bg-muted/30 p-3 space-y-2">
+                              <p className="text-xs font-medium text-muted-foreground">
+                                Public verifier link
+                              </p>
+                              <a
+                                href={`${typeof window !== 'undefined' ? window.location.origin : ''}/verify/${receipt.stellarTxId}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block text-center text-xs text-primary break-all hover:underline"
+                              >
+                                {typeof window !== 'undefined' ? window.location.origin : ''}/verify/{receipt.stellarTxId}
+                              </a>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full"
+                                onClick={() =>
+                                  copyText(
+                                    `${typeof window !== 'undefined' ? window.location.origin : ''}/verify/${receipt.stellarTxId}`,
+                                    `url-${receipt.id}`
+                                  )
+                                }
+                              >
+                                {copiedId === `url-${receipt.id}` ? (
+                                  <>
+                                    <Check className="mr-1 h-4 w-4" />
+                                    Copied
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="mr-1 h-4 w-4" />
+                                    Copy link
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         </DialogContent>
                       </Dialog>
