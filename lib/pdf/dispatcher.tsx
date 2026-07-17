@@ -22,6 +22,8 @@ export interface FilingPdfData {
     statutoryDueDate: Date
     filedDate: Date | null
     generatedAt: Date | null
+    /** Relative path to the stored filing PDF, or null if not yet filed. */
+    pdfPath?: string | null
     /** Per-line penalty rows, mirrored from TaxReturn.penalties. */
     penalties: {
       daysLate: number
@@ -46,6 +48,10 @@ export interface FilingPdfData {
     email: string | null
     phoneNumber: string | null
     natureOfBusiness: string
+    citizenship: string | null
+    civilStatus: string | null
+    claimingForeignTaxCredits: boolean
+    foreignTaxNumber: string | null
     incomeType: 'PURE_SELF_EMPLOYMENT' | 'MIXED_INCOME'
     corIncludes2551Q: boolean
   }
@@ -113,6 +119,7 @@ export async function loadFilingData(
       statutoryDueDate: ret.statutoryDueDate,
       filedDate: ret.filedDate,
       generatedAt: ret.generatedAt,
+      pdfPath: ret.pdfPath,
       penalties: ret.penalties
         ? {
             daysLate: ret.penalties.daysLate,
@@ -138,6 +145,10 @@ export async function loadFilingData(
       email: profile.email,
       phoneNumber: profile.phoneNumber,
       natureOfBusiness: profile.natureOfBusiness,
+      citizenship: profile.citizenship,
+      civilStatus: profile.civilStatus,
+      claimingForeignTaxCredits: profile.claimingForeignTaxCredits,
+      foreignTaxNumber: profile.foreignTaxNumber,
       incomeType: profile.incomeType,
       corIncludes2551Q: profile.corIncludes2551Q,
     },

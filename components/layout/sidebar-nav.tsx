@@ -13,6 +13,7 @@ import {
   BookText,
   ShieldCheck,
   Settings,
+  UserCog,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -29,6 +30,7 @@ const NAV: NavItem[] = [
   { href: '/sawt', label: 'SAWT', icon: FileSpreadsheet },
   { href: '/journal', label: 'Journal', icon: BookText },
   { href: '/stellar', label: 'Stellar', icon: ShieldCheck },
+  { href: '/settings', label: 'Settings', icon: UserCog },
 ]
 
 export function SidebarNav({

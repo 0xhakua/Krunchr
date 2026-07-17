@@ -1,4 +1,5 @@
 import { horizon, getSystemKeypair } from './client'
+import { HASH_KEY_PREFIX, TIMESTAMP_KEY_PREFIX } from './anchor'
 
 export interface StellarStatus {
   healthy: boolean
@@ -20,6 +21,7 @@ export interface OnChainAnchor {
   anchoredAt: string | null
   sourceAccount: string
   transactionHash: string
+  ledgerCreatedAt: string | null
 }
 
 export interface VerifyResult {
@@ -38,13 +40,15 @@ export interface VerifyResult {
   checkedAt: string
 }
 
-function getNetwork(): 'testnet' | 'mainnet' {
+export function getNetwork(): 'testnet' | 'mainnet' {
   return process.env.STELLAR_NETWORK === 'mainnet' ? 'mainnet' : 'testnet'
 }
 
-function getExplorerUrl(txId: string): string {
+export function getExplorerUrl(txId: string): string {
   const network = getNetwork()
-  return `https://stellar.expert/explorer/${network}/tx/${txId}`
+  // Stellar Expert uses 'public' for mainnet and 'testnet' for testnet.
+  const explorerNetwork = network === 'mainnet' ? 'public' : network
+  return `https://stellar.expert/explorer/${explorerNetwork}/tx/${txId}`
 }
 
 function dataKeyFor(returnId: string): string {
@@ -65,9 +69,29 @@ function parseManageDataValue(raw: string | null | undefined): {
   return { payloadHash, anchoredAt }
 }
 
+function decodeHorizonValue(raw: string): string {
+  // Horizon returns manageData values as base64-encoded strings. Try decoding
+  // when the raw value is not already a plain hex hash, ISO timestamp, or the
+  // legacy single-entry `hash:timestamp` format.
+  const looksDecoded = (value: string) =>
+    /^[a-f0-9]{64}$/i.test(value) ||
+    /^[a-f0-9]{64}:\d{4}-\d{2}-\d{2}T/.test(value) ||
+    /^\d{4}-\d{2}-\d{2}T/.test(value)
+
+  if (looksDecoded(raw)) return raw
+
+  try {
+    const decoded = Buffer.from(raw, 'base64').toString('utf-8')
+    if (looksDecoded(decoded)) return decoded
+  } catch {
+    // fall through to raw value
+  }
+  return raw
+}
+
 function bufferToUtf8(value: unknown): string {
   if (value === null || value === undefined) return ''
-  if (typeof value === 'string') return value
+  if (typeof value === 'string') return decodeHorizonValue(value)
   if (Buffer.isBuffer(value)) return value.toString('utf-8')
   if (value instanceof Uint8Array) return Buffer.from(value).toString('utf-8')
   if (typeof value === 'object' && value !== null && 'toString' in value) {
@@ -139,6 +163,10 @@ export async function getStellarStatus(): Promise<StellarStatus> {
  * Fetches the on-chain anchor record for a given TX hash. Looks up the
  * transaction, then locates the manageData operation whose name matches the
  * `kuwenta:ph:{returnId}` convention used by `anchorFilingReceipt`.
+ *
+ * Supports both the current two-entry format (separate `kuwenta:ph:` and
+ * `kuwenta:ts:` operations) and the legacy single-entry format where the hash
+ * value was encoded as `{hash}:{timestamp}`.
  */
 export async function fetchOnChainAnchor(
   txId: string,
@@ -152,25 +180,101 @@ export async function fetchOnChainAnchor(
       .limit(200)
       .call()
     const targetKey = dataKeyFor(returnId)
-    const match = operations.records.find(
-      (op: { type?: string; name?: string }) =>
-        (op.type === 'manageData' || op.type === 'manage_data') &&
-        op.name === targetKey
+    const records = operations.records as Array<{
+      type?: string
+      name?: string
+      value?: unknown
+      source_account?: string
+    }>
+    const match = records.find(
+      (op) => isManageData(op) && op.name === targetKey
     )
     if (!match) return null
-    const dataValue = bufferToUtf8(
-      (match as unknown as { value?: unknown }).value
+    const dataValue = bufferToUtf8(match.value)
+    const parsed = parseManageDataValue(dataValue)
+
+    // Current anchor format stores the timestamp in a separate manageData entry.
+    const timestampKey = `${TIMESTAMP_KEY_PREFIX}${returnId}`.substring(0, 64)
+    const timestampOp = records.find(
+      (op) => isManageData(op) && op.name === timestampKey
     )
-    const sourceAccount =
-      (match as unknown as { source_account?: string }).source_account ??
-      tx.source_account
+    const anchoredAt = timestampOp
+      ? bufferToUtf8(timestampOp.value)
+      : parsed.anchoredAt
+
+    const sourceAccount = match.source_account ?? tx.source_account
     return {
       returnId,
       dataKey: targetKey,
       dataValue: dataValue || null,
-      ...parseManageDataValue(dataValue),
+      payloadHash: parsed.payloadHash,
+      anchoredAt,
       sourceAccount,
       transactionHash: tx.hash,
+      ledgerCreatedAt: tx.created_at ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
+function isManageData(op: { type?: string; name?: string }): boolean {
+  return op.type === 'manageData' || op.type === 'manage_data'
+}
+
+function returnIdFromHashKey(name: string): string | null {
+  if (!name.startsWith(HASH_KEY_PREFIX)) return null
+  return name.slice(HASH_KEY_PREFIX.length)
+}
+
+/**
+ * Fetches a public anchor record from a Stellar transaction without needing the
+ * returnId up front. Scans the transaction's manageData operations for a
+ * `kuwenta:ph:` entry, extracts the returnId from the key, and pairs it with the
+ * matching `kuwenta:ts:` timestamp entry.
+ *
+ * This is intended for the public verifier page: anyone with the transaction
+ * hash can confirm a filing was anchored and read its hash + timestamp.
+ */
+export async function fetchPublicAnchor(txId: string): Promise<OnChainAnchor | null> {
+  try {
+    const tx = await horizon.transactions().transaction(txId).call()
+    const operations = await horizon
+      .operations()
+      .forTransaction(txId)
+      .limit(200)
+      .call()
+
+    const records = operations.records as Array<{ type?: string; name?: string; value?: unknown; source_account?: string }>
+
+    const hashOp = records.find(
+      (op) => isManageData(op) && op.name?.startsWith(HASH_KEY_PREFIX)
+    )
+    if (!hashOp || !hashOp.name) return null
+
+    const returnId = returnIdFromHashKey(hashOp.name)
+    if (!returnId) return null
+
+    const timestampOp = records.find(
+      (op) =>
+        isManageData(op) &&
+        op.name === `${TIMESTAMP_KEY_PREFIX}${returnId}`.substring(0, 64)
+    )
+
+    const dataValue = bufferToUtf8(hashOp.value)
+    const parsed = parseManageDataValue(dataValue)
+    const timestampValue = timestampOp ? bufferToUtf8(timestampOp.value) : null
+    const sourceAccount = hashOp.source_account ?? tx.source_account
+
+    return {
+      returnId,
+      dataKey: hashOp.name,
+      dataValue: dataValue || null,
+      payloadHash: (parsed.payloadHash ?? dataValue) || null,
+      anchoredAt: timestampValue ?? parsed.anchoredAt,
+      sourceAccount,
+      transactionHash: tx.hash,
+      ledgerCreatedAt: tx.created_at ?? null,
     }
   } catch {
     return null

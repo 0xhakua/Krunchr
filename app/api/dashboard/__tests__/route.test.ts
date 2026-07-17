@@ -55,6 +55,81 @@ describe('GET /api/dashboard', () => {
     expect(body).toEqual({ error: 'Unauthorized' })
   })
 
+  it('reports onboardingState NEEDS_ONBOARDING when the user has no taxpayer profile (#243)', async () => {
+    const user = await createUser()
+
+    vi.mocked(requireAuth).mockResolvedValue({
+      sub: user.id,
+      username: 'test',
+      role: 'TAXPAYER',
+      iat: 1,
+      exp: 9999999999,
+    })
+
+    const res = await GET(await makeRequest(user.id))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.taxpayer).toBeNull()
+    expect(json.onboardingState).toBe('NEEDS_ONBOARDING')
+  })
+
+  it('reports onboardingState MISSING_TAX_YEAR when the profile exists without a tax year (#243)', async () => {
+    await seedReferenceData()
+    const user = await createUser()
+    // The partial-seed stuck state from #243: profile row survives, zero
+    // TaxYear rows. The dashboard must not treat this as "needs onboarding"
+    // — onboarding redirects these users straight back here.
+    await prisma.taxpayerProfile.create({
+      data: {
+        userId: user.id,
+        tin: '333-333-333-3333',
+        fullName: 'Stuck Seed',
+        rdoCode: '040',
+        registeredAddress: '1 Test',
+        zipCode: '1200',
+        natureOfBusiness: 'Consulting',
+        incomeType: 'PURE_SELF_EMPLOYMENT',
+        corIncludes2551Q: true,
+      },
+    })
+
+    vi.mocked(requireAuth).mockResolvedValue({
+      sub: user.id,
+      username: 'test',
+      role: 'TAXPAYER',
+      iat: 1,
+      exp: 9999999999,
+    })
+
+    const res = await GET(await makeRequest(user.id))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.taxpayer).toBeNull()
+    expect(json.onboardingState).toBe('MISSING_TAX_YEAR')
+  })
+
+  it('reports onboardingState READY for a fully onboarded taxpayer (#243)', async () => {
+    await seedReferenceData()
+    const { user } = await createTaxpayerWithYear()
+
+    vi.mocked(requireAuth).mockResolvedValue({
+      sub: user.id,
+      username: 'test',
+      role: 'TAXPAYER',
+      iat: 1,
+      exp: 9999999999,
+    })
+
+    const res = await GET(await makeRequest(user.id))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.taxpayer).not.toBeNull()
+    expect(json.onboardingState).toBe('READY')
+  })
+
   it('returns annualFormType FORM_1701A for pure self-employment taxpayers', async () => {
     await seedReferenceData()
     const user = await createUser()

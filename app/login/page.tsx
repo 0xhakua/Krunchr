@@ -21,6 +21,21 @@ type FieldErrors = {
   password?: string
 }
 
+type DemoAccount = {
+  username: string
+  password: string
+  label: string
+}
+
+// Seeded by prisma/seed.ts as demo1/2/3 — safe to show in any environment.
+// These are throwaway accounts for demo viewers; the admin account is
+// intentionally omitted because its password is deploy-specific ($ADMIN_PASSWORD).
+const DEMO_ACCOUNTS: DemoAccount[] = [
+  { username: 'demo1', password: 'Test1234!', label: 'Demo 1 — pure SE, 8-return' },
+  { username: 'demo2', password: 'Test1234!', label: 'Demo 2 — mixed income' },
+  { username: 'demo3', password: 'Test1234!', label: 'Demo 3 — pure SE, 4-return' },
+]
+
 function validateField(name: keyof FieldErrors, value: string): string | undefined {
   const result = loginSchema.shape[name].safeParse(value)
   return result.success ? undefined : result.error.errors[0].message
@@ -77,6 +92,15 @@ export default function LoginPage() {
     )
   }, [username, password])
 
+  const handleDemoClick = useCallback((account: DemoAccount) => {
+    setUsername(account.username)
+    setPassword(account.password)
+    setTouched({})
+    setSubmitted(false)
+    setErrors({})
+    setError('')
+  }, [])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitted(true)
@@ -118,7 +142,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Krunchr</CardTitle>
-          <CardDescription>Sign in with your admin account</CardDescription>
+          <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -170,6 +194,33 @@ export default function LoginPage() {
               </Link>
             </p>
           </form>
+
+          <div className="mt-6 border-t pt-4">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Demo accounts
+            </p>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Click one to autofill the form. For demo and review use only.
+            </p>
+            <ul className="space-y-1.5">
+              {DEMO_ACCOUNTS.map((account) => (
+                <li key={account.username}>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoClick(account)}
+                    className="flex w-full items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-1.5 text-left text-xs transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="font-medium text-foreground">
+                      {account.label}
+                    </span>
+                    <span className="font-mono text-muted-foreground">
+                      {account.username}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </CardContent>
       </Card>
     </div>

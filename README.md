@@ -6,6 +6,12 @@ Krunchr is a web application that automates Philippine BIR tax compliance for se
 
 For the Stellar ecosystem, Krunchr is a live, non-speculative "Real World Access" use case in a market where Stellar already has payment-rail traction (Coins.ph, MoneyGram's PHP/USDC corridor) but — as far as this project's research could establish — no shipped tax-compliance or government-RegTech product: it demonstrates Stellar's low-cost `manageData`/anchoring primitives solving an actual, everyday compliance problem for millions of Philippine freelancers, and opens a path toward deeper ecosystem integration — Soroban-based attestation registries, SEP-12/24 anchor payouts for freelancers paid in USDC, and portable verifiable-compliance credentials — that go well beyond the current hash-anchoring implementation.
 
+## 🎥 Demo
+
+- **🔗 Live app:** https://krunchr.xyz/
+- **🎬 Demo video:** https://drive.google.com/drive/folders/17Xs1sLuX_jf_swINoBStGZniXu02DKeH
+- **🖼️ Pitch deck:** https://drive.google.com/drive/folders/1Xe_AXHO618326qsyQpHO99a37O-SVv-4
+
 ## Status
 
 | | |
@@ -29,13 +35,13 @@ Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Acces
 - **Self-employed freelancers on the 8% flat rate** — need a guided, correct-by-construction path through 8 mandatory returns without hiring an accountant for every quarter.
 - **Graduated-rate filers** — need TRAIN-law bracket computation and an optional 40% standard deduction, correctly kept mutually exclusive from the 8% election.
 - **Mixed-income earners (salary + freelance)** — need computations that correctly skip the ₱250,000 exemption and route to Form 1701 instead of 1701A.
-- **Banks / embassies / third-party verifiers** — need a fast, tamper-evident way to confirm a filing actually happened, via the Stellar-anchored hash rather than trusting a scanned PDF.
+- **Banks / embassies / third-party verifiers** — need a fast, tamper-evident way to confirm a filing actually happened, via the public verifier at `/verify/{stellarTxId}` rather than trusting a scanned PDF.
 - **BIR-compliance admins** *(role: `ADMIN`)* — need to manage ATC codes, RDO penalty schedules, holiday calendars, users, and audit logs across taxpayers.
 
 ## ✨ Features
 
 **Auth & Onboarding**
-- Self-service registration with rate limiting and Zod validation, alongside seeded accounts — `app/register`, `/api/auth/register`
+- Self-service registration with rate limiting and Zod validation, alongside seeded demo accounts (`demo1`, `demo2`, `demo3`) — `app/register`, `/api/auth/register`
 - 4-step taxpayer onboarding (personal info, eligibility, ATC setup, tax-year init) with TIN normalization and ZIP lookup — `app/(dashboard)/onboarding`
 - 5-point eligibility validation (individual taxpayer, self-employment income, non-VAT, gross receipts < ₱3,000,000, no prior graduated-rate Q1 filing) — `/api/taxpayer/eligibility`, `lib/computation/eligibility.ts`
 - ATC code setup with a lookup table and admin-configurable EWT rates — `/api/atc`
@@ -64,7 +70,18 @@ Built for the **APAC Stellar Hackathon 2026 — Local Finance & Real World Acces
 - On filing, the return PDF is SHA-256 hashed and anchored via two Stellar `manageData` operations (hash + ISO timestamp, keys `kuwenta:ph:{id}`/`kuwenta:ts:{id}`) — `lib/stellar/anchor.ts`
 - Anchoring failure does not block filing; a `StellarReceipt` is created/updated with status `FAILED` and can be retried (including regenerating a missing PDF) — `/api/stellar/receipts/[id]/retry`
 - On-chain verification re-fetches the Horizon `manageData` entries and compares the hash against the stored PDF, with a QR-code receipt view — `lib/stellar/verify.ts`, `/api/stellar/verify`, `app/(dashboard)/stellar`
+- Public, unauthenticated verifier page (`/verify/[txId]`) and API (`/api/public/verify/[txId]`) let banks, embassies, or auditors scan a receipt QR code and confirm the filing in seconds, including client-side PDF hash comparison — `app/verify/[txId]`, `app/api/public/verify/[txId]`
 - Horizon health/account-sequence probe — `/api/stellar/status`
+
+### Public Verifier
+
+Every filed return exposes a QR code that links to `/verify/{stellarTxId}`. A third party scanning that code lands on a public page that:
+
+1. Reads the `kuwenta:ph:{id}` and `kuwenta:ts:{id}` entries directly from Stellar Horizon.
+2. Shows the form type, quarter, tax year, anchored SHA-256 hash, and anchored timestamp.
+3. Lets the verifier drop the taxpayer's PDF to compare its hash against the on-chain record — computed locally in the browser, with no upload to Krunchr's servers.
+
+This turns a loan-officer or embassy verification into a ~30-second, trustless check that does not require a Krunchr login.
 
 **Auth & Admin**
 - Username/password login, JWT (HS256) issued via `jose`, stored as an httpOnly/secure/`SameSite=Strict` cookie, 8-hour expiry — `lib/auth/session.ts`, `/api/auth/login`
@@ -318,19 +335,41 @@ See the [ecosystem-expansion research](https://github.com/webnxt-2030/krunchr/is
    pnpm test        # or: pnpm test:unit / pnpm test:run / pnpm test:ui
    ```
 
-Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and test taxpayers `maria`, `juan`, `anna` (all password `Test1234!`), fully onboarded with a 2026 tax year. New taxpayers can also self-register via `/register`.
+Seeded accounts: admin (`admin` / `$ADMIN_PASSWORD`) and demo taxpayers `demo1`, `demo2`, `demo3` (all password `Test1234!`), fully onboarded with a 2026 tax year. New taxpayers can also self-register via `/register`.
+
+## Demo Accounts
+
+Krunchr ships with three pre-configured demo taxpayers for hackathon judging and local testing. All use the password `Test1234!`.
+
+| Username | TIN | Income type | COR includes 2551Q | Use case |
+|---|---|---|---|---|
+| `demo1` | `123-456-789-011` | Pure Self-Employment | Yes | 8-return path (2551Q × 4 + 1701Q × 3 + 1701A) |
+| `demo2` | `123-456-789-012` | Mixed Income | Yes | 8-return path, routes to Form 1701 |
+| `demo3` | `123-456-789-013` | Pure Self-Employment | No | 4-return path (1701Q × 3 + 1701A) |
+
+### Fresh clones
+
+`pnpm prisma db seed` creates the demo accounts automatically.
+
+### Existing deployments
+
+If you are fixing a deployed environment where the original `maria`/`juan`/`anna` seeded accounts were left in a partial-seed state (#243), create the new demo accounts without re-running the full seed:
+
+```bash
+# Local
+pnpm tsx scripts/create-demo-accounts.ts
+
+# Railway
+railway run -- pnpm tsx scripts/create-demo-accounts.ts
+```
+
+When `railway run` asks you to select a service, pick your **Krunchr / Next.js app service** (not Postgres) so the script receives `DATABASE_URL` and the other app variables.
 
 ## 🌐 Deployment
 
 The app deploys to **Railway**, which hosts the Next.js app, PostgreSQL database, and file storage together. On push to `main`, CI POSTs to a Railway deploy-hook URL stored in the `RAILWAY_DEPLOY_HOOK` GitHub secret (the workflow skips deployment gracefully if the secret is unset). `docs/railway-env.md` and `docs/railway-cli-runbook.md` document Railway-specific environment setup and CLI recipes. There is no `Dockerfile`/`railway.json` committed to the repo — deploy configuration currently lives in the Railway dashboard rather than as code.
 
 - **Production URL:** `https://app.krunchr.xyz/`
-
-## 🎥 Demo
-
-- **🔗 Live app:** https://krunchr.xyz/
-- **🎬 Demo video:** https://drive.google.com/drive/folders/17Xs1sLuX_jf_swINoBStGZniXu02DKeH
-- **🖼️ Pitch deck:** https://drive.google.com/drive/folders/1Xe_AXHO618326qsyQpHO99a37O-SVv-4
 
 ## Team
 

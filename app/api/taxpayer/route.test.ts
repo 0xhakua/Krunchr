@@ -1,14 +1,29 @@
 import { describe, it, expect } from 'vitest'
 import { NextRequest } from 'next/server'
-import { POST } from './route'
+import { POST, PUT } from './route'
 import { prisma } from '@/lib/testing/db'
-import { createUser, createATCCode, seedReferenceData } from '@/lib/testing/factories'
+import {
+  createUser,
+  createATCCode,
+  seedReferenceData,
+  createTaxpayerProfile,
+  createTaxpayerWithYear,
+} from '@/lib/testing/factories'
 import { signToken } from '@/lib/auth/session'
 
 async function makeRequest(userId: string, body: object): Promise<NextRequest> {
   const token = await signToken({ sub: userId, username: 'test', role: 'TAXPAYER' })
   return new NextRequest('http://localhost/api/taxpayer', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: `kuwenta_session=${token}` },
+    body: JSON.stringify(body),
+  })
+}
+
+async function makePutRequest(userId: string, body: object): Promise<NextRequest> {
+  const token = await signToken({ sub: userId, username: 'test', role: 'TAXPAYER' })
+  return new NextRequest('http://localhost/api/taxpayer', {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json', Cookie: `kuwenta_session=${token}` },
     body: JSON.stringify(body),
   })
@@ -25,6 +40,9 @@ const basePayload = {
   registeredAddress: '123 Test St',
   zipCode: '1200',
   natureOfBusiness: 'Consulting',
+  citizenship: 'Filipino',
+  civilStatus: 'Single',
+  claimingForeignTaxCredits: false,
   incomeType: 'PURE_SELF_EMPLOYMENT',
   corIncludes2551Q: true,
   taxYear: 2026,
@@ -262,5 +280,256 @@ describe('POST /api/taxpayer', () => {
     })
     expect(taxYear!.returns).toHaveLength(8)
     expect(taxYear!.returns.find((r) => r.formType === 'FORM_2551Q' && r.quarter === 1)).toBeDefined()
+  })
+})
+
+// #241: already-onboarded users can correct their onboarding answers via
+// PUT /api/taxpayer. Covers ATC replacement, structural reconciliation of
+// return slots, the GENERATED/FILED guardrail, and the TIN-unique 409.
+describe('PUT /api/taxpayer (#241)', () => {
+  it('returns 401 when the request is unauthenticated', async () => {
+    const req = new NextRequest('http://localhost/api/taxpayer', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phoneNumber: '+639171234567' }),
+    })
+    const res = await PUT(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 404 when the user has no taxpayer profile', async () => {
+    const user = await createUser()
+    const res = await PUT(await makePutRequest(user.id, { phoneNumber: '+639171234567' }))
+    expect(res.status).toBe(404)
+  })
+
+  it('updates non-structural fields and writes an audit log entry', async () => {
+    const { user, profile } = await createTaxpayerWithYear({ year: 2026 })
+
+    const res = await PUT(
+      await makePutRequest(user.id, {
+        phoneNumber: '+639171234999',
+        registeredAddress: '456 Updated Ave',
+      })
+    )
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.restructured).toBe(false)
+    expect(json.profile.phoneNumber).toBe('+639171234999')
+    expect(json.profile.registeredAddress).toBe('456 Updated Ave')
+
+    const audit = await prisma.auditLog.findFirst({
+      where: { action: 'TAXPAYER_PROFILE_UPDATED', entityId: profile.id },
+    })
+    expect(audit).not.toBeNull()
+    expect(audit?.userId).toBe(user.id)
+  })
+
+  it('replaces the ATC code set when atcCodes is provided', async () => {
+    await seedReferenceData()
+    const { user, profile } = await createTaxpayerWithYear({ year: 2026 })
+    await prisma.taxpayerATC.create({
+      data: { taxpayerId: profile.id, atcCode: 'WI071' },
+    })
+
+    const res = await PUT(await makePutRequest(user.id, { atcCodes: ['WI140', 'WI100'] }))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+
+    const rows = await prisma.taxpayerATC.findMany({
+      where: { taxpayerId: profile.id },
+      orderBy: { atcCode: 'asc' },
+    })
+    expect(rows.map((r) => r.atcCode)).toEqual(['WI100', 'WI140'])
+    expect(json.profile.atcCodes.map((a: { atcCode: string }) => a.atcCode).sort()).toEqual([
+      'WI100',
+      'WI140',
+    ])
+  })
+
+  it('rejects invalid or inactive ATC codes with a 400', async () => {
+    await seedReferenceData()
+    const { user } = await createTaxpayerWithYear({ year: 2026 })
+
+    const res = await PUT(await makePutRequest(user.id, { atcCodes: ['NOPE'] }))
+    const json = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(json.error).toMatch(/ATC codes are invalid or inactive/i)
+  })
+
+  it('restructures 8 slots to 4 when corIncludes2551Q flips to false', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+
+    const res = await PUT(await makePutRequest(user.id, { corIncludes2551Q: false }))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.restructured).toBe(true)
+
+    const returns = await prisma.taxReturn.findMany({
+      where: { taxYearId: taxYear.id },
+      orderBy: { sequenceOrder: 'asc' },
+    })
+    expect(returns.map((r) => `${r.formType}:${r.quarter}`)).toEqual([
+      'FORM_1701Q:1',
+      'FORM_1701Q:2',
+      'FORM_1701Q:3',
+      'FORM_1701A:null',
+    ])
+    expect(returns.map((r) => r.sequenceOrder)).toEqual([1, 2, 3, 4])
+
+    const profile = await prisma.taxpayerProfile.findUnique({ where: { userId: user.id } })
+    expect(profile?.corIncludes2551Q).toBe(false)
+  })
+
+  it('restructures 4 slots to 8 when corIncludes2551Q flips to true', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: false,
+    })
+
+    const res = await PUT(await makePutRequest(user.id, { corIncludes2551Q: true }))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.restructured).toBe(true)
+
+    const returns = await prisma.taxReturn.findMany({
+      where: { taxYearId: taxYear.id },
+      orderBy: { sequenceOrder: 'asc' },
+    })
+    expect(returns).toHaveLength(8)
+    expect(returns.map((r) => `${r.formType}:${r.quarter}`)).toEqual([
+      'FORM_2551Q:1',
+      'FORM_2551Q:2',
+      'FORM_2551Q:3',
+      'FORM_2551Q:4',
+      'FORM_1701Q:1',
+      'FORM_1701Q:2',
+      'FORM_1701Q:3',
+      'FORM_1701A:null',
+    ])
+  })
+
+  it('switches the annual slot from 1701A to 1701 when incomeType becomes MIXED_INCOME', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      incomeType: 'PURE_SELF_EMPLOYMENT',
+    })
+
+    const res = await PUT(await makePutRequest(user.id, { incomeType: 'MIXED_INCOME' }))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.restructured).toBe(true)
+
+    const returns = await prisma.taxReturn.findMany({
+      where: { taxYearId: taxYear.id },
+    })
+    expect(returns.find((r) => r.formType === 'FORM_1701A')).toBeUndefined()
+    const annual = returns.find((r) => r.formType === 'FORM_1701')
+    expect(annual).toBeDefined()
+    expect(annual?.sequenceOrder).toBe(8)
+    // recascadeTaxYear ran: the annual slot carries recomputed values.
+    expect(annual?.computedTaxDue).not.toBeNull()
+
+    const profile = await prisma.taxpayerProfile.findUnique({ where: { userId: user.id } })
+    expect(profile?.incomeType).toBe('MIXED_INCOME')
+  })
+
+  it('switches the annual slot from 1701 back to 1701A when incomeType becomes PURE_SELF_EMPLOYMENT', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      incomeType: 'MIXED_INCOME',
+    })
+
+    const res = await PUT(await makePutRequest(user.id, { incomeType: 'PURE_SELF_EMPLOYMENT' }))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.restructured).toBe(true)
+
+    const returns = await prisma.taxReturn.findMany({
+      where: { taxYearId: taxYear.id },
+    })
+    expect(returns.find((r) => r.formType === 'FORM_1701')).toBeUndefined()
+    expect(returns.find((r) => r.formType === 'FORM_1701A')).toBeDefined()
+  })
+
+  it('refuses structural changes with a 409 once a return is GENERATED, but still allows non-structural edits', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+    const firstReturn = await prisma.taxReturn.findFirstOrThrow({
+      where: { taxYearId: taxYear.id, sequenceOrder: 1 },
+    })
+    await prisma.taxReturn.update({
+      where: { id: firstReturn.id },
+      data: { status: 'GENERATED' },
+    })
+
+    const structuralRes = await PUT(await makePutRequest(user.id, { corIncludes2551Q: false }))
+    const structuralJson = await structuralRes.json()
+
+    expect(structuralRes.status).toBe(409)
+    expect(structuralJson.error).toMatch(/generated or filed/i)
+
+    // Slots untouched.
+    const returns = await prisma.taxReturn.findMany({ where: { taxYearId: taxYear.id } })
+    expect(returns).toHaveLength(8)
+
+    // Non-structural edits remain accepted.
+    const okRes = await PUT(await makePutRequest(user.id, { phoneNumber: '+639171234999' }))
+    expect(okRes.status).toBe(200)
+  })
+
+  it('refuses structural changes with a 409 once a return is FILED', async () => {
+    await seedReferenceData()
+    const { user, taxYear } = await createTaxpayerWithYear({ year: 2026 })
+    const firstReturn = await prisma.taxReturn.findFirstOrThrow({
+      where: { taxYearId: taxYear.id, sequenceOrder: 1 },
+    })
+    await prisma.taxReturn.update({
+      where: { id: firstReturn.id },
+      data: { status: 'FILED', filedDate: new Date() },
+    })
+
+    const res = await PUT(await makePutRequest(user.id, { incomeType: 'MIXED_INCOME' }))
+    expect(res.status).toBe(409)
+  })
+
+  it('returns 409 when the new TIN belongs to another taxpayer', async () => {
+    const { user } = await createTaxpayerWithYear({ year: 2026 })
+    const otherUser = await createUser()
+    await createTaxpayerProfile(otherUser.id, { tin: '999-888-777-000' })
+
+    const res = await PUT(await makePutRequest(user.id, { tin: '999-888-777-000' }))
+    const json = await res.json()
+
+    expect(res.status).toBe(409)
+    expect(json.error).toMatch(/TIN already registered/i)
+  })
+
+  it('returns a 400 field error when claiming foreign tax credits without a foreign tax number', async () => {
+    const { user } = await createTaxpayerWithYear({ year: 2026 })
+
+    const res = await PUT(await makePutRequest(user.id, { claimingForeignTaxCredits: true }))
+    const json = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(Array.isArray(json.fieldErrors.foreignTaxNumber)).toBe(true)
+    expect(json.fieldErrors.foreignTaxNumber[0]).toMatch(/foreign tax credits/i)
   })
 })
