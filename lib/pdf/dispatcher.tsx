@@ -22,6 +22,8 @@ export interface FilingPdfData {
     statutoryDueDate: Date
     filedDate: Date | null
     generatedAt: Date | null
+    /** Relative path to the stored filing PDF, or null if not yet filed. */
+    pdfPath?: string | null
     /** Per-line penalty rows, mirrored from TaxReturn.penalties. */
     penalties: {
       daysLate: number
@@ -117,6 +119,7 @@ export async function loadFilingData(
       statutoryDueDate: ret.statutoryDueDate,
       filedDate: ret.filedDate,
       generatedAt: ret.generatedAt,
+      pdfPath: ret.pdfPath,
       penalties: ret.penalties
         ? {
             daysLate: ret.penalties.daysLate,

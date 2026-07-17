@@ -6,6 +6,7 @@ import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { determineReturnStatus } from '@/lib/computation/sequence'
 import { renderFilingPdf } from '@/lib/pdf/dispatcher'
+import { readFile } from '@/lib/storage'
 import { CoverSheet } from '@/lib/pdf/cover-sheet'
 import { resolveTaxYearFromRequest, setActiveYearCookie } from '@/lib/active-year'
 
@@ -130,9 +131,24 @@ export async function GET(request: Request) {
       .join('\n')
     zip.file(`SAWT-${taxYear.year}.csv`, csv)
 
-    // Filed return PDFs
+    // Filed return PDFs — serve the stored filing PDFs so their hashes match
+    // the Stellar anchors; only regenerate if the stored file is missing.
     for (const ret of filedReturns) {
-      const pdfBuffer = await renderFilingPdf(ret.id, session.sub)
+      let pdfBuffer: Buffer | null = null
+      if (ret.pdfPath) {
+        try {
+          pdfBuffer = await readFile(ret.pdfPath)
+        } catch (err) {
+          const code = err instanceof Error ? (err as NodeJS.ErrnoException).code : null
+          console.warn(
+            `Stored filing PDF missing for return ${ret.id} at ${ret.pdfPath}; falling back to regeneration`,
+            code
+          )
+        }
+      }
+      if (!pdfBuffer) {
+        pdfBuffer = await renderFilingPdf(ret.id, session.sub)
+      }
       if (!pdfBuffer) continue
       const form = ret.formType.replace('FORM_', '')
       const quarter = ret.quarter ? `Q${ret.quarter}` : 'Annual'

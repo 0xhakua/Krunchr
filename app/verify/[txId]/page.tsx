@@ -214,13 +214,14 @@ export default function VerifyPage() {
       : null
 
   return (
-    <PageShell>
-      <PageHeader
-        title="Verify a Krunchr filing"
-        description="Confirm a BIR return was filed and anchored on the Stellar blockchain."
-      />
+    <PageShell className="px-4 py-6 md:px-10 md:py-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <PageHeader
+          title="Verify a Krunchr filing"
+          description="Confirm a BIR return was filed and anchored on the Stellar blockchain."
+        />
 
-      {loading && (
+        {loading && (
         <Card className="p-2">
           <CardHeader className="space-y-3">
             <Skeleton className="h-7 w-56" />
@@ -438,6 +439,7 @@ export default function VerifyPage() {
           </Card>
         </div>
       )}
+      </div>
     </PageShell>
   )
 }
