@@ -35,14 +35,14 @@ export default function VerifyLandingPage() {
   }
 
   return (
-    <PageShell>
-      <PageHeader
-        title="Verify a Krunchr filing"
-        description="Confirm a BIR return was filed and anchored on the Stellar blockchain."
-      />
-
+    <PageShell className="px-4 py-6 md:px-10 md:py-8">
       <div className="mx-auto w-full max-w-xl">
-        <Card>
+        <PageHeader
+          title="Verify a Krunchr filing"
+          description="Confirm a BIR return was filed and anchored on the Stellar blockchain."
+        />
+
+        <Card className="mt-6">
           <CardHeader className="space-y-2">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-primary" />
