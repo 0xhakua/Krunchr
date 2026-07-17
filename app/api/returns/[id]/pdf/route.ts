@@ -16,6 +16,7 @@ export async function GET(
     const { id } = await params
     const { searchParams } = new URL(req.url)
     const inline = searchParams.get('inline') === '1'
+    const preview = searchParams.get('preview') === '1'
 
     const data = await loadFilingData(id, session.sub)
     if (!data) {
@@ -23,6 +24,7 @@ export async function GET(
     }
 
     let pdfBuffer: Buffer | null = null
+    let previewMode: 'stored' | 'regenerated' | null = null
 
     // Filed returns have a stored PDF whose SHA-256 was anchored on Stellar.
     // Always serve that exact file so the verifier can reproduce the hash.
@@ -31,20 +33,36 @@ export async function GET(
     // regenerated PDF would never match the on-chain anchor.
     if (data.ret.status === 'FILED') {
       if (!data.ret.pdfPath) {
-        return NextResponse.json(
-          { error: 'Filing PDF is not stored for this return' },
-          { status: 404 }
-        )
-      }
-      try {
-        pdfBuffer = await readFile(data.ret.pdfPath)
-      } catch (err) {
-        const code = err instanceof Error ? (err as NodeJS.ErrnoException).code : null
-        console.error(`Stored filing PDF missing for return ${id} at ${data.ret.pdfPath}`, code)
-        return NextResponse.json(
-          { error: 'Filing PDF not found in storage' },
-          { status: 404 }
-        )
+        if (preview) {
+          // Preview mode: show a regenerated view when the stored copy is gone.
+          pdfBuffer = await renderFilingPdf(id, session.sub)
+          previewMode = 'regenerated'
+        } else {
+          return NextResponse.json(
+            { error: 'Filing PDF is not stored for this return' },
+            { status: 404 }
+          )
+        }
+      } else {
+        try {
+          pdfBuffer = await readFile(data.ret.pdfPath)
+          previewMode = preview ? 'stored' : null
+        } catch (err) {
+          const code = err instanceof Error ? (err as NodeJS.ErrnoException).code : null
+          console.error(
+            `Stored filing PDF missing for return ${id} at ${data.ret.pdfPath}`,
+            code
+          )
+          if (preview) {
+            pdfBuffer = await renderFilingPdf(id, session.sub)
+            previewMode = 'regenerated'
+          } else {
+            return NextResponse.json(
+              { error: 'Filing PDF not found in storage' },
+              { status: 404 }
+            )
+          }
+        }
       }
     } else {
       // Non-filed returns are preview/generated on demand.
@@ -59,12 +77,15 @@ export async function GET(
     const quarter = data.ret.quarter ? `Q${data.ret.quarter}` : 'Annual'
     const filename = `${form}-${quarter}-${data.taxYear.year}.pdf`
 
-    return new NextResponse(new Uint8Array(pdfBuffer), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${filename}"`,
-      },
-    })
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${filename}"`,
+    }
+    if (previewMode) {
+      headers['X-Kuwenta-Preview'] = previewMode
+    }
+
+    return new NextResponse(new Uint8Array(pdfBuffer), { headers })
   } catch (err) {
     console.error('Generate PDF error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

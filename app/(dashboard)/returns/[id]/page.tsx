@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -27,7 +27,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { PageShell } from '@/components/ui/page-shell'
 import { ReturnDetailSkeleton } from './loading'
 import { formatPeso, formatDate } from '@/lib/format'
-import { ArrowLeft, FileText, RefreshCw } from 'lucide-react'
+import { ArrowLeft, FileText, RefreshCw, AlertCircle } from 'lucide-react'
 
 type Money = { raw: string; formatted: string }
 
@@ -153,7 +153,10 @@ export default function ReturnDetailPage() {
   const [recalcLoading, setRecalcLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewWarning, setPreviewWarning] = useState(false)
   const [previewLoading, setPreviewLoading] = useState(true)
+  const previewUrlRef = useRef<string | null>(null)
 
   const [simDate, setSimDate] = useState(() => new Date().toISOString().split('T')[0])
   const [simulated, setSimulated] = useState<{
@@ -177,6 +180,13 @@ export default function ReturnDetailPage() {
         }
         setRet(data.return)
         setTaxYear(data.taxYear ?? null)
+
+        if (
+          data.return.status === 'GENERATED' ||
+          data.return.status === 'FILED'
+        ) {
+          await loadPreview(id)
+        }
 
         if (
           data.return.formType === 'FORM_1701A' &&
@@ -215,11 +225,42 @@ export default function ReturnDetailPage() {
       }
     }
 
+    async function loadPreview(returnId: string) {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current)
+        previewUrlRef.current = null
+      }
+      setPreviewLoading(true)
+      setPreviewWarning(false)
+      setPreviewUrl(null)
+      try {
+        const res = await fetch(`/api/returns/${returnId}/pdf?inline=1&preview=1`, {
+          credentials: 'same-origin',
+        })
+        if (!res.ok) {
+          setPreviewLoading(false)
+          return
+        }
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        previewUrlRef.current = url
+        setPreviewUrl(url)
+        const mode = res.headers.get('X-Kuwenta-Preview')
+        setPreviewWarning(mode === 'regenerated')
+      } catch {
+        setPreviewLoading(false)
+      }
+    }
+
     fetchReturn()
     fetchComputation()
 
     return () => {
       cancelled = true
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current)
+        previewUrlRef.current = null
+      }
     }
   }, [id])
 
@@ -590,18 +631,35 @@ export default function ReturnDetailPage() {
           </CardHeader>
           <CardContent className="flex-1 min-h-[400px]">
             {ret.status === 'GENERATED' || ret.status === 'FILED' ? (
-              <div className="relative w-full h-full min-h-[400px] rounded-md border overflow-hidden">
-                {previewLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted/30">
-                    <span className="text-sm text-muted-foreground">Loading preview…</span>
+              <div className="flex flex-col w-full h-full min-h-[400px] rounded-md border overflow-hidden">
+                {previewWarning && (
+                  <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                    <p className="text-xs text-amber-800">
+                      This is a regenerated preview and does not match the Stellar anchor.
+                      Download the verified copy for hash verification.
+                    </p>
                   </div>
                 )}
-                <iframe
-                  src={`/api/returns/${id}/pdf?inline=1`}
-                  title={`BIR ${ret.formType.replace('FORM_', '')} preview`}
-                  className="w-full h-full min-h-[400px]"
-                  onLoad={() => setPreviewLoading(false)}
-                />
+                <div className="relative flex-1 min-h-[360px]">
+                  {previewLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted/30">
+                      <span className="text-sm text-muted-foreground">Loading preview…</span>
+                    </div>
+                  )}
+                  {previewUrl ? (
+                    <iframe
+                      src={previewUrl}
+                      title={`BIR ${ret.formType.replace('FORM_', '')} preview`}
+                      className="w-full h-full min-h-[360px]"
+                      onLoad={() => setPreviewLoading(false)}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+                      Preview unavailable
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center text-muted-foreground space-y-3">

@@ -69,9 +69,29 @@ function parseManageDataValue(raw: string | null | undefined): {
   return { payloadHash, anchoredAt }
 }
 
+function decodeHorizonValue(raw: string): string {
+  // Horizon returns manageData values as base64-encoded strings. Try decoding
+  // when the raw value is not already a plain hex hash, ISO timestamp, or the
+  // legacy single-entry `hash:timestamp` format.
+  const looksDecoded = (value: string) =>
+    /^[a-f0-9]{64}$/i.test(value) ||
+    /^[a-f0-9]{64}:\d{4}-\d{2}-\d{2}T/.test(value) ||
+    /^\d{4}-\d{2}-\d{2}T/.test(value)
+
+  if (looksDecoded(raw)) return raw
+
+  try {
+    const decoded = Buffer.from(raw, 'base64').toString('utf-8')
+    if (looksDecoded(decoded)) return decoded
+  } catch {
+    // fall through to raw value
+  }
+  return raw
+}
+
 function bufferToUtf8(value: unknown): string {
   if (value === null || value === undefined) return ''
-  if (typeof value === 'string') return value
+  if (typeof value === 'string') return decodeHorizonValue(value)
   if (Buffer.isBuffer(value)) return value.toString('utf-8')
   if (value instanceof Uint8Array) return Buffer.from(value).toString('utf-8')
   if (typeof value === 'object' && value !== null && 'toString' in value) {
@@ -242,6 +262,7 @@ export async function fetchPublicAnchor(txId: string): Promise<OnChainAnchor | n
     )
 
     const dataValue = bufferToUtf8(hashOp.value)
+    const parsed = parseManageDataValue(dataValue)
     const timestampValue = timestampOp ? bufferToUtf8(timestampOp.value) : null
     const sourceAccount = hashOp.source_account ?? tx.source_account
 
@@ -249,8 +270,8 @@ export async function fetchPublicAnchor(txId: string): Promise<OnChainAnchor | n
       returnId,
       dataKey: hashOp.name,
       dataValue: dataValue || null,
-      payloadHash: dataValue || null,
-      anchoredAt: timestampValue,
+      payloadHash: (parsed.payloadHash ?? dataValue) || null,
+      anchoredAt: timestampValue ?? parsed.anchoredAt,
       sourceAccount,
       transactionHash: tx.hash,
       ledgerCreatedAt: tx.created_at ?? null,
