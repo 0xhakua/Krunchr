@@ -26,20 +26,28 @@ export async function GET(
 
     // Filed returns have a stored PDF whose SHA-256 was anchored on Stellar.
     // Always serve that exact file so the verifier can reproduce the hash.
-    if (data.ret.pdfPath) {
+    // We must NOT regenerate filed returns because pdf-lib overlay rendering is
+    // non-deterministic: each render produces a different SHA-256, so a
+    // regenerated PDF would never match the on-chain anchor.
+    if (data.ret.status === 'FILED') {
+      if (!data.ret.pdfPath) {
+        return NextResponse.json(
+          { error: 'Filing PDF is not stored for this return' },
+          { status: 404 }
+        )
+      }
       try {
         pdfBuffer = await readFile(data.ret.pdfPath)
       } catch (err) {
         const code = err instanceof Error ? (err as NodeJS.ErrnoException).code : null
-        console.warn(
-          `Stored filing PDF missing for return ${id} at ${data.ret.pdfPath}; falling back to regeneration`,
-          code
+        console.error(`Stored filing PDF missing for return ${id} at ${data.ret.pdfPath}`, code)
+        return NextResponse.json(
+          { error: 'Filing PDF not found in storage' },
+          { status: 404 }
         )
       }
-    }
-
-    // Non-filed or missing stored PDFs are generated on demand.
-    if (!pdfBuffer) {
+    } else {
+      // Non-filed returns are preview/generated on demand.
       pdfBuffer = await renderFilingPdf(id, session.sub)
     }
 

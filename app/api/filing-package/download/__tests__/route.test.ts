@@ -79,6 +79,7 @@ vi.mock('@/lib/auth/session', async () => {
 })
 
 import { GET } from '../route'
+import { readFile } from '@/lib/storage'
 
 const ZIP_LOCAL_HEADER = 0x04034b50 // 'PK\x03\x04'
 const ZIP_EMPTY_ARCHIVE = 0x06054b50 // 'PK\x05\x06'
@@ -97,7 +98,12 @@ async function fileAllReturns(taxYearId: string): Promise<string[]> {
   for (const ret of returns) {
     await prisma.taxReturn.update({
       where: { id: ret.id },
-      data: { status: 'FILED', filedDate: new Date(), generatedAt: new Date() },
+      data: {
+        status: 'FILED',
+        filedDate: new Date(),
+        generatedAt: new Date(),
+        pdfPath: `returns/${taxYearId}/${ret.id}/generated.pdf`,
+      },
     })
   }
   return returns.map((r) => r.id)
@@ -169,6 +175,48 @@ describe('GET /api/filing-package/download', () => {
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body).toMatchObject({ error: expect.stringMatching(/filed/i) })
+  })
+
+  it('returns 404 when a stored filing PDF is missing from disk', async () => {
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+    const atc = await createATCCode({ code: 'WI010', ewtRate: 0.1 })
+    await createForm2307(taxYear.id, atc.code, {
+      quarter: 1,
+      quarterlyTotal: 100000,
+      cwtWithheld: 10000,
+    })
+    const returns = await prisma.taxReturn.findMany({
+      where: { taxYearId: taxYear.id },
+      orderBy: { sequenceOrder: 'asc' },
+    })
+    for (const ret of returns) {
+      await prisma.taxReturn.update({
+        where: { id: ret.id },
+        data: {
+          status: 'FILED',
+          filedDate: new Date(),
+          generatedAt: new Date(),
+          pdfPath: `returns/${taxYear.id}/${ret.id}/generated.pdf`,
+        },
+      })
+    }
+
+    vi.mocked(readFile).mockRejectedValue(
+      Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
+    )
+
+    mockSession.current = { sub: user.id, username: user.username, role: 'TAXPAYER' }
+
+    const req = new NextRequest('http://localhost/api/filing-package/download')
+    const res = await GET(req)
+
+    expect(res.status).toBe(404)
+    const body = await res.json()
+    expect(body.code).toBe('FILING_PDFS_MISSING')
+    expect(body.error).toMatch(/Filing PDFs missing from storage/)
   })
 
   it('returns 401 when unauthenticated', async () => {
