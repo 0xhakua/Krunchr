@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -156,7 +156,6 @@ export default function ReturnDetailPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewWarning, setPreviewWarning] = useState(false)
   const [previewLoading, setPreviewLoading] = useState(true)
-  const previewUrlRef = useRef<string | null>(null)
 
   const [simDate, setSimDate] = useState(() => new Date().toISOString().split('T')[0])
   const [simulated, setSimulated] = useState<{
@@ -226,27 +225,26 @@ export default function ReturnDetailPage() {
     }
 
     async function loadPreview(returnId: string) {
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current)
-        previewUrlRef.current = null
-      }
       setPreviewLoading(true)
       setPreviewWarning(false)
       setPreviewUrl(null)
       try {
-        const res = await fetch(`/api/returns/${returnId}/pdf?inline=1&preview=1`, {
+        // Probe the endpoint with HEAD to confirm the PDF exists and read the
+        // preview mode header without downloading the body. We then render it
+        // via a direct iframe src rather than a blob URL, because blob URLs
+        // inherit the parent page's CSP and remain blocked by Chrome's PDF
+        // viewer even with frame-ancestors 'self'.
+        const probe = await fetch(`/api/returns/${returnId}/pdf?inline=1&preview=1`, {
+          method: 'HEAD',
           credentials: 'same-origin',
         })
-        if (!res.ok) {
+        if (!probe.ok) {
           setPreviewLoading(false)
           return
         }
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        previewUrlRef.current = url
-        setPreviewUrl(url)
-        const mode = res.headers.get('X-Kuwenta-Preview')
+        const mode = probe.headers.get('X-Kuwenta-Preview')
         setPreviewWarning(mode === 'regenerated')
+        setPreviewUrl(`/api/returns/${returnId}/pdf?inline=1&preview=1`)
       } catch {
         setPreviewLoading(false)
       }
@@ -257,10 +255,6 @@ export default function ReturnDetailPage() {
 
     return () => {
       cancelled = true
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current)
-        previewUrlRef.current = null
-      }
     }
   }, [id])
 
