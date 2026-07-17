@@ -9,7 +9,11 @@ const csp = [
   "font-src 'self'",
   "connect-src 'self' https://horizon-testnet.stellar.org https://horizon.stellar.org",
   "object-src 'none'",
-  "frame-ancestors 'none'",
+  // SAMEORIGIN + frame-ancestors 'self' allow the return-detail page to embed
+  // generated/filing PDFs in an iframe while still blocking third-party
+  // clickjacking. frame-ancestors 'none' / DENY break PDF preview entirely
+  // (issue #260).
+  "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",
 ].join("; ");
@@ -38,7 +42,7 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Content-Security-Policy", value: csp },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
