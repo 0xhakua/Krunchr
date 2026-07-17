@@ -24,6 +24,8 @@ import {
   Upload,
   FileCheck2,
   ShieldCheck,
+  Copy,
+  Check,
 } from 'lucide-react'
 
 interface VerifyResponse {
@@ -70,6 +72,50 @@ function formatDate(iso: string | null): string {
   }
 }
 
+function useCopy(timeout = 1500) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = useCallback(
+    async (text: string) => {
+      try {
+        await navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), timeout)
+      } catch {
+        setCopied(false)
+      }
+    },
+    [timeout]
+  )
+
+  return { copied, copy }
+}
+
+function CopyButton({ value }: { value: string }) {
+  const { copied, copy } = useCopy()
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-7 px-2 text-muted-foreground"
+      onClick={() => copy(value)}
+    >
+      {copied ? (
+        <>
+          <Check className="mr-1 h-3.5 w-3.5" />
+          Copied
+        </>
+      ) : (
+        <>
+          <Copy className="mr-1 h-3.5 w-3.5" />
+          Copy
+        </>
+      )}
+    </Button>
+  )
+}
+
 export default function VerifyPage() {
   const params = useParams()
   const txId = (params?.txId as string) ?? ''
@@ -82,6 +128,11 @@ export default function VerifyPage() {
   const [fileHash, setFileHash] = useState<string | null>(null)
   const [comparing, setComparing] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+
+  const verifierUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/verify/${txId}`
+      : `/verify/${txId}`
 
   useEffect(() => {
     let cancelled = false
@@ -170,21 +221,26 @@ export default function VerifyPage() {
       />
 
       {loading && (
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-72" />
+        <Card className="p-2">
+          <CardHeader className="space-y-3">
+            <Skeleton className="h-7 w-56" />
+            <Skeleton className="h-4 w-80" />
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
+          <CardContent className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+            <Skeleton className="h-10 w-40" />
           </CardContent>
         </Card>
       )}
 
       {!loading && error && (
         <Card className="border-red-200">
-          <CardHeader>
+          <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <XCircle className="h-5 w-5 text-red-600" />
               <CardTitle>Receipt not verified</CardTitle>
@@ -193,11 +249,15 @@ export default function VerifyPage() {
               We could not confirm this transaction as a Krunchr filing receipt.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <p className="text-sm text-red-600">{error}</p>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Transaction ID: <span className="font-mono">{txId}</span>
-            </p>
+            <div className="rounded-lg bg-muted/40 p-3">
+              <Label className="text-muted-foreground text-xs">Transaction ID</Label>
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-mono text-sm break-all">{txId}</p>
+                <CopyButton value={txId} />
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -211,8 +271,8 @@ export default function VerifyPage() {
                 : 'border-red-200'
             }
           >
-            <CardHeader>
-              <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CardHeader className="space-y-2 pb-4">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   {data.status === 'CONFIRMED' ? (
                     <CheckCircle2 className="h-6 w-6 text-green-600" />
@@ -242,11 +302,27 @@ export default function VerifyPage() {
                   : 'On-chain filing receipt'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+            <CardContent className="space-y-6">
+              <div className="rounded-lg border bg-background p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <Label className="text-muted-foreground">Public verifier link</Label>
+                  <CopyButton value={verifierUrl} />
+                </div>
+                <a
+                  href={verifierUrl}
+                  className="block font-mono text-sm text-primary break-all hover:underline"
+                >
+                  {verifierUrl}
+                </a>
+              </div>
+
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
                 <div>
                   <Label className="text-muted-foreground">Transaction ID</Label>
-                  <p className="font-mono text-sm break-all">{data.txId}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-mono text-sm break-all">{data.txId}</p>
+                    <CopyButton value={data.txId} />
+                  </div>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Anchored at</Label>
@@ -262,16 +338,15 @@ export default function VerifyPage() {
                 </div>
                 <div className="sm:col-span-2">
                   <Label className="text-muted-foreground">Anchored SHA-256 hash</Label>
-                  <p className="font-mono text-sm break-all">{data.onChainHash}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-mono text-sm break-all">{data.onChainHash}</p>
+                    {data.onChainHash && <CopyButton value={data.onChainHash} />}
+                  </div>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">
-                <a
-                  href={data.explorerUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a href={data.explorerUrl} target="_blank" rel="noreferrer">
                   <Button variant="outline" size="sm">
                     <ExternalLink className="mr-1 h-4 w-4" />
                     View raw transaction
@@ -287,7 +362,7 @@ export default function VerifyPage() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="space-y-2 pb-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-primary" />
                 <CardTitle>Check the filing PDF</CardTitle>
@@ -298,7 +373,7 @@ export default function VerifyPage() {
                 the file is not uploaded.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               <div
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
