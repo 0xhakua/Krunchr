@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import Decimal from "decimal.js";
-import crypto from "node:crypto";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -218,18 +217,6 @@ describe("2551Q overlay (issue #213)", () => {
     expect(result.drawnKeys).toContain("part2_surcharge");
     expect(result.drawnKeys).toContain("part2_interest");
   });
-
-  it("renderForm2551QOverlay is non-deterministic (pdf-lib produces different bytes per render)", async () => {
-    // Regression guard for issue #254 follow-up: pdf-lib's save() is not
-    // deterministic, so a regenerated filed PDF would never match the SHA-256
-    // anchored on Stellar. The app must serve the stored filing PDF instead of
-    // regenerating it for verification.
-    const r1 = await renderForm2551QOverlay(sampleData)
-    const r2 = await renderForm2551QOverlay(sampleData)
-    const h1 = crypto.createHash("sha256").update(Buffer.from(r1.bytes)).digest("hex")
-    const h2 = crypto.createHash("sha256").update(Buffer.from(r2.bytes)).digest("hex")
-    expect(h1).not.toBe(h2)
-  })
 
   it("renderForm2551QOverlay: Q2 value map sets the 8% election checkbox to false (BR-02)", () => {
     // Q2 sample data: 8% election was made on Q1; the Q2 form does NOT

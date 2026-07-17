@@ -417,6 +417,11 @@ function drawValue(
  * walk the value map, draw each value at its coord, then flatten.
  */
 export async function renderForm2551QOverlay(data: FilingPdfData): Promise<BirOverlayResult> {
+  // IMPORTANT: pdf-lib's save() is not guaranteed to be deterministic. The
+  // same input can produce different bytes (and therefore a different SHA-256)
+  // across runs. Because the verifier compares the PDF's hash against the hash
+  // anchored on Stellar, filed returns must use the exact stored PDF — never
+  // regenerate it for verification. See PR #254 / #255.
   const pdfBytes = await loadOfficialBirPdf("2551Q.pdf");
   const doc = await PDFDocument.load(pdfBytes);
   const font = await doc.embedFont(StandardFonts.Helvetica);
