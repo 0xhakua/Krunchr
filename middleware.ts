@@ -11,8 +11,10 @@ export const runtime = 'nodejs'
 const PUBLIC_PATHS = [
   '/login',
   '/register',
+  '/verify',
   '/api/auth/login',
   '/api/auth/register',
+  '/api/public/verify',
   '/bir-forms',
   ...(process.env.NODE_ENV === 'development' ? ['/dev'] : []),
 ]
