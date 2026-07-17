@@ -142,7 +142,7 @@ export default function StellarPage() {
           <h2 className="font-semibold">How a bank or embassy verifies this filing</h2>
         </div>
         <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
-          <li>Scan the QR code or open the Stellar Explorer link for the return.</li>
+          <li>Scan the QR code to open the public Krunchr verifier.</li>
           <li>Confirm the transaction contains the manage-data entry for this filing.</li>
           <li>Compare the anchored SHA-256 hash with the PDF filing package — they must match.</li>
           <li>Check the anchored timestamp to verify when the return was committed on-chain.</li>
@@ -201,15 +201,19 @@ export default function StellarPage() {
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                           <DialogHeader>
-                            <DialogTitle>Verify on Stellar</DialogTitle>
+                            <DialogTitle>Verify filing</DialogTitle>
                             <DialogDescription>
-                              Scan to open the explorer and view the anchored filing hash.
+                              Scan to open the public verifier. Anyone can confirm this
+                              filing without signing in.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="flex flex-col items-center gap-4 py-4">
-                            <QRCode value={receipt.explorerUrl} size={192} />
+                            <QRCode
+                              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/verify/${receipt.stellarTxId}`}
+                              size={192}
+                            />
                             <p className="text-center text-xs text-muted-foreground break-all px-4">
-                              {receipt.explorerUrl}
+                              {typeof window !== 'undefined' ? window.location.origin : ''}/verify/{receipt.stellarTxId}
                             </p>
                           </div>
                         </DialogContent>

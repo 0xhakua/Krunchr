@@ -20,8 +20,8 @@ export interface ParsedAnchorPayload {
   filedDate: string
 }
 
-const HASH_KEY_PREFIX = 'kuwenta:ph:'
-const TIMESTAMP_KEY_PREFIX = 'kuwenta:ts:'
+export const HASH_KEY_PREFIX = 'kuwenta:ph:'
+export const TIMESTAMP_KEY_PREFIX = 'kuwenta:ts:'
 const MANAGE_DATA_NAME_MAX_BYTES = 64
 
 function getExplorerUrl(txId: string): string {
