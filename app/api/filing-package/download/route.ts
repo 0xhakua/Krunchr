@@ -5,7 +5,6 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { determineReturnStatus } from '@/lib/computation/sequence'
-import { renderFilingPdf } from '@/lib/pdf/dispatcher'
 import { readFile } from '@/lib/storage'
 import { CoverSheet } from '@/lib/pdf/cover-sheet'
 import { resolveTaxYearFromRequest, setActiveYearCookie } from '@/lib/active-year'
@@ -16,6 +15,11 @@ function escapeCsv(value: string | number): string {
     return `"${str.replace(/"/g, '""')}"`
   }
   return str
+}
+
+function formatReturnLabel(formType: string, quarter: number | null): string {
+  const form = formType.replace('FORM_', '')
+  return quarter ? `${form} Q${quarter}` : form
 }
 
 export async function GET(request: Request) {
@@ -132,27 +136,38 @@ export async function GET(request: Request) {
     zip.file(`SAWT-${taxYear.year}.csv`, csv)
 
     // Filed return PDFs — serve the stored filing PDFs so their hashes match
-    // the Stellar anchors; only regenerate if the stored file is missing.
+    // the Stellar anchors. We must NOT regenerate filed returns because
+    // pdf-lib overlay rendering is non-deterministic: each render produces a
+    // different SHA-256, so a regenerated PDF would never match its anchor.
+    const missingReturns: string[] = []
     for (const ret of filedReturns) {
       let pdfBuffer: Buffer | null = null
-      if (ret.pdfPath) {
-        try {
-          pdfBuffer = await readFile(ret.pdfPath)
-        } catch (err) {
-          const code = err instanceof Error ? (err as NodeJS.ErrnoException).code : null
-          console.warn(
-            `Stored filing PDF missing for return ${ret.id} at ${ret.pdfPath}; falling back to regeneration`,
-            code
-          )
-        }
+      if (!ret.pdfPath) {
+        missingReturns.push(formatReturnLabel(ret.formType, ret.quarter))
+        continue
       }
-      if (!pdfBuffer) {
-        pdfBuffer = await renderFilingPdf(ret.id, session.sub)
+      try {
+        pdfBuffer = await readFile(ret.pdfPath)
+      } catch (err) {
+        const code = err instanceof Error ? (err as NodeJS.ErrnoException).code : null
+        console.error(`Stored filing PDF missing for return ${ret.id} at ${ret.pdfPath}`, code)
+        missingReturns.push(formatReturnLabel(ret.formType, ret.quarter))
+        continue
       }
-      if (!pdfBuffer) continue
       const form = ret.formType.replace('FORM_', '')
       const quarter = ret.quarter ? `Q${ret.quarter}` : 'Annual'
       zip.file(`${form}-${quarter}-${taxYear.year}.pdf`, pdfBuffer)
+    }
+
+    if (missingReturns.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Filing PDFs missing from storage: ${missingReturns.join(', ')}`,
+          code: 'FILING_PDFS_MISSING',
+          missing: missingReturns,
+        },
+        { status: 404 }
+      )
     }
 
     const blob = await zip.generateAsync({ type: 'nodebuffer' })

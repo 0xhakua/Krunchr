@@ -122,7 +122,7 @@ describe('GET /api/returns/[id]/pdf', () => {
     expect(readFile).not.toHaveBeenCalled()
   })
 
-  it('falls back to regeneration when the stored PDF is missing from disk', async () => {
+  it('returns 404 when the stored filing PDF is missing from disk for a FILED return', async () => {
     const { user, taxYear } = await createTaxpayerWithYear({
       year: 2026,
       corIncludes2551Q: true,
@@ -154,11 +154,45 @@ describe('GET /api/returns/[id]/pdf', () => {
       { params: Promise.resolve({ id: ret.id }) }
     )
 
-    expect(res.status).toBe(200)
-    const body = Buffer.from(await res.arrayBuffer())
-    expect(body.toString()).toBe(regeneratedPdf.toString())
+    expect(res.status).toBe(404)
+    const body = await res.json()
+    expect(body.error).toMatch(/Filing PDF not found in storage/)
     expect(readFile).toHaveBeenCalledWith(pdfPath)
-    expect(renderFilingPdf).toHaveBeenCalledWith(ret.id, user.id)
+    expect(renderFilingPdf).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 when a FILED return has no stored pdfPath', async () => {
+    const { user, taxYear } = await createTaxpayerWithYear({
+      year: 2026,
+      corIncludes2551Q: true,
+    })
+    const ret = await prisma.taxReturn.findFirstOrThrow({
+      where: { taxYearId: taxYear.id, sequenceOrder: 1 },
+    })
+
+    vi.mocked(loadFilingData).mockResolvedValue({
+      ret: {
+        id: ret.id,
+        formType: 'FORM_2551Q',
+        quarter: 1,
+        status: 'FILED',
+        pdfPath: null,
+      },
+      taxYear: { year: 2026 },
+    } as Awaited<ReturnType<typeof loadFilingData>>)
+
+    mockSession.current = { sub: user.id, username: user.username, role: 'TAXPAYER' }
+
+    const res = await GET(
+      new Request(`http://localhost/api/returns/${ret.id}/pdf`),
+      { params: Promise.resolve({ id: ret.id }) }
+    )
+
+    expect(res.status).toBe(404)
+    const body = await res.json()
+    expect(body.error).toMatch(/Filing PDF is not stored/)
+    expect(readFile).not.toHaveBeenCalled()
+    expect(renderFilingPdf).not.toHaveBeenCalled()
   })
 
   it('returns 401 when unauthenticated', async () => {
